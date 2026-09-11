@@ -1,0 +1,460 @@
+﻿{% extends "base.html" %}
+{% block title %}仪表盘 · OpenGuard{% endblock %}
+{% block topbar_title %}仪表盘{% endblock %}
+{% block topbar_sub %}概览 · 配额 · 技能{% endblock %}
+{% block content %}
+
+<section class="page-hero">
+  <h1>你好，{{ (username or '用户') }}。</h1>
+  <p>管理本周配额、切换驱动模型、查看技能存储 — 简洁而专注的工作台。</p>
+</section>
+
+<!-- 配额条 -->
+<div class="quota-bar" aria-label="本周配额">
+  <div class="quota-text">
+    <span class="kicker">本周配额</span>
+    <span id="quota-text">加载中...</span>
+  </div>
+  <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="quota-track">
+    <div class="progress-fill" id="quota-progress"></div>
+  </div>
+  <div class="reset-text" id="quota-reset">—</div>
+  <div class="form-field" style="min-width:200px;">
+    <span class="field-label">模型</span>
+    <select id="model-select" class="input" aria-label="模型选择">
+      <option value="">加载中...</option>
+    </select>
+  </div>
+</div>
+
+<!-- 顶部 Tab -->
+<div class="dashboard-tabs" id="tabbar-top" role="tablist">
+  <button id="tab-chat" role="tab" aria-selected="true" class="tab-item active" type="button" onclick="switchTab('chat')">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    聊天
+  </button>
+  <button id="tab-skills" role="tab" aria-selected="false" class="tab-item" type="button" onclick="switchTab('skills')">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 9.2 8.6 2 9.3l5.2 5.1L5.8 22 12 18.3 18.2 22l-1.4-7.6L22 9.3l-7.2-.7z"/></svg>
+    我的技能
+  </button>
+</div>
+
+<!-- 聊天面板 -->
+<div class="chat-panels" id="chat-panels" role="tabpanel" aria-label="聊天">
+  <aside id="sidebar-chat" class="session-sidebar" aria-label="会话列表">
+    <div class="session-header">
+      <div class="s-title">会话</div>
+      <button class="s-new-btn" type="button" onclick="newSession()" title="新建会话" aria-label="新建会话">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+    </div>
+    <div class="session-list" id="session-list">
+      <div class="empty-state" style="border:0;background:transparent;padding:20px 10px;">
+        <div class="es-title" style="font-size:.9rem;">暂无历史</div>
+        <div class="es-sub">开始你的第一次对话</div>
+      </div>
+    </div>
+  </aside>
+
+  <div id="main-chat" class="chat-main" aria-label="聊天区域">
+    <div id="loading" class="loading" style="display:flex;height:100%;align-items:center;justify-content:center;">载入中...</div>
+    <div id="chat-area" style="display:none;flex-direction:column;height:100%;flex:1;">
+      <div id="chat-messages" class="chat-messages" role="log" aria-live="polite">
+        <div class="chat-msg ai" data-placeholder style="align-self:center;border:none;background:transparent;color:var(--text-tertiary);font-size:13px;">// 点击「连接」开始对话</div>
+      </div>
+      <div class="chat-input-row">
+        <input id="chat-input" type="text" placeholder="输入消息 · Enter 发送" onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();sendChat();}">
+        <button id="chat-send-btn" class="btn btn-primary btn-sm" type="button" onclick="sendChat()" disabled>发送</button>
+        <button id="chat-connect-btn" class="btn btn-ghost btn-sm" type="button" onclick="connectChat()">连接</button>
+      </div>
+      <div id="chat-status" class="chat-status">未连接</div>
+    </div>
+  </div>
+</div>
+
+<!-- 技能面板 -->
+<section id="main-skills" style="display:none;" role="tabpanel" aria-label="我的技能">
+  <div id="skills-loading" class="loading" style="padding:40px;">加载中...</div>
+  <div id="skills-panel" style="display:none;">
+    <div class="skills-header">
+      <div>
+        <h2>我的技能</h2>
+        <span style="font-size:13px;color:var(--text-tertiary);">管理你已存储的技能扩展</span>
+      </div>
+      <button class="btn btn-primary btn-sm" type="button" onclick="showAddSkillForm()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        新增技能
+      </button>
+    </div>
+
+    <!-- 新增技能表单 -->
+    <div id="add-skill-form" class="panel" style="display:none;margin-bottom:var(--sp-6);">
+      <div class="panel-body">
+        <div class="inline-form">
+          <div class="form-row">
+            <div class="form-field">
+              <span class="field-label">技能名称 *</span>
+              <input id="new-skill-name" class="input" placeholder="如 my-assistant">
+            </div>
+            <div class="form-field">
+              <span class="field-label">来源</span>
+              <select id="new-skill-source" class="input">
+                <option value="custom">自定义</option>
+                <option value="imported">导入</option>
+                <option value="shared">共享</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-field">
+            <span class="field-label">描述</span>
+            <input id="new-skill-desc" class="input" placeholder="可选，技能用途说明">
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <span class="field-label">版本</span>
+              <input id="new-skill-version" class="input" placeholder="如 v1.0">
+            </div>
+            <div class="form-field" style="justify-content:flex-end;flex-direction:row;display:flex;gap:var(--sp-2);align-self:flex-end;">
+              <button class="btn btn-ghost btn-sm" type="button" onclick="hideAddSkillForm()">取消</button>
+              <button class="btn btn-primary btn-sm" type="button" onclick="addSkill()">保存</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 技能列表 -->
+    <div id="skills-grid" class="skills-grid"></div>
+    <div id="skills-empty" class="empty-state" style="display:none;">
+      <div class="es-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 9.2 8.6 2 9.3l5.2 5.1L5.8 22 12 18.3 18.2 22l-1.4-7.6L22 9.3l-7.2-.7z"/></svg>
+      </div>
+      <div class="es-title">暂无技能</div>
+      <div class="es-sub">点击右上角「新增技能」添加第一个技能</div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+var currentTab = 'chat';
+var currentSession = null;
+var ws = null;
+var reconnectTimer = null;
+
+function switchTab(tab) {
+  currentTab = tab;
+  var tabs = document.querySelectorAll('.dashboard-tabs .tab-item');
+  tabs.forEach(function(t){
+    t.classList.toggle('active', t.getAttribute('onclick').indexOf("'" + tab + "'") !== -1);
+  });
+  document.getElementById('chat-panels').style.display = tab === 'chat' ? '' : 'none';
+  document.getElementById('main-skills').style.display = tab === 'skills' ? '' : 'none';
+  if (tab === 'skills') loadSkills();
+}
+
+// ===== 配额 & 模型 =====
+var PROVIDER_NAMES = {
+  'deepseek': 'DeepSeek 深度求索', 'kimi': 'Kimi 月之暗面',
+  'glm': '智谱 GLM', 'minimax': 'MiniMax'
+};
+
+async function updateQuotaBar() {
+  try {
+    var r = await fetchWithAuth('/me');
+    if (!r.ok) return;
+    var me = await r.json();
+    var used = me.quota_used || 0;
+    var limit = me.quota_limit || 1;
+    var pct = Math.min(100, Math.round((used / limit) * 100));
+    var textEl = document.getElementById('quota-text');
+    var fillEl = document.getElementById('quota-progress');
+    var resetEl = document.getElementById('quota-reset');
+    if (textEl) textEl.textContent = fmtTokens(used) + ' / ' + fmtTokens(limit) + ' tokens (' + pct + '%)';
+    if (fillEl) fillEl.style.width = pct + '%';
+    if (resetEl) resetEl.textContent = fmtReset(me.quota_reset_at);
+    if (me.available_models) populateModelSelect(me.available_models, me.default_model);
+  } catch(e) {}
+}
+
+function populateModelSelect(models, defaultModel) {
+  var sel = document.getElementById('model-select');
+  if (!sel || sel.dataset.loaded === '1') return;
+  sel.dataset.loaded = '1';
+  sel.innerHTML = '';
+  var groups = {}, order = [];
+  models.forEach(function(m){
+    var provider = (m.id || '').split('/')[0] || 'other';
+    if (!groups[provider]) { groups[provider] = []; order.push(provider); }
+    groups[provider].push(m);
+  });
+  order.forEach(function(provider){
+    var og = document.createElement('optgroup');
+    og.label = PROVIDER_NAMES[provider] || (provider.charAt(0).toUpperCase() + provider.slice(1));
+    groups[provider].forEach(function(m){
+      var o = document.createElement('option');
+      o.value = m.id;
+      o.textContent = m.name;
+      if (m.description) o.title = m.description;
+      if (m.id === defaultModel) o.selected = true;
+      og.appendChild(o);
+    });
+    sel.appendChild(og);
+  });
+  sel.addEventListener('change', function(){ changeModel(this.value); });
+}
+
+async function changeModel(modelId) {
+  try {
+    var r = await fetchWithAuth('/api/me/model', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: modelId })
+    });
+    if (r.ok) updateQuotaBar();
+  } catch(e) {}
+}
+
+// ===== Chat =====
+function newSession() {
+  currentSession = 'sess_' + Date.now().toString(36);
+  document.getElementById('chat-messages').innerHTML = '';
+  renderSessionActive();
+  connectChat();
+}
+
+async function connectChat() {
+  var statusEl = document.getElementById('chat-status');
+  var sendBtn = document.getElementById('chat-send-btn');
+  statusEl.textContent = '连接中...';
+  if (ws) { try { ws.close(); } catch(e) {} }
+  try {
+    var tokenVal = (typeof authToken === 'function' ? authToken() : '');
+    if (!tokenVal) { statusEl.textContent = '未登录'; return; }
+    var proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    var url = proto + '//' + location.host + '/chat?token=' + encodeURIComponent(tokenVal);
+    if (currentSession) url += '&session=' + encodeURIComponent(currentSession);
+    ws = new WebSocket(url);
+    ws.onopen = function() {
+      statusEl.textContent = '已连接';
+      sendBtn.disabled = false;
+      var box = document.getElementById('chat-messages');
+      var ph = box.querySelector('.chat-msg[data-placeholder]');
+      if (ph) ph.remove();
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('chat-area').style.display = 'flex';
+    };
+    ws.onmessage = function(evt) {
+      var box = document.getElementById('chat-messages');
+      var lastMsg = box.lastElementChild;
+      if (lastMsg && lastMsg.classList.contains('ai') && lastMsg.dataset.streaming === 'true') {
+        lastMsg.textContent += evt.data;
+      } else {
+        var div = document.createElement('div');
+        div.className = 'chat-msg ai';
+        div.dataset.streaming = 'true';
+        div.textContent = evt.data;
+        box.appendChild(div);
+      }
+      box.scrollTop = box.scrollHeight;
+    };
+    ws.onclose = function() {
+      statusEl.textContent = '已断开';
+      sendBtn.disabled = true;
+    };
+    ws.onerror = function() {
+      statusEl.textContent = '连接错误';
+    };
+  } catch(e) {
+    statusEl.textContent = '连接失败';
+  }
+}
+
+function sendChat() {
+  var input = document.getElementById('chat-input');
+  var msg = input.value.trim();
+  if (!msg || !ws || ws.readyState !== 1) return;
+  var box = document.getElementById('chat-messages');
+  var ph = box.querySelector('.chat-msg[data-placeholder]');
+  if (ph) ph.remove();
+  var div = document.createElement('div');
+  div.className = 'chat-msg user';
+  div.textContent = msg;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+  input.value = '';
+  ws.send(msg);
+}
+
+// ===== 会话列表 & 历史 =====
+async function loadSessions() {
+  var list = document.getElementById('session-list');
+  try {
+    var r = await fetchWithAuth('/api/chat/sessions');
+    if (!r.ok) throw new Error('unauthorized');
+    renderSessions(await r.json());
+  } catch(e) {
+    list.innerHTML = '<div class="empty-state" style="border:0;background:transparent;padding:20px 10px;"><div class="es-title" style="font-size:.9rem;">会话列表不可用</div><div class="es-sub">Bridge 未连接</div></div>';
+  }
+}
+
+function renderSessions(sessions) {
+  var list = document.getElementById('session-list');
+  if (!sessions || !sessions.length) {
+    list.innerHTML = '<div class="empty-state" style="border:0;background:transparent;padding:20px 10px;"><div class="es-title" style="font-size:.9rem;">暂无历史</div><div class="es-sub">开始你的第一次对话</div></div>';
+    return;
+  }
+  list.innerHTML = '';
+  sessions.forEach(function(s){
+    var item = document.createElement('button');
+    item.type = 'button';
+    item.className = 'session-item';
+    item.setAttribute('data-key', s.session_key);
+    if (currentSession && s.session_key === currentSession) item.classList.add('active');
+    item.innerHTML =
+      '<span class="si-title">' + escapeHtml(s.title || '未命名会话') + '</span>' +
+      '<span class="si-meta">' + (s.msg_count ? s.msg_count + ' 条 · ' : '') + escapeHtml(fmtRel(s.last_active)) + '</span>';
+    item.onclick = function(){ openSession(s.session_key); };
+    list.appendChild(item);
+  });
+}
+
+function renderSessionActive() {
+  document.querySelectorAll('.session-item').forEach(function(el){
+    el.classList.toggle('active', !!currentSession && el.getAttribute('data-key') === currentSession);
+  });
+}
+
+async function openSession(key) {
+  currentSession = key;
+  renderSessionActive();
+  var box = document.getElementById('chat-messages');
+  box.innerHTML = '<div class="chat-msg ai" style="align-self:center;border:none;background:transparent;color:var(--text-tertiary);font-size:13px;">// 加载历史中...</div>';
+  try {
+    var r = await fetchWithAuth('/api/chat/history/' + encodeURIComponent(key));
+    if (!r.ok) throw new Error('history failed');
+    var msgs = await r.json();
+    box.innerHTML = '';
+    if (!msgs.length) {
+      box.innerHTML = '<div class="chat-msg ai" style="align-self:center;border:none;background:transparent;color:var(--text-tertiary);font-size:13px;">// 无历史消息</div>';
+    } else {
+      msgs.forEach(function(m){
+        var div = document.createElement('div');
+        div.className = 'chat-msg ' + (m.role === 'user' ? 'user' : 'ai');
+        div.textContent = m.content;
+        box.appendChild(div);
+      });
+    }
+    box.scrollTop = box.scrollHeight;
+  } catch(e) {
+    box.innerHTML = '<div class="chat-msg ai" style="align-self:center;border:none;background:transparent;color:var(--text-tertiary);font-size:13px;">// 历史加载失败</div>';
+  }
+  connectChat();
+}
+
+// ===== Skills =====
+async function loadSkills() {
+  var loading = document.getElementById('skills-loading');
+  var panel = document.getElementById('skills-panel');
+  var grid = document.getElementById('skills-grid');
+  var empty = document.getElementById('skills-empty');
+  loading.style.display = '';
+  panel.style.display = 'none';
+  try {
+    var r = await fetchWithAuth('/api/skills');
+    if (!r.ok) throw new Error('Not logged in');
+    var skills = await r.json();
+    loading.style.display = 'none';
+    panel.style.display = '';
+    grid.innerHTML = '';
+    if (!skills.length) {
+      empty.style.display = '';
+      return;
+    }
+    empty.style.display = 'none';
+    skills.forEach(function(sk){
+      grid.appendChild(renderSkillCard(sk));
+    });
+  } catch(e) {
+    loading.innerHTML = '<div class="empty-state"><div class="es-title">加载失败</div><div class="es-sub">' + e.message + '</div></div>';
+  }
+}
+
+function renderSkillCard(sk) {
+  var card = document.createElement('div');
+  card.className = 'skill-card';
+  var statusBadge = sk.status === 'active' ? '<span class="badge badge-success">active</span>' : '<span class="badge badge-warning">' + (sk.status||'') + '</span>';
+  card.innerHTML =
+    '<div class="skill-card-head">' +
+      '<div class="skill-card-name" title="' + sk.skill_name + '">' + escapeHtml(sk.skill_name) + '</div>' +
+      statusBadge +
+    '</div>' +
+    '<div class="skill-card-meta">' +
+      (sk.installed_version ? '<span class="version">' + escapeHtml(sk.installed_version) + '</span>' : '') +
+      '<span class="badge badge-accent">' + escapeHtml(sk.skill_source || 'custom') + '</span>' +
+    '</div>' +
+    '<div class="skill-card-desc">' + escapeHtml(sk.agent_name || '默认 Agent') + '</div>' +
+    '<div class="skill-card-footer">' +
+      '<span>' + fmtRel(sk.installed_at) + '</span>' +
+      '<button class="btn btn-ghost btn-sm" type="button" onclick="deleteSkill(\'' + escapeAttr(sk.skill_name) + '\', \'' + escapeAttr(sk.agent_id) + '\')">删除</button>' +
+    '</div>';
+  return card;
+}
+
+function showAddSkillForm() {
+  document.getElementById('add-skill-form').style.display = '';
+}
+function hideAddSkillForm() {
+  document.getElementById('add-skill-form').style.display = 'none';
+}
+
+async function addSkill() {
+  var name = document.getElementById('new-skill-name').value.trim();
+  var source = document.getElementById('new-skill-source').value;
+  var version = document.getElementById('new-skill-version').value.trim();
+  var desc = document.getElementById('new-skill-desc').value.trim();
+  if (!name) { alert('请填写技能名称'); return; }
+  try {
+    var r = await fetchWithAuth('/api/skills', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ skill_name: name, source: source, version: version || null, description: desc || null })
+    });
+    if (!r.ok) { var d = await r.json(); throw new Error(d.detail || '保存失败'); }
+    hideAddSkillForm();
+    document.getElementById('new-skill-name').value = '';
+    document.getElementById('new-skill-version').value = '';
+    document.getElementById('new-skill-desc').value = '';
+    loadSkills();
+  } catch(e) { alert(e.message); }
+}
+
+async function deleteSkill(name, agentId) {
+  if (!confirm('删除技能 "' + name + '" 的存储记录？')) return;
+  try {
+    var r = await fetchWithAuth('/api/skills/' + encodeURIComponent(name), {
+      method: 'DELETE'
+    });
+    if (!r.ok) { var d = await r.json(); throw new Error(d.detail || '删除失败'); }
+    loadSkills();
+  } catch(e) { alert(e.message); }
+}
+
+function escapeHtml(s) {
+  if (!s) return '';
+  var d = document.createElement('div');
+  d.textContent = String(s);
+  return d.innerHTML;
+}
+function escapeAttr(s) {
+  return String(s).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+}
+
+// ===== Init =====
+updateQuotaBar();
+setInterval(updateQuotaBar, 30000);
+loadSessions();
+</script>
+{% endblock %}

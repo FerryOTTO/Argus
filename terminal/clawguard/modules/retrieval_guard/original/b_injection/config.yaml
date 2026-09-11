@@ -1,0 +1,5 @@
+# 适配器 B：注入检测配置
+
+threshold: 0.95        # 拦截阈值，越高越严格
+window_size: 400       # 滑窗大小（token），不超过模型 512 限制
+step: 200              # 步长（token）

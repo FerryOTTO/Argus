@@ -1,0 +1,22 @@
+trusted:
+- '*.wikipedia.org'
+- '*.arxiv.org'
+- '*.github.com'
+- '*.stackoverflow.com'
+- '*.stackexchange.com'
+- developer.mozilla.org
+- docs.python.org
+- pypi.org
+- '*.readthedocs.io'
+- '*.gov'
+- '*.gov.cn'
+- '*.nist.gov'
+- '*.ietf.org'
+- '*.w3.org'
+- '*.bbc.com'
+- '*.reuters.com'
+- '*.britannica.com'
+- '*.csdn.net'
+blocked:
+- '*.pastebin.com'
+- '*.ngrok.io'

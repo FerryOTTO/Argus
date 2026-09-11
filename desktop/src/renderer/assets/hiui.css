@@ -1,0 +1,540 @@
+/**
+ * Xiaomi HiUI Design System (5.0 Tokens & Component Styles)
+ * Specifically crafted for enterprise consoles, monitoring dashboards & administrative interfaces.
+ * Official Reference: https://xiaomi.github.io/hiui/
+ */
+
+:root {
+  /* HiUI Brand Palette */
+  --hi-color-primary: #2660ff;
+  --hi-color-primary-hover: #4d82ff;
+  --hi-color-primary-active: #1843d2;
+  --hi-color-primary-light: #edf2ff;
+  --hi-color-primary-border: #b1cafc;
+
+  /* HiUI Semantic Status Palette */
+  --hi-color-success: #24b237;
+  --hi-color-success-light: #e4fce3;
+  --hi-color-success-border: #8de08f;
+  --hi-color-success-text: #0d7f24;
+
+  --hi-color-warning: #ff7700;
+  --hi-color-warning-light: #fff6e8;
+  --hi-color-warning-border: #ffcd8b;
+  --hi-color-warning-text: #a64200;
+
+  --hi-color-danger: #fa4646;
+  --hi-color-danger-light: #ffede8;
+  --hi-color-danger-border: #ffb3aa;
+  --hi-color-danger-text: #a61922;
+
+  --hi-color-info: #0aadff;
+  --hi-color-info-light: #e8fbff;
+  --hi-color-info-border: #8fe5ff;
+  --hi-color-info-text: #0365a6;
+
+  /* HiUI Neutral Grayscale */
+  --hi-color-text-primary: #1a1d26;
+  --hi-color-text-secondary: #60636b;
+  --hi-color-text-tertiary: #91959e;
+  --hi-color-text-placeholder: #babcc2;
+  
+  --hi-color-border-divider: #f0f2f5;
+  --hi-color-border: #e6e8eb;
+  --hi-color-border-dark: #dbdde0;
+
+  --hi-color-bg-page: #f5f7fa;
+  --hi-color-bg-card: #ffffff;
+  --hi-color-bg-hover: #f5f8fc;
+  --hi-color-bg-muted: #fafbfc;
+  --hi-color-bg-active: #edf2ff;
+
+  /* HiUI Border Radius Specs (sm: 2px, md: 4px, lg: 6px, xl: 8px) */
+  --hi-radius-sm: 2px;
+  --hi-radius-md: 4px;
+  --hi-radius-lg: 6px;
+  --hi-radius-xl: 8px;
+  --hi-radius-full: 9999px;
+
+  /* HiUI Shadows */
+  --hi-shadow-sm: 0 1px 2px 0 rgba(26, 29, 38, 0.04);
+  --hi-shadow-card: 0 1px 3px 0 rgba(26, 29, 38, 0.05), 0 1px 2px -1px rgba(26, 29, 38, 0.03);
+  --hi-shadow-hover: 0 4px 12px 0 rgba(26, 29, 38, 0.08);
+  --hi-shadow-dropdown: 0 4px 16px 0 rgba(26, 29, 38, 0.1);
+  --hi-shadow-modal: 0 8px 24px -4px rgba(26, 29, 38, 0.12), 0 4px 12px -2px rgba(26, 29, 38, 0.08);
+
+  /* Fonts */
+  --hi-font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --hi-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+}
+
+/* ==========================================================================
+   HiUI Base Layout & Typography
+   ========================================================================== */
+.hi-page {
+  background-color: var(--hi-color-bg-page);
+  min-height: 100%;
+  padding: 24px 32px 48px;
+  font-family: var(--hi-font-family);
+  color: var(--hi-color-text-primary);
+  box-sizing: border-box;
+}
+
+/* HiUI Page Header */
+.hi-page-header {
+  background: var(--hi-color-bg-card);
+  border: 1px solid var(--hi-color-border);
+  border-radius: var(--hi-radius-lg);
+  padding: 20px 24px;
+  margin-bottom: 20px;
+  box-shadow: var(--hi-shadow-card);
+}
+
+.hi-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--hi-color-text-tertiary);
+  margin-bottom: 12px;
+}
+
+.hi-breadcrumb-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--hi-color-text-secondary);
+}
+
+.hi-breadcrumb-item.is-current {
+  color: var(--hi-color-primary);
+  font-weight: 500;
+}
+
+.hi-breadcrumb-separator {
+  color: var(--hi-color-text-placeholder);
+}
+
+.hi-page-header__content {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.hi-page-header__title {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
+  color: var(--hi-color-text-primary);
+  margin: 0 0 6px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hi-page-header__desc {
+  font-size: 13px;
+  color: var(--hi-color-text-secondary);
+  line-height: 20px;
+  margin: 0;
+}
+
+.hi-page-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+/* ==========================================================================
+   HiUI Cards & Panels
+   ========================================================================== */
+.hi-card {
+  background: var(--hi-color-bg-card);
+  border: 1px solid var(--hi-color-border);
+  border-radius: var(--hi-radius-lg);
+  box-shadow: var(--hi-shadow-card);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.hi-card--hoverable:hover {
+  box-shadow: var(--hi-shadow-hover);
+  border-color: #d1d5db;
+}
+
+.hi-card-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--hi-color-border-divider);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 48px;
+}
+
+.hi-card-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--hi-color-text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hi-card-title::before {
+  content: "";
+  display: inline-block;
+  width: 3px;
+  height: 14px;
+  background-color: var(--hi-color-primary);
+  border-radius: 2px;
+}
+
+.hi-card-body {
+  padding: 20px;
+}
+
+/* HiUI Stat / Metric Card */
+.hi-stat-card {
+  background: var(--hi-color-bg-card);
+  border: 1px solid var(--hi-color-border);
+  border-radius: var(--hi-radius-lg);
+  padding: 16px 20px;
+  box-shadow: var(--hi-shadow-card);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+}
+
+.hi-stat-card:hover {
+  box-shadow: var(--hi-shadow-hover);
+  transform: translateY(-1px);
+}
+
+.hi-stat-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.hi-stat-card__label {
+  font-size: 13px;
+  color: var(--hi-color-text-secondary);
+  font-weight: 400;
+}
+
+.hi-stat-card__icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--hi-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hi-stat-card__value {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 32px;
+  color: var(--hi-color-text-primary);
+  letter-spacing: -0.02em;
+  font-feature-settings: "tnum";
+}
+
+.hi-stat-card__footer {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--hi-color-text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ==========================================================================
+   HiUI Buttons
+   ========================================================================== */
+.hi-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: var(--hi-radius-md);
+  cursor: pointer;
+  outline: none;
+  transition: all 0.15s ease;
+  user-select: none;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.hi-btn-sm {
+  height: 28px;
+  padding: 0 10px;
+  font-size: 12px;
+}
+
+.hi-btn-primary {
+  background-color: var(--hi-color-primary);
+  border: 1px solid var(--hi-color-primary);
+  color: #ffffff;
+}
+
+.hi-btn-primary:hover:not(:disabled) {
+  background-color: var(--hi-color-primary-hover);
+  border-color: var(--hi-color-primary-hover);
+}
+
+.hi-btn-primary:active:not(:disabled) {
+  background-color: var(--hi-color-primary-active);
+  border-color: var(--hi-color-primary-active);
+}
+
+.hi-btn-default {
+  background-color: #ffffff;
+  border: 1px solid var(--hi-color-border-dark);
+  color: var(--hi-color-text-primary);
+}
+
+.hi-btn-default:hover:not(:disabled) {
+  border-color: var(--hi-color-primary);
+  color: var(--hi-color-primary);
+  background-color: #fafbfc;
+}
+
+.hi-btn-default:active:not(:disabled) {
+  background-color: var(--hi-color-primary-light);
+}
+
+.hi-btn-link {
+  background-color: transparent;
+  border: none;
+  color: var(--hi-color-primary);
+  padding: 0 4px;
+  height: auto;
+}
+
+.hi-btn-link:hover:not(:disabled) {
+  color: var(--hi-color-primary-hover);
+  text-decoration: underline;
+}
+
+.hi-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ==========================================================================
+   HiUI Tags & Badges
+   ========================================================================== */
+.hi-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: var(--hi-radius-md);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.hi-tag-success {
+  background-color: var(--hi-color-success-light);
+  border-color: var(--hi-color-success-border);
+  color: var(--hi-color-success-text);
+}
+
+.hi-tag-danger {
+  background-color: var(--hi-color-danger-light);
+  border-color: var(--hi-color-danger-border);
+  color: var(--hi-color-danger-text);
+}
+
+.hi-tag-warning {
+  background-color: var(--hi-color-warning-light);
+  border-color: var(--hi-color-warning-border);
+  color: var(--hi-color-warning-text);
+}
+
+.hi-tag-primary {
+  background-color: var(--hi-color-primary-light);
+  border-color: var(--hi-color-primary-border);
+  color: var(--hi-color-primary);
+}
+
+.hi-tag-neutral {
+  background-color: #f2f4f7;
+  border-color: var(--hi-color-border);
+  color: var(--hi-color-text-secondary);
+}
+
+.hi-tag-clickable {
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.hi-tag-clickable:hover {
+  border-color: var(--hi-color-primary);
+  color: var(--hi-color-primary);
+  background-color: var(--hi-color-primary-light);
+}
+
+/* ==========================================================================
+   HiUI Tables
+   ========================================================================== */
+.hi-table-container {
+  border: 1px solid var(--hi-color-border);
+  border-radius: var(--hi-radius-lg);
+  overflow: hidden;
+  background: #ffffff;
+}
+
+.hi-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+}
+
+.hi-table th {
+  background-color: var(--hi-color-bg-table-header);
+  color: var(--hi-color-text-secondary);
+  font-weight: 500;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--hi-color-border);
+  white-space: nowrap;
+}
+
+.hi-table td {
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--hi-color-border-divider);
+  color: var(--hi-color-text-primary);
+  transition: background-color 0.15s ease;
+}
+
+.hi-table tbody tr:hover td {
+  background-color: var(--hi-color-bg-hover);
+}
+
+.hi-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ==========================================================================
+   HiUI Inputs & Form Controls
+   ========================================================================== */
+.hi-input,
+.hi-textarea {
+  width: 100%;
+  border: 1px solid var(--hi-color-border-dark);
+  border-radius: var(--hi-radius-md);
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--hi-color-text-primary);
+  background-color: #ffffff;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  box-sizing: border-box;
+}
+
+.hi-input:hover,
+.hi-textarea:hover {
+  border-color: #b0b4ba;
+}
+
+.hi-input:focus,
+.hi-textarea:focus {
+  border-color: var(--hi-color-primary);
+  box-shadow: 0 0 0 2px rgba(38, 96, 255, 0.18);
+}
+
+.hi-segmented {
+  display: inline-flex;
+  padding: 3px;
+  background-color: #ebedf0;
+  border-radius: var(--hi-radius-md);
+  gap: 2px;
+}
+
+.hi-segmented-item {
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--hi-color-text-secondary);
+  border-radius: var(--hi-radius-sm);
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  transition: all 0.15s ease;
+}
+
+.hi-segmented-item.is-active {
+  background: #ffffff;
+  color: var(--hi-color-text-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  font-weight: 600;
+}
+
+/* HiUI Modals */
+.hi-modal-mask {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(26, 29, 38, 0.45);
+  backdrop-filter: blur(2px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.hi-modal {
+  background: #ffffff !important;
+  border-radius: var(--hi-radius-lg);
+  box-shadow: var(--hi-shadow-modal);
+  border: 1px solid var(--hi-color-border);
+  width: 100%;
+  max-width: 680px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.hi-modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--hi-color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.hi-modal-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--hi-color-text-primary);
+}
+
+.hi-modal-body {
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.hi-modal-footer {
+  padding: 12px 20px;
+  border-top: 1px solid var(--hi-color-border);
+  background-color: var(--hi-color-bg-muted);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}

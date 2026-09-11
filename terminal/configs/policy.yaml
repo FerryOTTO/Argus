@@ -1,0 +1,26 @@
+actions:
+  priority:
+    - block
+    - human_review
+    - rewrite
+    - allow
+
+stages:
+  input:
+    modules:
+      - io_guard_input
+  tool_pre:
+    modules:
+      - access_control
+      - tool_guard
+  content:
+    modules:
+      - retrieval_guard
+      - io_guard_context
+  output:
+    modules:
+      - io_guard_output
+
+defaults:
+  action: allow
+  risk_score: 0.0

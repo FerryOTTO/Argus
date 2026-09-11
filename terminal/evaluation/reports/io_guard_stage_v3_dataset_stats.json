@@ -1,0 +1,196 @@
+{
+  "schema_version": 3,
+  "labels": [
+    "normal",
+    "prompt_injection",
+    "jailbreak",
+    "credential_leak",
+    "dangerous_command",
+    "resource_abuse",
+    "external_content_poisoning",
+    "unsafe_content"
+  ],
+  "source_types": [
+    "user_prompt",
+    "model_output",
+    "retrieval_chunk",
+    "tool_result"
+  ],
+  "total": 16795,
+  "splits": {
+    "train": {
+      "total": 10885,
+      "by_label": {
+        "credential_leak": 600,
+        "dangerous_command": 290,
+        "external_content_poisoning": 988,
+        "jailbreak": 366,
+        "normal": 6598,
+        "prompt_injection": 456,
+        "resource_abuse": 272,
+        "unsafe_content": 1315
+      },
+      "by_source_type": {
+        "model_output": 2222,
+        "retrieval_chunk": 532,
+        "tool_result": 914,
+        "user_prompt": 7217
+      },
+      "by_source_type_and_label": {
+        "user_prompt": {
+          "credential_leak": 429,
+          "dangerous_command": 290,
+          "jailbreak": 366,
+          "normal": 4669,
+          "prompt_injection": 456,
+          "resource_abuse": 272,
+          "unsafe_content": 735
+        },
+        "model_output": {
+          "credential_leak": 171,
+          "normal": 1471,
+          "unsafe_content": 580
+        },
+        "retrieval_chunk": {
+          "external_content_poisoning": 420,
+          "normal": 112
+        },
+        "tool_result": {
+          "external_content_poisoning": 568,
+          "normal": 346
+        }
+      },
+      "by_origin": {
+        "academic_hard_negative": 2462,
+        "academic_risk_positive": 580,
+        "academic_security_discussion_negative": 2409,
+        "academic_tool_attack": 534,
+        "curated_v2": 2327,
+        "project_adapted_hard_negative": 580,
+        "project_adapted_risk_positive": 580,
+        "project_error_mined_hard_negative": 92,
+        "project_error_mined_risk": 153,
+        "project_synthetic_hard_negative": 635,
+        "project_synthetic_risk": 533
+      }
+    },
+    "validation": {
+      "total": 1878,
+      "by_label": {
+        "credential_leak": 89,
+        "dangerous_command": 50,
+        "external_content_poisoning": 158,
+        "jailbreak": 50,
+        "normal": 1168,
+        "prompt_injection": 110,
+        "resource_abuse": 51,
+        "unsafe_content": 202
+      },
+      "by_source_type": {
+        "model_output": 303,
+        "retrieval_chunk": 89,
+        "tool_result": 151,
+        "user_prompt": 1335
+      },
+      "by_source_type_and_label": {
+        "user_prompt": {
+          "credential_leak": 61,
+          "dangerous_command": 50,
+          "jailbreak": 50,
+          "normal": 888,
+          "prompt_injection": 110,
+          "resource_abuse": 51,
+          "unsafe_content": 125
+        },
+        "model_output": {
+          "credential_leak": 28,
+          "normal": 198,
+          "unsafe_content": 77
+        },
+        "retrieval_chunk": {
+          "external_content_poisoning": 72,
+          "normal": 17
+        },
+        "tool_result": {
+          "external_content_poisoning": 86,
+          "normal": 65
+        }
+      },
+      "by_origin": {
+        "academic_hard_negative": 338,
+        "academic_risk_positive": 77,
+        "academic_security_discussion_negative": 556,
+        "academic_tool_attack": 82,
+        "curated_v2": 451,
+        "project_adapted_hard_negative": 77,
+        "project_adapted_risk_positive": 77,
+        "project_error_mined_hard_negative": 16,
+        "project_error_mined_risk": 20,
+        "project_synthetic_hard_negative": 102,
+        "project_synthetic_risk": 82
+      }
+    },
+    "test": {
+      "total": 4032,
+      "by_label": {
+        "credential_leak": 182,
+        "dangerous_command": 63,
+        "external_content_poisoning": 269,
+        "jailbreak": 271,
+        "normal": 2583,
+        "prompt_injection": 198,
+        "resource_abuse": 74,
+        "unsafe_content": 392
+      },
+      "by_source_type": {
+        "model_output": 683,
+        "retrieval_chunk": 187,
+        "tool_result": 261,
+        "user_prompt": 2901
+      },
+      "by_source_type_and_label": {
+        "user_prompt": {
+          "credential_leak": 140,
+          "dangerous_command": 63,
+          "jailbreak": 271,
+          "normal": 1942,
+          "prompt_injection": 198,
+          "resource_abuse": 74,
+          "unsafe_content": 213
+        },
+        "model_output": {
+          "credential_leak": 42,
+          "normal": 462,
+          "unsafe_content": 179
+        },
+        "retrieval_chunk": {
+          "external_content_poisoning": 166,
+          "normal": 21
+        },
+        "tool_result": {
+          "external_content_poisoning": 103,
+          "normal": 158
+        }
+      },
+      "by_origin": {
+        "academic_hard_negative": 791,
+        "academic_risk_positive": 179,
+        "academic_security_discussion_negative": 1129,
+        "academic_tool_attack": 93,
+        "curated_v2": 1074,
+        "project_adapted_hard_negative": 188,
+        "project_adapted_risk_positive": 179,
+        "project_error_mined_hard_negative": 36,
+        "project_error_mined_risk": 51,
+        "project_synthetic_hard_negative": 183,
+        "project_synthetic_risk": 129
+      }
+    }
+  },
+  "seed": 20260813,
+  "hashes": {
+    "train": "9156267ede9b2694bb7ceadc204ab89f6e1060450977c77fcc4fe9e29a7ee6c2",
+    "validation": "319997f788309ecd392e0d5272017efca2891a0f109d72378ccc0780537055fb",
+    "test": "cdb10bb0bfc16d40893adf02bc9325976ca081698fcb420ba5559bdd00c65779"
+  }
+}

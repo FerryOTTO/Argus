@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>登录 · OpenGuard</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <script>
+    (function(){
+      try {
+        var t = localStorage.getItem('openguard-theme');
+        if (t === 'dark' || t === 'light') {
+          document.documentElement.setAttribute('data-theme', t);
+        } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      } catch(e) {}
+    })();
+  </script>
+</head>
+<body>
+<div class="auth-shell">
+  <section class="auth-cover" aria-hidden="false">
+    <div class="cover-brand">
+      <div class="logo-mark" title="OpenGuard">OG</div>
+      <div>
+        <div class="brand-title">OpenGuard</div>
+        <div class="brand-sub">MULTI-TENANT GATEWAY</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="kicker">CONTROL · OBSERVE · GUARD</div>
+      <h1 class="cover-h">每个 Agent<br>运行在<em>同一张控制台</em>。</h1>
+    </div>
+
+    <blockquote class="cover-quote">
+      简洁、可靠、可审计的多租户 Agent 网关。<br>
+      配额管理 · 模型路由 · 技能存储。
+      <cite>— OpenGuard v5.0 · Quiet Edition</cite>
+    </blockquote>
+  </section>
+
+  <section class="auth-form-wrap" aria-label="登录表单">
+    <article class="auth-card">
+      <div id="login-view">
+        <h1>欢迎回来</h1>
+        <div class="auth-sub">登录你的账号以继续</div>
+
+        <div class="auth-tabs" role="tablist">
+          <button class="active" id="tab-login" type="button" onclick="switchAuthTab('login')">登录</button>
+          <button id="tab-register" type="button" onclick="switchAuthTab('register')">注册</button>
+        </div>
+
+        <form id="login-form" onsubmit="doLogin(event)" style="display:flex;flex-direction:column;gap:16px;">
+          <div class="form-field">
+            <span class="field-label">用户名</span>
+            <input id="login-username" class="input" type="text" autocomplete="username" placeholder="请输入用户名" required>
+          </div>
+          <div class="form-field">
+            <span class="field-label">密码</span>
+            <input id="login-password" class="input" type="password" autocomplete="current-password" placeholder="请输入密码" required>
+          </div>
+          <div id="login-error" class="form-error" style="display:none;"></div>
+          <button class="btn btn-primary btn-block btn-lg" type="submit">登录</button>
+        </form>
+
+        <form id="register-form" onsubmit="doRegister(event)" style="display:none;flex-direction:column;gap:16px;">
+          <div class="form-field">
+            <span class="field-label">用户名</span>
+            <input id="reg-username" class="input" type="text" placeholder="3-32 位字符" required minlength="3" maxlength="32">
+          </div>
+          <div class="form-field">
+            <span class="field-label">密码</span>
+            <input id="reg-password" class="input" type="password" placeholder="至少 8 位" required minlength="8">
+          </div>
+          <div id="register-error" class="form-error" style="display:none;"></div>
+          <button class="btn btn-primary btn-block btn-lg" type="submit">注册</button>
+        </form>
+
+        <div class="auth-footer">
+          <span>OpenGuard v5.0</span>
+        </div>
+      </div>
+    </article>
+  </section>
+</div>
+
+<script>
+function switchAuthTab(tab) {
+  var loginForm = document.getElementById('login-form');
+  var regForm = document.getElementById('register-form');
+  var tabLogin = document.getElementById('tab-login');
+  var tabReg = document.getElementById('tab-register');
+  if (tab === 'login') {
+    loginForm.style.display = 'flex';
+    regForm.style.display = 'none';
+    tabLogin.classList.add('active');
+    tabReg.classList.remove('active');
+  } else {
+    loginForm.style.display = 'none';
+    regForm.style.display = 'flex';
+    tabLogin.classList.remove('active');
+    tabReg.classList.add('active');
+  }
+  hideErrors();
+}
+
+function showError(id, msg) {
+  var el = document.getElementById(id);
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function hideErrors() {
+  document.getElementById('login-error').style.display = 'none';
+  document.getElementById('register-error').style.display = 'none';
+}
+
+function saveAuthTokens(data) {
+  var token = data && data.access_token;
+  var refresh = data && data.refresh_token;
+  try {
+    if (token) localStorage.setItem('openguard_token', token);
+    if (refresh) localStorage.setItem('openguard_refresh_token', refresh);
+  } catch(e) {}
+  if (token) document.cookie = 'token=' + encodeURIComponent(token) + '; Path=/; Max-Age=900; SameSite=Lax';
+  if (refresh) document.cookie = 'refresh_token=' + encodeURIComponent(refresh) + '; Path=/; Max-Age=604800; SameSite=Lax';
+}
+
+async function doLogin(e) {
+  e.preventDefault();
+  hideErrors();
+  var username = document.getElementById('login-username').value.trim();
+  var password = document.getElementById('login-password').value;
+  try {
+    var r = await fetch('/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: username, password: password }),
+      credentials: 'include'
+    });
+    if (!r.ok) {
+      var d = await r.json();
+      throw new Error(d.detail || d.error || '登录失败');
+    }
+    var data = await r.json();
+    saveAuthTokens(data);
+    window.location.replace('/dashboard');
+  } catch(err) {
+    showError('login-error', err.message);
+  }
+}
+
+async function doRegister(e) {
+  e.preventDefault();
+  hideErrors();
+  var username = document.getElementById('reg-username').value.trim();
+  var password = document.getElementById('reg-password').value;
+  try {
+    var r = await fetch('/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: username, password: password }),
+      credentials: 'include'
+    });
+    if (!r.ok) {
+      var d = await r.json();
+      throw new Error(d.detail || d.error || '注册失败');
+    }
+    // Auto login after register
+    var lr = await fetch('/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: username, password: password }),
+      credentials: 'include'
+    });
+    if (lr.ok) {
+      var data = await lr.json();
+      saveAuthTokens(data);
+      window.location.replace('/dashboard');
+    } else {
+      switchAuthTab('login');
+      document.getElementById('login-username').value = username;
+    }
+  } catch(err) {
+    showError('register-error', err.message);
+  }
+}
+</script>
+</body>
+</html>

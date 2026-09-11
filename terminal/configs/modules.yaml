@@ -1,0 +1,50 @@
+clawguard:
+  host: 127.0.0.1
+  port: 8000
+modules:
+  io_guard_input:
+    enabled: true
+    mode: import
+    on_error: allow
+    media_extraction: true
+  io_guard_context:
+    enabled: true
+    mode: import
+    on_error: allow
+  io_guard_output:
+    enabled: true
+    mode: import
+    on_error: allow
+  access_control:
+    enabled: true
+    mode: import
+    on_error: block
+  tool_guard:
+    enabled: true
+    mode: import
+    on_error: block
+    base_url: https://api.deepseek.com/v1
+    api_key: ''
+    model: deepseek-v4-flash
+    block_threshold: 0.87
+    review_threshold: 0.7
+    timeout_seconds: 30
+  retrieval_guard:
+    enabled: true
+    mode: import
+    on_error: allow
+    model_path: clawguard/modules/retrieval_guard/models/PIGuard
+    guards:
+      A: true
+      B: true
+      C: true
+  audit:
+    enabled: true
+    mode: import
+    on_error: ignore
+sandbox:
+  enabled: true
+  mode: mcp
+  url: http://127.0.0.1:9876
+human_review:
+  unsupported_action: block

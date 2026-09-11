@@ -1,0 +1,58 @@
+# ============================================
+# 沙箱配置
+# ============================================
+
+# Docker 设置
+docker:
+  wsl_distro: "Ubuntu-24.04"
+  exec_image: "sandbox-exec:latest"
+  file_image: "sandbox-file:latest"
+
+# 执行容器资源配置
+exec:
+  memory: "512m"
+  cpus: "1.0"
+  timeout: 120        # 秒
+  max_output: 1048576  # 1MB
+  pids_limit: 100
+
+# 文件读取容器资源配置
+file:
+  memory: "64m"
+  cpus: "0.5"
+  timeout: 30
+  max_file_size: 52428800  # 50MB
+
+# 有害内容检测
+harm_detection:
+  enabled: true
+  block_level: "dangerous"   # safe | suspicious | dangerous
+  scan_stdout: true
+  scan_stderr: true
+  scan_file_content: true
+
+# 挂载白名单
+mounts:
+  allowed:
+    - "${WORKSPACE_ROOT}"
+    - "/tmp/sandbox_workspace"
+
+# 文件读取白名单
+file_read:
+  allowed_dirs:
+    - "~"
+    - "/mnt/c/Users"
+    - "/tmp"
+  forbidden_patterns:
+    - "*.pem"
+    - "*.key"
+    - "id_rsa*"
+    - "/etc/shadow"
+    - "/proc/*"
+    - "/sys/*"
+
+# OpenCode 集成
+opencode:
+  enabled: false
+  sandbox_wrapper_script: "./opencode_sandbox.sh"
+  inherit_resource_limits: true

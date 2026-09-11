@@ -1,0 +1,96 @@
+{
+  "id": "clawguard-adapter",
+  "name": "Clawguard Adapter",
+  "description": "Connects OpenClaw input, tool content and output to Clawguard.",
+  "activation": {
+    "onStartup": true
+  },
+  "contracts": {
+    "agentToolResultMiddleware": [
+      "openclaw"
+    ]
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "clawguardUrl": {
+        "type": "string",
+        "default": "http://127.0.0.1:8000"
+      },
+      "apiTokenEnv": {
+        "type": "string",
+        "default": "CLAWGUARD_API_TOKEN"
+      },
+      "timeoutMs": {
+        "type": "integer",
+        "minimum": 250,
+        "maximum": 60000,
+        "default": 30000
+      },
+      "failMode": {
+        "type": "string",
+        "enum": [
+          "closed",
+          "open"
+        ],
+        "default": "closed"
+      },
+      "humanReviewAutoAllowTools": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "default": [],
+        "description": "Controlled-demo allowlist for human_review results. Keep empty in normal use."
+      },
+      "mediaRoot": {
+        "type": "string",
+        "default": ""
+      },
+      "enableMediaCheck": {
+        "type": "boolean",
+        "default": true
+      },
+      "protectedTools": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "default": [
+          "web_fetch",
+          "web_search",
+          "read",
+          "write",
+          "edit",
+          "memory_search",
+          "memory_get"
+        ]
+      },
+      "internalChannels": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "default": [
+          "webchat",
+          "control-ui"
+        ]
+      },
+      "ownerDataScopes": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "default": [
+          "internal"
+        ]
+      },
+      "identityFile": {
+        "type": "string",
+        "default": "",
+        "description": "Local identity file path (Step 3). Empty = ~/.openclaw/clawguard/identity.json; CLAWGUARD_IDENTITY_FILE env overrides."
+      }
+    }
+  }
+}

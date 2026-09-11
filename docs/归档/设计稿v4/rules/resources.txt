@@ -1,0 +1,21 @@
+# Clawguard 资源规则
+# 格式: 路径模式 | 所需等级 | 继承模式(flat/inherit/override)
+
+tool:* | internal | flat
+tool:query_weather | public | flat
+C:\Users | internal | inherit
+C:\Users\Public | public | inherit
+C:\Users\admin | secret | override
+C:\Users\admin\temp | internal | override
+C:\Users\guest | public | inherit
+db:public | public | flat
+db:internal | internal | flat
+db:secret | secret | flat
+db:top_secret | top_secret | flat
+*.txt | internal | flat
+*.pdf | secret | flat
+tool:write_file | secret | flat
+tool:read_file | internal | flat
+tool:execute_bash | top_secret | flat
+C:\Users\Public\* | public | inherit
+C:\Users\admin\secrets | top_secret | override

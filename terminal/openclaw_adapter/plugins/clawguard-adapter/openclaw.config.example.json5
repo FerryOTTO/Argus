@@ -1,0 +1,30 @@
+{
+  plugins: {
+    entries: {
+      "clawguard-adapter": {
+        enabled: true,
+        hooks: {
+          allowConversationAccess: true,
+          timeoutMs: 31000,
+          timeouts: {
+            before_agent_run: 31000,
+            after_tool_call: 31000,
+            message_sending: 31000
+          }
+        },
+        config: {
+          clawguardUrl: "http://127.0.0.1:8000",
+          apiTokenEnv: "CLAWGUARD_API_TOKEN",
+          timeoutMs: 30000,
+          failMode: "closed",
+          enableMediaCheck: true,
+          mediaRoot: "",
+          protectedTools: [
+            "web_fetch",
+            "web_search"
+          ]
+        }
+      }
+    }
+  }
+}

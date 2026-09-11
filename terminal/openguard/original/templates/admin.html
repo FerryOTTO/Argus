@@ -1,0 +1,873 @@
+{% extends "base.html" %}
+{% block title %}管理后台 · OpenGuard{% endblock %}
+{% block topbar_title %}管理后台{% endblock %}
+{% block topbar_sub %}用户 · 配额 · 技能 · 用量{% endblock %}
+{% block content %}
+
+<section class="page-hero">
+  <h1>管理后台</h1>
+  <p>管理所有用户、配额档位、技能存储记录与 LLM 用量。</p>
+</section>
+
+<div class="stat-grid" id="admin-stats"></div>
+
+<div id="alert"></div>
+
+<!-- 管理 Tab -->
+<div class="segmented-tabs" id="admin-tabs" role="tablist" style="margin-bottom:var(--sp-5);">
+  <button class="tab-item active" role="tab" aria-selected="true" type="button" onclick="switchAdminTab('users', this)">用户管理</button>
+  <button class="tab-item" role="tab" aria-selected="false" type="button" onclick="switchAdminTab('skills', this)">技能记录</button>
+  <button class="tab-item" role="tab" aria-selected="false" type="button" onclick="switchAdminTab('usage', this)">用量记录</button>
+  <button class="tab-item" role="tab" aria-selected="false" type="button" onclick="switchAdminTab('rules', this)">规则修改</button>
+</div>
+
+<!-- 用户面板 -->
+<section id="apanel-users">
+  <div class="toolbar">
+    <div class="search">
+      <input type="search" id="user-search" class="input" placeholder="搜索用户名 / ID..." oninput="renderUsers()">
+    </div>
+    <select class="input" id="user-role-filter" onchange="renderUsers()" style="max-width:160px">
+      <option value="">全部角色</option>
+      <option value="admin">管理员</option>
+      <option value="user">普通用户</option>
+    </select>
+    <select class="input" id="user-level-filter" onchange="renderUsers()" style="max-width:160px">
+      <option value="">全部权限等级</option>
+      <option value="public">public (公开 1级)</option>
+      <option value="internal">internal (内部 2级)</option>
+      <option value="secret">secret (秘密 3级)</option>
+      <option value="top_secret">top_secret (机密 4级)</option>
+    </select>
+    <select class="input" id="user-tier-filter" onchange="renderUsers()" style="max-width:160px">
+      <option value="">全部档位</option>
+      <option value="free">FREE</option>
+      <option value="basic">BASIC</option>
+      <option value="pro">PRO</option>
+    </select>
+    <button class="btn btn-primary btn-sm" type="button" onclick="refreshAll()">刷新</button>
+  </div>
+
+  <div class="panel" style="padding:0;overflow:hidden;">
+    <div class="panel-head">
+      <h2>用户列表 <span id="uc-count" style="color:var(--text-tertiary);font-weight:500;font-size:.82rem;margin-left:6px;font-family:var(--f-mono);">0</span></h2>
+      <div class="panel-meta">行内编辑 · 即时保存</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>用户</th>
+            <th>角色</th>
+            <th>权限等级</th>
+            <th>状态</th>
+            <th>档位</th>
+            <th>周限额</th>
+            <th>本周已用</th>
+            <th>Agent</th>
+            <th>创建时间</th>
+            <th class="table-actions">操作</th>
+          </tr>
+        </thead>
+        <tbody id="users-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- 技能记录面板 -->
+<section id="apanel-skills" style="display:none">
+  <div class="toolbar">
+    <div class="search">
+      <input type="search" id="skill-search" class="input" placeholder="搜索技能名 / 用户..." oninput="renderSkills()">
+    </div>
+    <button class="btn btn-primary btn-sm" type="button" onclick="refreshSkills()">刷新</button>
+  </div>
+
+  <div class="panel" style="padding:0;overflow:hidden;">
+    <div class="panel-head">
+      <h2>全局技能记录 <span id="sc-count" style="color:var(--text-tertiary);font-weight:500;font-size:.82rem;margin-left:6px;font-family:var(--f-mono);">0</span></h2>
+      <div class="panel-meta">所有用户的技能存储记录</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>技能</th>
+            <th>所属用户</th>
+            <th>Agent</th>
+            <th>来源</th>
+            <th>版本</th>
+            <th>状态</th>
+            <th>安装时间</th>
+            <th class="table-actions">操作</th>
+          </tr>
+        </thead>
+        <tbody id="skills-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- 用量记录面板 -->
+<section id="apanel-usage" style="display:none">
+  <div class="toolbar">
+    <button class="btn btn-primary btn-sm" type="button" onclick="loadUsage()">刷新</button>
+  </div>
+
+  <div class="panel" style="padding:0;overflow:hidden;">
+    <div class="panel-head">
+      <h2>LLM 用量记录 <span id="usg-count" style="color:var(--text-tertiary);font-weight:500;font-size:.82rem;margin-left:6px;font-family:var(--f-mono);">0</span></h2>
+      <div class="panel-meta">最近 200 条</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>模型</th>
+            <th>用户</th>
+            <th>Agent</th>
+            <th>输入</th>
+            <th>输出</th>
+            <th>总计</th>
+            <th>时间</th>
+          </tr>
+        </thead>
+        <tbody id="usage-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- 规则修改面板 -->
+<section id="apanel-rules" style="display:none">
+  <div class="toolbar">
+    <div class="search">
+      <input type="search" id="rule-search" class="input" placeholder="搜索用户 / 资源 / 模式..." oninput="renderRules()">
+    </div>
+    <select class="input" id="rule-level-filter" onchange="renderRules()" style="max-width:160px">
+      <option value="">全部安全等级</option>
+      <option value="public">public (公开 1级)</option>
+      <option value="internal">internal (内部 2级)</option>
+      <option value="secret">secret (秘密 3级)</option>
+      <option value="top_secret">top_secret (机密 4级)</option>
+    </select>
+    <button class="btn btn-primary btn-sm" type="button" onclick="loadRules()">刷新</button>
+    <button class="btn btn-ghost btn-sm" type="button" onclick="reloadRulesFromDisk()">热重载规则</button>
+    <button class="btn btn-ghost btn-sm" type="button" onclick="clearAuditForRules()">清空审计(防误伤)</button>
+  </div>
+
+  <!-- 用户规则 -->
+  <div class="panel" style="padding:0;overflow:hidden;margin-bottom:var(--sp-5);">
+    <div class="panel-head">
+      <h2>用户规则 <span id="rule-user-count" style="color:var(--text-tertiary);font-weight:500;font-size:.82rem;margin-left:6px;font-family:var(--f-mono);">0</span></h2>
+      <div class="panel-meta">等级以用户库为准（users.txt 已下线） | 等级: public/internal/secret/top_secret | 特例黑白名单逗号分隔 (如 !tool:write_file, *)</div>
+    </div>
+    
+    <!-- 快速添加用户规则 -->
+    <div style="padding:12px 16px;background:var(--bg-subtle);border-bottom:1px solid var(--border-subtle);display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <input type="text" id="new-user-id" class="input" placeholder="用户名或用户 ID (如 test_dev 或 usr_xxx)" style="max-width:260px;font-size:0.85rem;">
+      <select id="new-user-level" class="input" style="max-width:160px;font-size:0.85rem;">
+        <option value="public">public (公开 1级)</option>
+        <option value="internal" selected>internal (内部 2级)</option>
+        <option value="secret">secret (秘密 3级)</option>
+        <option value="top_secret">top_secret (机密 4级)</option>
+      </select>
+      <input type="text" id="new-user-specials" class="input" placeholder="特例规则 (如 !tool:write_file, *)，可选" style="flex:1;min-width:200px;font-size:0.85rem;">
+      <button class="btn btn-primary btn-sm" type="button" onclick="addNewUserRule()">添加/更新用户规则</button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>用户 ID / 用户名</th>
+            <th style="width:180px;">安全等级</th>
+            <th>特例规则 (逗号分隔)</th>
+            <th class="table-actions" style="width:140px;">操作</th>
+          </tr>
+        </thead>
+        <tbody id="rules-user-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 资源规则 -->
+  <div class="panel" style="padding:0;overflow:hidden;margin-bottom:var(--sp-5);">
+    <div class="panel-head">
+      <h2>资源规则 <span id="rule-res-count" style="color:var(--text-tertiary);font-weight:500;font-size:.82rem;margin-left:6px;font-family:var(--f-mono);">0</span></h2>
+      <div class="panel-meta">resources.txt | 匹配模式 (如 tool:write_file, C:\Users\*, db:secret_db) | 所需等级 | 继承模式</div>
+    </div>
+
+    <!-- 快速添加资源规则 -->
+    <div style="padding:12px 16px;background:var(--bg-subtle);border-bottom:1px solid var(--border-subtle);display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+      <input type="text" id="new-res-pattern" class="input" placeholder="资源模式 (如 tool:exec 或 C:\Users\secrets\*)" style="flex:1;min-width:240px;font-size:0.85rem;">
+      <select id="new-res-level" class="input" style="max-width:160px;font-size:0.85rem;">
+        <option value="public">public (公开 1级)</option>
+        <option value="internal" selected>internal (内部 2级)</option>
+        <option value="secret">secret (秘密 3级)</option>
+        <option value="top_secret">top_secret (机密 4级)</option>
+      </select>
+      <select id="new-res-inherit" class="input" style="max-width:140px;font-size:0.85rem;">
+        <option value="flat" selected>flat (扁平)</option>
+        <option value="inherit">inherit (向下继承)</option>
+        <option value="override">override (收紧覆盖)</option>
+      </select>
+      <button class="btn btn-primary btn-sm" type="button" onclick="addNewResourceRule()">添加/更新资源规则</button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>资源模式 (Pattern)</th>
+            <th style="width:180px;">所需安全等级</th>
+            <th style="width:160px;">继承模式</th>
+            <th class="table-actions" style="width:140px;">操作</th>
+          </tr>
+        </thead>
+        <tbody id="rules-res-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 近永久隔离监控 -->
+  <div class="panel" style="padding:0;overflow:hidden;">
+    <div class="panel-head" style="display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <h2>近永久隔离监控 <span id="quar-count" style="color:var(--text-tertiary);font-weight:500;font-size:.82rem;margin-left:6px;font-family:var(--f-mono);">0</span></h2>
+        <div class="panel-meta">runtime/quarantine/quarantine.json | 高频/跨窗口暴力探测拦截触发 | 需管理员手动解除</div>
+      </div>
+      <button class="btn btn-danger btn-sm" type="button" onclick="clearAllQuarantine()">一键解除全部隔离</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>用户 ID</th>
+            <th>隔离原因</th>
+            <th>触发时拦截数 / 风险分</th>
+            <th>隔离时间</th>
+            <th class="table-actions" style="width:120px;">操作</th>
+          </tr>
+        </thead>
+        <tbody id="quar-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+var usersCache = [];
+var skillsCache = [];
+var usageCache = [];
+var rulesCache = { users: [], resources: [], quarantine: [] };
+var currentAdminTab = 'users';
+
+var TIER_LIMITS = { free: 140000000, basic: 7000000, pro: 70000000 };
+
+function switchAdminTab(tab, btn) {
+  currentAdminTab = tab;
+  document.querySelectorAll('#admin-tabs .tab-item').forEach(function(t){
+    t.classList.toggle('active', t === btn);
+  });
+  document.getElementById('apanel-users').style.display = tab === 'users' ? '' : 'none';
+  document.getElementById('apanel-skills').style.display = tab === 'skills' ? '' : 'none';
+  document.getElementById('apanel-usage').style.display = tab === 'usage' ? '' : 'none';
+  document.getElementById('apanel-rules').style.display = tab === 'rules' ? '' : 'none';
+  if (tab === 'skills') loadSkillsAdmin();
+  if (tab === 'usage') loadUsage();
+  if (tab === 'rules') loadRules();
+}
+
+async function refreshAll() {
+  await loadUsers();
+}
+
+async function errMsg(r) {
+  try {
+    var ct = (r.headers && r.headers.get('content-type')) || '';
+    if (ct.indexOf('application/json') !== -1) {
+      var d = await r.json();
+      if (d && d.detail) {
+        if (typeof d.detail === 'string') return d.detail;
+        if (d.detail.error) return d.detail.error;
+        if (d.detail.message) return d.detail.message;
+      }
+      if (d && d.error) return d.error;
+      if (d && d.message) return d.message;
+    } else {
+      var text = await r.text();
+      if (text.startsWith('<!') || text.startsWith('<html') || text.indexOf('<html') !== -1) {
+        return '接口响应异常 (HTTP ' + r.status + '，请检查 OpenGuard 服务)';
+      }
+      return text.slice(0, 100) || ('HTTP ' + r.status);
+    }
+    return '请求失败 (HTTP ' + r.status + ')';
+  } catch(e) { return '请求失败 (HTTP ' + (r.status || '未知') + ')'; }
+}
+
+async function loadUsers() {
+  try {
+    var r = await fetchWithAuth('/api/admin/users');
+    var ct = (r.headers && r.headers.get('content-type')) || '';
+    if (!r.ok || ct.indexOf('application/json') === -1) throw new Error(await errMsg(r));
+    usersCache = await r.json();
+    renderUsers();
+    renderStats();
+  } catch(e) { showAlert('加载失败: ' + e.message, 'error'); }
+}
+
+function renderStats() {
+  var total = usersCache.length;
+  var active = usersCache.filter(function(u){return u.status === 'active';}).length;
+  var admin = usersCache.filter(function(u){return u.role === 'admin';}).length;
+  var totalWeekUsed = usersCache.reduce(function(s,u){ return s + (u.week_used || 0); }, 0);
+
+  document.getElementById('admin-stats').innerHTML =
+    '<div class="stat-card"><div class="stat-label">总用户</div><div class="stat-value">' + total + '</div><div class="stat-sub">' + active + ' 活跃</div></div>' +
+    '<div class="stat-card"><div class="stat-label">管理员</div><div class="stat-value">' + admin + '</div><div class="stat-sub">角色</div></div>' +
+    '<div class="stat-card"><div class="stat-label">本周消耗</div><div class="stat-value">' + fmtTokens(totalWeekUsed) + '</div><div class="stat-sub">所有用户合计</div></div>' +
+    '<div class="stat-card"><div class="stat-label">技能记录</div><div class="stat-value" id="stat-skills">—</div><div class="stat-sub">所有用户</div></div>' +
+    '<div class="stat-card"><div class="stat-label">LLM 代理</div><div class="stat-value" id="stat-llm">…</div><div class="stat-sub">/llm/v1/health</div></div>';
+
+  fetch('/api/admin/skills', { credentials: 'include' }).then(function(r){ return r.json(); }).then(function(s){
+    var el = document.getElementById('stat-skills');
+    if (el) el.textContent = s.length;
+  }).catch(function(){});
+
+  fetch('/llm/v1/health').then(function(r){ return r.json(); }).then(function(h){
+    var el = document.getElementById('stat-llm');
+    if (!el) return;
+    if (h && h.configured) { el.textContent = '已配置'; el.style.color = 'var(--success)'; }
+    else { el.textContent = '未配置'; el.style.color = 'var(--warning)'; }
+  }).catch(function(){
+    var el = document.getElementById('stat-llm');
+    if (el) { el.textContent = '离线'; el.style.color = 'var(--danger)'; }
+  });
+}
+
+function renderUsers() {
+  var tbody = document.getElementById('users-tbody');
+  var search = (document.getElementById('user-search').value || '').toLowerCase();
+  var roleFilter = document.getElementById('user-role-filter').value;
+  var levelFilter = (document.getElementById('user-level-filter') || {}).value || '';
+  var tierFilter = document.getElementById('user-tier-filter').value;
+
+  var filtered = usersCache.filter(function(u){
+    if (search && (u.username || '').toLowerCase().indexOf(search) === -1 && (u.id || '').toLowerCase().indexOf(search) === -1) return false;
+    if (roleFilter && u.role !== roleFilter) return false;
+    if (levelFilter && (u.security_level || 'internal') !== levelFilter) return false;
+    if (tierFilter && (u.quota_tier || '') !== tierFilter) return false;
+    return true;
+  });
+
+  document.getElementById('uc-count').textContent = filtered.length;
+
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--text-tertiary);">暂无数据</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(function(u){
+    var agents = u.agents || [];
+    var agentNames = agents.map(function(a){return a.name;}).join(', ') || '—';
+    var tierDefault = TIER_LIMITS[u.quota_tier] || TIER_LIMITS.free;
+    var limit = (u.daily_token_quota != null) ? u.daily_token_quota : tierDefault;
+    var used = u.week_used || 0;
+    var pct = limit > 0 ? Math.min(100, Math.round((used/limit)*100)) : 0;
+    var barColor = pct >= 90 ? 'var(--danger)' : pct >= 70 ? 'var(--warning)' : 'var(--success)';
+    var id = escapeAttr(u.id), name = escapeAttr(u.username);
+    var secLevel = u.security_level || 'internal';
+
+    return '<tr>' +
+      '<td><strong>' + escapeHtml(u.username) + '</strong><br><span class="cell-id">' + escapeHtml(u.id) + '</span></td>' +
+      '<td><select class="input cell-select" onchange="changeRole(\'' + id + '\', this.value, \'' + name + '\')">' +
+        '<option value="user"' + (u.role !== 'admin' ? ' selected' : '') + '>普通用户</option>' +
+        '<option value="admin"' + (u.role === 'admin' ? ' selected' : '') + '>管理员</option>' +
+        '</select></td>' +
+      '<td><select class="input cell-select" style="min-width:135px;" onchange="changeSecurityLevel(\'' + id + '\', this.value, \'' + name + '\')">' +
+        '<option value="public"' + (secLevel === 'public' ? ' selected' : '') + '>public (公开 1级)</option>' +
+        '<option value="internal"' + (secLevel === 'internal' ? ' selected' : '') + '>internal (内部 2级)</option>' +
+        '<option value="secret"' + (secLevel === 'secret' ? ' selected' : '') + '>secret (秘密 3级)</option>' +
+        '<option value="top_secret"' + (secLevel === 'top_secret' ? ' selected' : '') + '>top_secret (机密 4级)</option>' +
+        '</select></td>' +
+      '<td><select class="input cell-select" onchange="changeStatus(\'' + id + '\', this.value, \'' + name + '\')">' +
+        '<option value="active"' + (u.status !== 'disabled' ? ' selected' : '') + '>活跃</option>' +
+        '<option value="disabled"' + (u.status === 'disabled' ? ' selected' : '') + '>禁用</option>' +
+        '</select></td>' +
+      '<td><select class="input cell-select" onchange="changeQuotaTier(\'' + id + '\', this.value, \'' + name + '\')">' +
+        '<option value="free"' + ((u.quota_tier || 'free') === 'free' ? ' selected' : '') + '>FREE</option>' +
+        '<option value="basic"' + (u.quota_tier === 'basic' ? ' selected' : '') + '>BASIC</option>' +
+        '<option value="pro"' + (u.quota_tier === 'pro' ? ' selected' : '') + '>PRO</option>' +
+        '</select></td>' +
+      '<td><input class="input cell-num" type="number" min="0" placeholder="' + fmtTokens(tierDefault) + '" value="' + (u.daily_token_quota != null ? u.daily_token_quota : '') + '" onchange="changeQuotaLimit(\'' + id + '\', this.value, \'' + name + '\')"></td>' +
+      '<td><div class="usage-cell"><div class="usage-bar"><div style="width:' + pct + '%;background:' + barColor + ';"></div></div><span class="mono">' + fmtTokens(used) + ' / ' + fmtTokens(limit) + '</span></div></td>' +
+      '<td class="cell-sub">' + escapeHtml(agentNames) + '</td>' +
+      '<td class="cell-sub">' + fmtDate(u.created_at) + '</td>' +
+      '<td class="table-actions"><button class="btn btn-danger btn-sm" type="button" onclick="deleteUser(\'' + id + '\', \'' + name + '\')">删除</button></td>' +
+    '</tr>';
+  }).join('');
+}
+
+async function changeRole(userId, role, username) {
+  try {
+    var r = await fetchWithAuth('/api/admin/users/' + encodeURIComponent(userId) + '/role', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role: role })
+    });
+    if (!r.ok) throw new Error(await errMsg(r));
+    showAlert('用户 ' + username + ' 角色已更新', 'success');
+    loadUsers();
+  } catch(e) { showAlert(e.message, 'error'); loadUsers(); }
+}
+
+async function changeSecurityLevel(userId, level, username) {
+  try {
+    var r = await fetchWithAuth('/api/admin/users/' + encodeURIComponent(userId) + '/security_level', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ security_level: level })
+    });
+    if (!r.ok) throw new Error(await errMsg(r));
+    showAlert('用户 ' + username + ' 权限等级已更新为 ' + level, 'success');
+    loadUsers();
+  } catch(e) { showAlert(e.message, 'error'); loadUsers(); }
+}
+
+async function changeStatus(userId, status, username) {
+  try {
+    var r = await fetchWithAuth('/api/admin/users/' + encodeURIComponent(userId) + '/status', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: status })
+    });
+    if (!r.ok) throw new Error(await errMsg(r));
+    showAlert('用户 ' + username + ' 状态已更新', 'success');
+    loadUsers();
+  } catch(e) { showAlert(e.message, 'error'); loadUsers(); }
+}
+
+async function changeQuotaTier(userId, tier, username) {
+  try {
+    var r = await fetchWithAuth('/api/admin/users/' + encodeURIComponent(userId) + '/quota', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ quota_tier: tier })
+    });
+    if (!r.ok) throw new Error(await errMsg(r));
+    showAlert('用户 ' + username + ' 配额档位已更新', 'success');
+    loadUsers();
+  } catch(e) { showAlert(e.message, 'error'); loadUsers(); }
+}
+
+async function changeQuotaLimit(userId, raw, username) {
+  var val = (raw == null ? '' : String(raw)).trim();
+  var body = val === '' ? { daily_token_quota: null } : { daily_token_quota: Number(val) };
+  try {
+    var r = await fetchWithAuth('/api/admin/users/' + encodeURIComponent(userId) + '/quota', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    if (!r.ok) throw new Error(await errMsg(r));
+    showAlert('用户 ' + username + ' 周限额已更新', 'success');
+    loadUsers();
+  } catch(e) { showAlert(e.message, 'error'); loadUsers(); }
+}
+
+async function deleteUser(userId, username) {
+  if (!confirm('确认删除用户 "' + username + '"？此操作会级联删除其技能与 Agent 记录，且不可恢复。')) return;
+  try {
+    var r = await fetchWithAuth('/api/admin/users/' + encodeURIComponent(userId), { method: 'DELETE' });
+    if (!r.ok) throw new Error(await errMsg(r));
+    showAlert('用户 ' + username + ' 已删除', 'success');
+    loadUsers();
+  } catch(e) { showAlert(e.message, 'error'); }
+}
+
+// ===== Skills Admin =====
+async function loadSkillsAdmin() {
+  try {
+    var r = await fetchWithAuth('/api/admin/skills');
+    var ct = (r.headers && r.headers.get('content-type')) || '';
+    if (!r.ok || ct.indexOf('application/json') === -1) throw new Error(await errMsg(r));
+    skillsCache = await r.json();
+    renderSkills();
+  } catch(e) { showAlert('加载失败: ' + e.message, 'error'); }
+}
+
+function refreshSkills() { loadSkillsAdmin(); }
+
+function renderSkills() {
+  var tbody = document.getElementById('skills-tbody');
+  var search = (document.getElementById('skill-search').value || '').toLowerCase();
+  var filtered = skillsCache.filter(function(s){
+    if (!search) return true;
+    return (s.skill_name || '').toLowerCase().indexOf(search) !== -1 ||
+           (s.username || '').toLowerCase().indexOf(search) !== -1;
+  });
+  document.getElementById('sc-count').textContent = filtered.length;
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-tertiary);">暂无技能记录</td></tr>';
+    return;
+  }
+  tbody.innerHTML = filtered.map(function(s){
+    var statusBadge = '<span class="badge ' + (s.status === 'active' ? 'badge-success' : 'badge-warning') + '">' + (s.status || 'active').toUpperCase() + '</span>';
+    return '<tr>' +
+      '<td><strong>' + escapeHtml(s.skill_name) + '</strong></td>' +
+      '<td>' + escapeHtml(s.username || s.user_id || '—') + '</td>' +
+      '<td class="cell-sub">' + escapeHtml(s.agent_name || s.agent_id || '—') + '</td>' +
+      '<td><span class="badge badge-accent">' + escapeHtml(s.skill_source || 'custom') + '</span></td>' +
+      '<td class="mono">' + escapeHtml(s.installed_version || '—') + '</td>' +
+      '<td>' + statusBadge + '</td>' +
+      '<td class="cell-sub">' + fmtRel(s.installed_at) + '</td>' +
+      '<td class="table-actions"><button class="btn btn-ghost btn-sm" type="button" onclick="deleteSkillAdmin(\'' + escapeAttr(s.id) + '\')">删除</button></td>' +
+    '</tr>';
+  }).join('');
+}
+
+async function deleteSkillAdmin(id) {
+  if (!confirm('删除这条技能存储记录？')) return;
+  try {
+    var r = await fetchWithAuth('/api/admin/skills/' + encodeURIComponent(id), { method: 'DELETE' });
+    var ct = (r.headers && r.headers.get('content-type')) || '';
+    if (!r.ok || ct.indexOf('application/json') === -1) throw new Error(await errMsg(r));
+    showAlert('已删除', 'success');
+    loadSkillsAdmin();
+  } catch(e) { showAlert(e.message, 'error'); }
+}
+
+// ===== Usage Admin =====
+async function loadUsage() {
+  try {
+    var r = await fetchWithAuth('/api/admin/usage');
+    var ct = (r.headers && r.headers.get('content-type')) || '';
+    if (!r.ok || ct.indexOf('application/json') === -1) throw new Error(await errMsg(r));
+    usageCache = await r.json();
+    renderUsage();
+  } catch(e) { showAlert('加载失败: ' + e.message, 'error'); }
+}
+
+function renderUsage() {
+  var tbody = document.getElementById('usage-tbody');
+  document.getElementById('usg-count').textContent = usageCache.length;
+  if (!usageCache.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-tertiary);">暂无用量记录</td></tr>';
+    return;
+  }
+  tbody.innerHTML = usageCache.map(function(u){
+    return '<tr>' +
+      '<td><strong class="mono">' + escapeHtml(u.model || '—') + '</strong></td>' +
+      '<td>' + escapeHtml(u.user_id || '—') + '</td>' +
+      '<td class="cell-sub">' + escapeHtml(u.agent_id || '—') + '</td>' +
+      '<td class="mono">' + fmtNum(u.prompt_tokens) + '</td>' +
+      '<td class="mono">' + fmtNum(u.completion_tokens) + '</td>' +
+      '<td class="mono">' + fmtNum(u.total_tokens) + '</td>' +
+      '<td class="cell-sub">' + fmtDate(u.created_at) + '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+// ===== Rules Admin (Access Control) =====
+async function loadRules() {
+  try {
+    var r = await fetchWithAuth('/api/admin/rules');
+    var ct = (r.headers && r.headers.get('content-type')) || '';
+    if (!r.ok || ct.indexOf('application/json') === -1) {
+      throw new Error(await errMsg(r));
+    }
+    rulesCache = await r.json();
+    renderRules();
+  } catch(e) { showAlert('加载规则失败: ' + e.message, 'error'); }
+}
+
+function renderRules() {
+  renderUserRules();
+  renderResourceRules();
+  renderQuarantineRules();
+}
+
+function renderUserRules() {
+  var tbody = document.getElementById('rules-user-tbody');
+  if (!tbody) return;
+  var search = (document.getElementById('rule-search').value || '').toLowerCase();
+  var levelFilter = (document.getElementById('rule-level-filter') || {}).value || '';
+  var list = rulesCache.users || [];
+
+  var levelNameMap = { 1: 'public', 2: 'internal', 3: 'secret', 4: 'top_secret' };
+
+  var filtered = list.filter(function(u){
+    var uid = (u.user_id || '').toLowerCase();
+    var lvl = levelNameMap[u.level] || String(u.level || '');
+    var spec = (u.specials || []).join(', ').toLowerCase();
+    if (search && uid.indexOf(search) === -1 && spec.indexOf(search) === -1) return false;
+    if (levelFilter && lvl !== levelFilter) return false;
+    return true;
+  });
+
+  document.getElementById('rule-user-count').textContent = filtered.length;
+
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--text-tertiary);">暂无匹配用户规则</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(function(u){
+    var uid = escapeAttr(u.user_id);
+    var lvl = levelNameMap[u.level] || 'internal';
+    var specialsStr = escapeAttr((u.specials || []).join(', '));
+    var safeId = 'u_row_' + uid.replace(/[^a-zA-Z0-9_]/g, '_');
+
+    return '<tr>' +
+      '<td><strong>' + escapeHtml(u.user_id) + '</strong></td>' +
+      '<td><select class="input cell-select" id="' + safeId + '_lvl">' +
+        '<option value="public"' + (lvl === 'public' ? ' selected' : '') + '>public (公开 1级)</option>' +
+        '<option value="internal"' + (lvl === 'internal' ? ' selected' : '') + '>internal (内部 2级)</option>' +
+        '<option value="secret"' + (lvl === 'secret' ? ' selected' : '') + '>secret (秘密 3级)</option>' +
+        '<option value="top_secret"' + (lvl === 'top_secret' ? ' selected' : '') + '>top_secret (机密 4级)</option>' +
+      '</select></td>' +
+      '<td><input class="input" type="text" id="' + safeId + '_spec" value="' + specialsStr + '" placeholder="如 !tool:write_file, *" style="font-size:0.85rem;width:100%;"></td>' +
+      '<td class="table-actions">' +
+        '<button class="btn btn-primary btn-sm" type="button" onclick="saveUserRuleInline(\'' + uid + '\', \'' + safeId + '\')">保存</button> ' +
+        '<button class="btn btn-danger btn-sm" type="button" onclick="deleteUserRule(\'' + uid + '\')">删除</button>' +
+      '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+function renderResourceRules() {
+  var tbody = document.getElementById('rules-res-tbody');
+  if (!tbody) return;
+  var search = (document.getElementById('rule-search').value || '').toLowerCase();
+  var levelFilter = (document.getElementById('rule-level-filter') || {}).value || '';
+  var list = rulesCache.resources || [];
+
+  var levelNameMap = { 1: 'public', 2: 'internal', 3: 'secret', 4: 'top_secret' };
+
+  var filtered = list.filter(function(r){
+    var pat = (r.pattern || '').toLowerCase();
+    var lvl = levelNameMap[r.required_level] || String(r.required_level || '');
+    if (search && pat.indexOf(search) === -1) return false;
+    if (levelFilter && lvl !== levelFilter) return false;
+    return true;
+  });
+
+  document.getElementById('rule-res-count').textContent = filtered.length;
+
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:30px;color:var(--text-tertiary);">暂无匹配资源规则</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(function(r, idx){
+    var pat = escapeAttr(r.pattern);
+    var lvl = levelNameMap[r.required_level] || 'internal';
+    var inh = r.inherit_mode || 'flat';
+    var safeId = 'res_row_' + idx;
+
+    return '<tr>' +
+      '<td><strong class="mono">' + escapeHtml(r.pattern) + '</strong></td>' +
+      '<td><select class="input cell-select" id="' + safeId + '_lvl">' +
+        '<option value="public"' + (lvl === 'public' ? ' selected' : '') + '>public (公开 1级)</option>' +
+        '<option value="internal"' + (lvl === 'internal' ? ' selected' : '') + '>internal (内部 2级)</option>' +
+        '<option value="secret"' + (lvl === 'secret' ? ' selected' : '') + '>secret (秘密 3级)</option>' +
+        '<option value="top_secret"' + (lvl === 'top_secret' ? ' selected' : '') + '>top_secret (机密 4级)</option>' +
+      '</select></td>' +
+      '<td><select class="input cell-select" id="' + safeId + '_inh">' +
+        '<option value="flat"' + (inh === 'flat' ? ' selected' : '') + '>flat (扁平)</option>' +
+        '<option value="inherit"' + (inh === 'inherit' ? ' selected' : '') + '>inherit (向下继承)</option>' +
+        '<option value="override"' + (inh === 'override' ? ' selected' : '') + '>override (收紧覆盖)</option>' +
+      '</select></td>' +
+      '<td class="table-actions">' +
+        '<button class="btn btn-primary btn-sm" type="button" onclick="saveResourceRuleInline(\'' + pat + '\', \'' + safeId + '\')">保存</button> ' +
+        '<button class="btn btn-danger btn-sm" type="button" onclick="deleteResourceRule(\'' + pat + '\')">删除</button>' +
+      '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+function renderQuarantineRules() {
+  var tbody = document.getElementById('quar-tbody');
+  if (!tbody) return;
+  var list = rulesCache.quarantine || [];
+  document.getElementById('quar-count').textContent = list.length;
+
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--text-tertiary);">当前无被隔离用户</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = list.map(function(q){
+    var uid = escapeAttr(q.user_id || '');
+    var score = q.risk_score != null ? q.risk_score : (q.assessment ? q.assessment.risk_score : '—');
+    var bcnt = q.block_count != null ? q.block_count : (q.assessment ? q.assessment.block_count : '—');
+
+    return '<tr>' +
+      '<td><strong class="mono">' + escapeHtml(q.user_id) + '</strong></td>' +
+      '<td>' + escapeHtml(q.reason || 'manual') + '</td>' +
+      '<td class="mono"><span class="badge badge-warning">被拦截 ' + bcnt + ' 次</span> <span class="badge badge-accent">风险分 ' + score + '</span></td>' +
+      '<td class="cell-sub">' + fmtRel(q.quarantined_at) + '</td>' +
+      '<td class="table-actions"><button class="btn btn-danger btn-sm" type="button" onclick="clearUserQuarantine(\'' + uid + '\')">解除隔离</button></td>' +
+    '</tr>';
+  }).join('');
+}
+
+async function addNewUserRule() {
+  var uid = (document.getElementById('new-user-id').value || '').trim();
+  var lvl = document.getElementById('new-user-level').value;
+  var spec = (document.getElementById('new-user-specials').value || '').trim();
+  if (!uid) { showAlert('请输入用户名或用户 ID', 'error'); return; }
+
+  try {
+    var r = await fetchWithAuth('/api/admin/rules/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: uid, level: lvl, specials: spec ? spec.split(',') : [] })
+    });
+    if (!r.ok) throw new Error(await errMsg(r));
+    showAlert('用户规则 ' + uid + ' 已添加/更新', 'success');
+    document.getElementById('new-user-id').value = '';
+    document.getElementById('new-user-specials').value = '';
+    loadRules();
+  } catch(e) { showAlert(e.message, 'error'); }
+}
+
+async function saveUserRuleInline(uid, safeId) {
+  var lvl = document.getElementById(safeId + '_lvl').value;
+  var spec = (document.getElementById(safeId + '_spec').value || '').trim();
+  try {
+    var r = await fetchWithAuth('/api/admin/rules/users', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: uid, level: lvl, specials: spec ? spec.split(',') : [] })
+    });
+    if (!r.ok) throw new Error(await errMsg(r));
+    showAlert('用户规则 ' + uid + ' 已保存', 'success');
+    loadRules();
+  } catch(e) { showAlert(e.message, 'error'); }
+}
+
+async function deleteUserRule(uid) {
+  if (!confirm('确认删除用户 "' + uid + '" 的访问控制规则？')) return;
+  try {
+    var r = await fetchWithAuth('/api/admin/rules/users/' + encodeURIComponent(uid), { method: 'DELETE' });
+    if (!r.ok) throw new Error(await errMsg(r));
+    showAlert('用户规则 ' + uid + ' 已删除', 'success');
+    loadRules();
+  } catch(e) { showAlert(e.message, 'error'); }
+}
+
+async function addNewResourceRule() {
+  var pat = (document.getElementById('new-res-pattern').value || '').trim();
+  var lvl = document.getElementById('new-res-level').value;
+  var inh = document.getElementById('new-res-inherit').value;
+  if (!pat) { showAlert('请输入资源模式 (Pattern)', 'error'); return; }
+
+  try {
+    var r = await fetchWithAuth('/api/admin/rules/resources', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pattern: pat, required_level: lvl, inherit_mode: inh })
+    });
+    if (!r.ok) throw new Error(await errMsg(r));
+    showAlert('资源规则 ' + pat + ' 已添加/更新', 'success');
+    document.getElementById('new-res-pattern').value = '';
+    loadRules();
+  } catch(e) { showAlert(e.message, 'error'); }
+}
+
+async function saveResourceRuleInline(pat, safeId) {
+  var lvl = document.getElementById(safeId + '_lvl').value;
+  var inh = document.getElementById(safeId + '_inh').value;
+  try {
+    var r = await fetchWithAuth('/api/admin/rules/resources', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pattern: pat, required_level: lvl, inherit_mode: inh })
+    });
+    if (!r.ok) throw new Error(await errMsg(r));
+    showAlert('资源规则 ' + pat + ' 已保存', 'success');
+    loadRules();
+  } catch(e) { showAlert(e.message, 'error'); }
+}
+
+async function deleteResourceRule(pat) {
+  if (!confirm('确认删除资源规则 "' + pat + '"？')) return;
+  try {
+    var r = await fetchWithAuth('/api/admin/rules/resources/' + encodeURIComponent(pat), { method: 'DELETE' });
+    if (!r.ok) throw new Error(await errMsg(r));
+    showAlert('资源规则 ' + pat + ' 已删除', 'success');
+    loadRules();
+  } catch(e) { showAlert(e.message, 'error'); }
+}
+
+async function reloadRulesFromDisk() {
+  try {
+    var r = await fetchWithAuth('/api/admin/rules/reload', { method: 'POST' });
+    if (!r.ok) throw new Error(await errMsg(r));
+    showAlert('规则已成功热重载', 'success');
+    loadRules();
+  } catch(e) { showAlert(e.message, 'error'); }
+}
+
+async function clearUserQuarantine(userId) {
+  if (!confirm('确认解除用户 "' + userId + '" 的隔离状态？')) return;
+  try {
+    var r = await fetchWithAuth('/api/admin/rules/quarantine/clear', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId })
+    });
+    if (!r.ok) throw new Error(await errMsg(r));
+    showAlert('用户 ' + userId + ' 隔离状态已解除', 'success');
+    loadRules();
+  } catch(e) { showAlert(e.message, 'error'); }
+}
+
+async function clearAllQuarantine() {
+  if (!confirm('确认解除所有被隔离用户的隔离状态？')) return;
+  try {
+    var r = await fetchWithAuth('/api/admin/rules/quarantine/clear_all', { method: 'POST' });
+    if (!r.ok) throw new Error(await errMsg(r));
+    var res = await r.json();
+    showAlert(res.message || '已清空全部隔离', 'success');
+    loadRules();
+  } catch(e) { showAlert(e.message, 'error'); }
+}
+
+async function clearAuditForRules() {
+  if (!confirm('确认清空所有审计记录？(可防止测试频繁被拦截累积导致防线提级误伤)')) return;
+  try {
+    var r = await fetchWithAuth('/api/admin/rules/clear_audit', { method: 'POST' });
+    if (!r.ok) throw new Error(await errMsg(r));
+    showAlert('审计记录已清空', 'success');
+  } catch(e) { showAlert(e.message, 'error'); }
+}
+
+// ===== Alert =====
+function showAlert(msg, type) {
+  var el = document.getElementById('alert');
+  el.className = 'alert show alert-' + (type || 'success');
+  el.textContent = msg;
+  setTimeout(function(){ el.className = 'alert'; }, 3000);
+}
+
+function escapeHtml(s) {
+  if (!s) return '';
+  var d = document.createElement('div');
+  d.textContent = String(s);
+  return d.innerHTML;
+}
+function escapeAttr(s) {
+  return String(s).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+}
+
+// ===== Init =====
+loadUsers();
+</script>
+{% endblock %}

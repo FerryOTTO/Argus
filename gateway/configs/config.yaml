@@ -1,0 +1,25 @@
+server:
+  port: 8080
+  jwt_secret: "change-me-in-production"
+  jwt_expiry: 24h
+  cors_origins:
+    - "*"
+
+database:
+  path: ./data/llmgate.db
+
+log:
+  level: info
+
+audit:
+  retention_days: 90
+  batch_size: 1024
+
+conversation:
+  retention_days: 90
+  batch_size: 16
+
+security:
+  encrypt_key: ""
+  login_max_retries: 5
+  lockout_duration: 15m

@@ -1,0 +1,19 @@
+--- a/dist/selection-CVIPXpKT.js
++++ b/dist/selection-CVIPXpKT.js
+@@ -13282 +13282 @@
+-					const promptForModel = buildCurrentInboundPrompt({
++					let promptForModel = buildCurrentInboundPrompt({
+@@ -13347 +13347 @@
+-							beforeRunResult = await hookRunner.runBeforeAgentRun({
++							const beforeRunEvent = {
+@@ -13355 +13355,9 @@
+-							}, hookCtx);
++							};
++							beforeRunResult = await hookRunner.runBeforeAgentRun(beforeRunEvent, hookCtx);
++							if (beforeRunEvent.prompt !== promptForModel) {
++								promptForModel = beforeRunEvent.prompt;
++								if (currentUserTimestampOverride) currentUserTimestampOverride = {
++									...currentUserTimestampOverride,
++									alternateText: promptForModel
++								};
++							}

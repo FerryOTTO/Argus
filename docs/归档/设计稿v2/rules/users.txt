@@ -1,0 +1,29 @@
+# ================================================================
+# Clawguard 用户规则
+# 格式: 用户名或ID | 默认等级 | 特例(逗号分隔,可选)
+# ================================================================
+
+# ── adminuser（全权限）──
+adminuser               | top_secret | *
+usr_O89khiPJP4zshemJ    | top_secret | *
+
+# ── robertwright（机密，不能碰系统/不能执行命令）──
+robertwright            | secret     |
+usr_R4jyvizIyZZd4tKG    | secret     |
+
+# ── benjaminsmith（内部，能读写文档不能写文件）──
+benjaminsmith           | internal   |
+usr_OwZ1cvpJrHVyzp5N    | internal   |
+
+# ── williamsims（公开，只能聊天）──
+williamsims             | public     |
+usr_IyQ8D49eVuOWQfoM    | public     |
+
+# ═══════════════════════════════════════
+# 单元测试用户
+# ═══════════════════════════════════════
+admin_01                | top_secret | *
+user_01                 | internal   |
+intern_01               | public     | tool:query_weather
+auditor_01              | internal   | !tool:write_file, tool:read_file
+guest_01                | public     | C:\Users\Public\*

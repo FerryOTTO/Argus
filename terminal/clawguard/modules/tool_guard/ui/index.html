@@ -1,0 +1,634 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tool Guard 管理界面</title>
+  <style>
+    :root { color-scheme: light; --ink:#172033; --muted:#687386; --line:#dce2ea; --panel:#fff; --bg:#f4f6f9; --accent:#2458a6; --risk:#a62929; --risk-bg:#fff1f0; --review:#76520a; --review-bg:#fff8df; --ok:#1d6b3a; --ok-bg:#eefaf1; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); font:14px/1.5 system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif; }
+    button,input,textarea,select { font:inherit; border-radius:0; }
+    button { cursor:pointer; }
+    button:disabled { cursor:not-allowed; opacity:.55; }
+    header { background:#172033; color:#fff; padding:18px 22px; }
+    h1 { margin:0 0 4px; font-size:20px; }
+    header p { margin:0; color:#cbd5e4; }
+    nav.tabs { display:flex; gap:0; background:var(--panel); border-bottom:1px solid var(--line); padding:0 16px; }
+    nav.tabs button { border:none; background:transparent; padding:12px 18px; font-size:14px; color:var(--muted); border-bottom:3px solid transparent; }
+    nav.tabs button:hover { color:var(--ink); }
+    nav.tabs button.active { color:var(--accent); font-weight:700; border-bottom-color:var(--accent); }
+    .tab-page { display:none; }
+    .tab-page.active { display:block; }
+    .toolbar { display:flex; flex-wrap:wrap; gap:10px; padding:12px 16px; background:var(--panel); border-bottom:1px solid var(--line); align-items:center; }
+    .toolbar input[type="search"], .toolbar input[type="text"] { min-width:200px; padding:8px 10px; border:1px solid #b9c3d0; }
+    .toolbar button, .action-button { border:1px solid #9cabc0; background:#fff; color:var(--ink); padding:7px 11px; }
+    .toolbar button.primary, .action-button.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+    .toolbar button.danger, .action-button.danger { background:var(--risk-bg); color:var(--risk); border-color:#efb7b4; }
+    .refresh-meta { margin-left:auto; color:var(--muted); }
+    #error-banner { display:none; margin:12px 16px 0; padding:10px 12px; background:var(--risk-bg); color:var(--risk); border:1px solid #efb7b4; }
+    #notice-banner { display:none; margin:12px 16px 0; padding:10px 12px; background:var(--review-bg); color:var(--review); border:1px solid #e6d48f; }
+    .layout { display:grid; grid-template-columns:minmax(240px,28%) minmax(320px,36%) minmax(340px,36%); gap:12px; padding:12px 16px 18px; min-height:calc(100vh - 190px); }
+    .layout.single { grid-template-columns:1fr; }
+    .panel { background:var(--panel); border:1px solid var(--line); overflow:auto; }
+    .panel-title { position:sticky; top:0; z-index:1; margin:0; padding:12px 14px; background:#f9fafc; border-bottom:1px solid var(--line); font-size:15px; }
+    .list { padding:8px; }
+    .card { width:100%; text-align:left; border:1px solid var(--line); background:#fff; margin-bottom:8px; padding:10px; color:inherit; }
+    .card:hover, .card.selected { border-color:var(--accent); box-shadow:0 0 0 1px var(--accent); }
+    .card-title { font-weight:700; overflow-wrap:anywhere; }
+    .card-row { color:var(--muted); margin-top:3px; overflow-wrap:anywhere; }
+    .timeline-time { color:#40516c; font-variant-numeric:tabular-nums; }
+    .timeline { margin-bottom:12px; border:1px solid #cbd6e5; background:#f8fafd; overflow:hidden; }
+    .timeline-header { padding:10px 11px; border-bottom:1px solid #dce4ef; background:#edf3fb; }
+    .timeline-title { font-size:15px; font-weight:700; }
+    .timeline-meta { margin-top:3px; color:var(--muted); font-size:12px; overflow-wrap:anywhere; }
+    .timeline-items { padding:8px; }
+    .tl-event { position:relative; margin-bottom:7px; padding-left:14px; }
+    .tl-event:last-child { margin-bottom:0; }
+    .tl-event::before { content:""; position:absolute; left:2px; top:0; bottom:-8px; width:2px; background:#b8c8de; }
+    .tl-event:last-child::before { bottom:50%; }
+    .tl-event::after { content:""; position:absolute; left:-1px; top:20px; width:8px; height:8px; background:var(--accent); }
+    .tl-event.verdict::after { background:var(--ok); }
+    .tl-event.block::after { background:var(--risk); }
+    .tl-event.human_review::after { background:var(--review); }
+    .tl-event .card { margin:0; }
+    .badges { display:flex; flex-wrap:wrap; gap:5px; margin-top:7px; }
+    .badge { display:inline-block; padding:2px 7px; background:#edf1f6; color:#46536a; font-size:12px; }
+    .badge.allow { color:var(--ok); background:var(--ok-bg); font-weight:700; }
+    .badge.block { color:var(--risk); background:var(--risk-bg); font-weight:700; }
+    .badge.human_review { color:var(--review); background:var(--review-bg); font-weight:700; }
+    .empty, .loading { padding:30px 16px; text-align:center; color:var(--muted); }
+    .detail { padding:14px; }
+    .detail h3 { margin:18px 0 7px; font-size:14px; }
+    .detail h3:first-child { margin-top:0; }
+    .field { display:grid; grid-template-columns:130px minmax(0,1fr); gap:8px; padding:5px 0; border-bottom:1px solid #eef1f5; align-items:start; }
+    .field-label { color:var(--muted); padding-top:5px; }
+    .field-value { overflow-wrap:anywhere; white-space:pre-wrap; }
+    .field-value .score { font-weight:700; }
+    pre { margin:6px 0; padding:10px; max-height:280px; overflow:auto; background:#f5f7fa; white-space:pre-wrap; overflow-wrap:anywhere; }
+    details { margin:10px 0; }
+    summary { cursor:pointer; font-weight:600; }
+    .relation-list { display:flex; flex-wrap:wrap; gap:6px; }
+    .link-button { border:1px solid var(--line); background:#f8fafd; padding:5px 7px; color:var(--accent); overflow-wrap:anywhere; }
+    .actions { display:flex; gap:8px; margin:12px 0; }
+    .hint { color:var(--muted); margin:4px 0 10px; }
+    .scorebar { height:8px; background:#e8edf4; margin-top:5px; position:relative; }
+    .scorebar span { position:absolute; top:0; bottom:0; left:0; background:var(--accent); }
+    .scorebar .mark { position:absolute; top:-2px; bottom:-2px; width:2px; background:#172033; }
+    form.config-form { padding:16px; max-width:760px; }
+    form.config-form .form-row { display:grid; grid-template-columns:180px minmax(0,1fr); gap:10px; margin-bottom:12px; align-items:center; }
+    form.config-form label { color:var(--muted); }
+    form.config-form input { padding:8px 10px; border:1px solid #b9c3d0; }
+    form.config-form input[readonly] { background:#f2f4f8; color:var(--muted); }
+    form.config-form .form-note { grid-column:2; color:var(--muted); font-size:12px; }
+    .debug-form { padding:16px; max-width:760px; }
+    .debug-form .form-row { display:grid; grid-template-columns:180px minmax(0,1fr); gap:10px; margin-bottom:12px; align-items:start; }
+    .debug-form label { color:var(--muted); padding-top:8px; }
+    .debug-form input, .debug-form textarea { padding:8px 10px; border:1px solid #b9c3d0; }
+    .debug-form textarea { min-height:90px; font-family:ui-monospace,Consolas,monospace; }
+    .module-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:12px; padding:16px; }
+    .module-card { border:1px solid var(--line); background:var(--panel); padding:12px; }
+    .module-card h4 { margin:0 0 8px; font-size:14px; }
+    .module-card .verdict-line { font-weight:700; font-size:15px; margin:4px 0 8px; }
+    .verdict-line.allow { color:var(--ok); }
+    .verdict-line.block { color:var(--risk); }
+    .verdict-line.human_review { color:var(--review); }
+    .module-card .kv { margin:3px 0; color:#40516c; overflow-wrap:anywhere; }
+    .module-card .kv b { color:var(--muted); font-weight:600; }
+    .module-card .kv.full { white-space:pre-wrap; }
+    .final-verdict { padding:14px 16px; margin:0 16px 8px; border:1px solid var(--line); border-left:4px solid var(--accent); background:#f5f8fd; }
+    .final-verdict.allow { border-left-color:var(--ok); background:var(--ok-bg); }
+    .final-verdict.block { border-left-color:var(--risk); background:var(--risk-bg); }
+    .final-verdict.human_review { border-left-color:var(--review); background:var(--review-bg); }
+    .final-verdict .label { color:var(--muted); font-size:12px; font-weight:700; letter-spacing:.04em; }
+    .final-verdict .title { margin-top:3px; font-size:16px; font-weight:700; overflow-wrap:anywhere; }
+    .final-verdict .sub { margin-top:5px; color:#40516c; white-space:pre-wrap; overflow-wrap:anywhere; }
+    @media (max-width:1050px) { .layout { grid-template-columns:1fr 1fr; } .layout .panel:last-child { grid-column:1 / -1; } }
+    @media (max-width:700px) { .layout { grid-template-columns:1fr; } .layout .panel:last-child { grid-column:auto; } .refresh-meta { width:100%; margin-left:0; } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Tool Guard 管理界面</h1>
+    <p>意图匹配裁判的配置管理、会话复盘与调试预检</p>
+  </header>
+  <nav class="tabs" aria-label="功能页签">
+    <button type="button" data-tab="config" class="active">配置管理</button>
+    <button type="button" data-tab="sessions">会话历史</button>
+    <button type="button" data-tab="debug">调试预检</button>
+  </nav>
+  <div id="error-banner" role="alert"></div>
+  <div id="notice-banner" role="status"></div>
+
+  <!-- 配置管理 -->
+  <section id="tab-config" class="tab-page active" aria-labelledby="config-heading">
+    <h2 class="panel-title" id="config-heading" style="margin:0;border-bottom:1px solid var(--line);padding:12px 16px;background:#f9fafc;font-size:15px;">LLM 意图裁判运行期配置</h2>
+    <form class="config-form" id="config-form">
+      <div class="form-row">
+        <label for="cfg-base-url">Base URL（服务地址）</label>
+        <input id="cfg-base-url" name="base_url" type="text" autocomplete="off">
+      </div>
+      <div class="form-row">
+        <label for="cfg-model">模型名称</label>
+        <input id="cfg-model" name="model" type="text" autocomplete="off">
+      </div>
+      <div class="form-row">
+        <label for="cfg-api-key">API 密钥</label>
+        <input id="cfg-api-key" name="api_key" type="password" readonly placeholder="***" title="密钥脱敏显示，仅支持更换，不支持明文回显">
+        <div class="form-note">当前密钥已脱敏为 ***。如需更换：直接输入新密钥后保存；留空保持原密钥不变。</div>
+      </div>
+      <div class="form-row">
+        <label for="cfg-block-threshold">阻断阈值（block_threshold）</label>
+        <input id="cfg-block-threshold" name="block_threshold" type="number" step="0.05" min="0" max="1">
+        <div class="form-note">评分低于该阈值时动作判定为「阻断」，取值范围 0～1。</div>
+      </div>
+      <div class="form-row">
+        <label for="cfg-review-threshold">复核阈值（review_threshold）</label>
+        <input id="cfg-review-threshold" name="review_threshold" type="number" step="0.05" min="0" max="1">
+        <div class="form-note">评分介于阻断阈值与复核阈值之间时判定为「需要人工复核」，取值范围 0～1。</div>
+      </div>
+      <div class="form-row">
+        <label for="cfg-timeout">超时秒数（timeout_seconds）</label>
+        <input id="cfg-timeout" name="timeout_seconds" type="number" step="1" min="1">
+        <div class="form-note">LLM 意图裁判单次调用的超时时间（秒）。</div>
+      </div>
+      <div class="form-row">
+        <label for="cfg-audit-base">审计回写地址（audit_api_base）</label>
+        <input id="cfg-audit-base" name="audit_api_base" type="text" autocomplete="off">
+        <div class="form-note">判定结果写入审计日志的 REST 根地址（如 http://127.0.0.1:8000），留空不写入。</div>
+      </div>
+      <div class="actions">
+        <button type="button" id="save-config" class="action-button primary">保存配置</button>
+        <button type="button" id="reset-config" class="action-button danger">恢复默认配置</button>
+        <button type="button" id="reload-config" class="action-button">重新加载</button>
+      </div>
+      <p class="hint">提示：保存与恢复默认均为运行期修改，<strong>仅内存生效</strong>，重启服务后回退到环境变量 / 配置文件中的值。</p>
+    </form>
+  </section>
+
+  <!-- 会话历史 -->
+  <section id="tab-sessions" class="tab-page" aria-labelledby="sessions-heading">
+    <div class="toolbar" aria-label="会话历史工具栏">
+      <input id="session-keyword" type="search" placeholder="按会话 ID 或用户意图搜索" aria-label="会话关键字">
+      <button id="refresh-sessions" type="button">手动刷新</button>
+      <label><input id="auto-refresh" type="checkbox" checked> 每5秒自动刷新</label>
+      <button id="cleanup-expired" type="button" class="danger">清理过期会话</button>
+      <span class="refresh-meta"><span id="refresh-state">等待加载</span> · 最近刷新：<span id="last-refresh">尚未刷新</span></span>
+    </div>
+    <main class="layout">
+      <section class="panel" aria-labelledby="session-list-heading">
+        <h2 class="panel-title" id="session-list-heading">会话列表</h2>
+        <div id="session-list" class="list"><div class="loading">正在加载会话…</div></div>
+      </section>
+      <section class="panel" aria-labelledby="timeline-heading">
+        <h2 class="panel-title" id="timeline-heading">工具调用时间线</h2>
+        <div id="timeline" class="list"><div class="empty">请选择一个会话</div></div>
+      </section>
+      <section class="panel" aria-labelledby="session-detail-heading">
+        <h2 class="panel-title" id="session-detail-heading">会话详情</h2>
+        <div id="session-detail" class="detail"><div class="empty">请选择一个会话</div></div>
+      </section>
+    </main>
+  </section>
+
+  <!-- 调试预检 -->
+  <section id="tab-debug" class="tab-page" aria-labelledby="debug-heading">
+    <h2 class="panel-title" id="debug-heading" style="margin:0;border-bottom:1px solid var(--line);padding:12px 16px;background:#f9fafc;font-size:15px;">调试预检（模拟一次工具执行前检查）</h2>
+    <form class="debug-form" id="debug-form">
+      <div class="form-row">
+        <label for="dbg-session">会话 ID</label>
+        <input id="dbg-session" type="text" placeholder="例如 demo-session-001" required>
+      </div>
+      <div class="form-row">
+        <label for="dbg-tool">工具名称</label>
+        <input id="dbg-tool" type="text" placeholder="例如 list_dir / web_search" required>
+      </div>
+      <div class="form-row">
+        <label for="dbg-args">工具参数（JSON）</label>
+        <textarea id="dbg-args" placeholder='例如 {"path": "/"} 或 {"query": "北京明天天气"}' required></textarea>
+      </div>
+      <div class="actions">
+        <button type="button" id="run-precheck" class="action-button primary">执行预检</button>
+        <button type="button" id="clear-precheck" class="action-button">清空结果</button>
+      </div>
+    </form>
+    <div id="precheck-result"></div>
+  </section>
+
+  <script>
+    "use strict";
+    const byId = id => document.getElementById(id);
+    const make = (tag, className, text) => {
+      const node = document.createElement(tag);
+      if (className) node.className = className;
+      if (text !== undefined) node.textContent = String(text);
+      return node;
+    };
+    const shortId = value => value && value.length > 24 ? `${value.slice(0, 12)}…${value.slice(-8)}` : value;
+    const formatTime = value => {
+      const date = new Date(value * 1000);
+      return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString();
+    };
+    const reasonSummary = value => value && value.length > 90 ? `${value.slice(0, 90)}…` : (value || "—");
+
+    const ACTION_LABELS = { allow:"允许", block:"阻断", human_review:"需要人工复核", error:"处理失败" };
+    const actionLabel = action => ACTION_LABELS[action] || action || "未记录";
+    const actionBadgeClass = action => ["allow","block","human_review"].includes(action) ? action : "";
+
+    // ---- 页签切换 ---------------------------------------------------------
+    document.querySelectorAll("nav.tabs button").forEach(button => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll("nav.tabs button").forEach(item => item.classList.remove("active"));
+        document.querySelectorAll(".tab-page").forEach(page => page.classList.remove("active"));
+        button.classList.add("active");
+        byId(`tab-${button.dataset.tab}`).classList.add("active");
+        if (button.dataset.tab === "sessions") refreshSessions();
+        if (button.dataset.tab === "config") loadConfig();
+      });
+    });
+
+    // ---- 提示条 -----------------------------------------------------------
+    function showError(message) {
+      const banner = byId("error-banner");
+      banner.textContent = message;
+      banner.style.display = "block";
+      byId("refresh-state").textContent = "刷新失败，保留上次数据";
+    }
+    function showNotice(message) {
+      const banner = byId("notice-banner");
+      banner.textContent = message;
+      banner.style.display = "block";
+    }
+    function clearError() {
+      byId("error-banner").style.display = "none";
+      byId("notice-banner").style.display = "none";
+      byId("refresh-state").textContent = byId("auto-refresh").checked ? "自动刷新已开启" : "自动刷新已暂停";
+    }
+    async function requestJson(url, options = {}) {
+      const response = await fetch(url, {
+        ...options,
+        headers: { "Accept":"application/json", ...(options.headers || {}) },
+        cache: "no-store",
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const detail = payload.detail || {};
+        throw new Error(detail.message || `请求失败（HTTP ${response.status}）`);
+      }
+      return payload;
+    }
+
+    // ---- 配置管理 ---------------------------------------------------------
+    async function loadConfig() {
+      try {
+        const data = await requestJson("/v1/tool_guard/config");
+        const config = data.config;
+        byId("cfg-base-url").value = config.base_url || "";
+        byId("cfg-model").value = config.model || "";
+        byId("cfg-api-key").value = config.api_key === "***" ? "***" : "";
+        byId("cfg-block-threshold").value = config.block_threshold;
+        byId("cfg-review-threshold").value = config.review_threshold;
+        byId("cfg-timeout").value = config.timeout_seconds;
+        byId("cfg-audit-base").value = config.audit_api_base || "";
+        clearError();
+      } catch (error) { showError(`配置读取失败：${error.message}`); }
+    }
+
+    function collectConfigPatch() {
+      const patch = {};
+      const apiKey = byId("cfg-api-key").value.trim();
+      patch.base_url = byId("cfg-base-url").value.trim();
+      patch.model = byId("cfg-model").value.trim();
+      patch.block_threshold = parseFloat(byId("cfg-block-threshold").value);
+      patch.review_threshold = parseFloat(byId("cfg-review-threshold").value);
+      patch.timeout_seconds = parseFloat(byId("cfg-timeout").value);
+      patch.audit_api_base = byId("cfg-audit-base").value.trim();
+      if (apiKey && apiKey !== "***") patch.api_key = apiKey; // 留空/*** 保持原密钥
+      const block = patch.block_threshold, review = patch.review_threshold;
+      if (!(block >= 0 && block <= 1)) throw new Error("阻断阈值必须是 0～1 之间的数字");
+      if (!(review >= 0 && review <= 1)) throw new Error("复核阈值必须是 0～1 之间的数字");
+      if (block >= review) throw new Error("阻断阈值必须小于复核阈值");
+      if (!(patch.timeout_seconds >= 1)) throw new Error("超时秒数必须是不小于 1 的数字");
+      return patch;
+    }
+
+    byId("save-config").addEventListener("click", async () => {
+      let patch;
+      try { patch = collectConfigPatch(); } catch (error) { showError(`配置校验失败：${error.message}`); return; }
+      try {
+        const data = await requestJson("/v1/tool_guard/config", { method:"PUT", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(patch) });
+        byId("cfg-api-key").value = data.config.api_key === "***" ? "***" : "";
+        showNotice("配置已保存。修改仅内存生效，重启服务后回退到环境变量 / 配置文件中的值。");
+        clearError();
+      } catch (error) { showError(`配置保存失败：${error.message}`); }
+    });
+
+    byId("reset-config").addEventListener("click", async () => {
+      if (!window.confirm("确定恢复为内置默认配置吗？当前运行期修改将被覆盖（仅内存生效）。")) return;
+      try {
+        const data = await requestJson("/v1/tool_guard/config/reset", { method:"POST" });
+        byId("cfg-api-key").value = data.config.api_key === "***" ? "***" : "";
+        await loadConfig();
+        showNotice("已恢复内置默认配置。修改仅内存生效，重启服务后回退到环境变量 / 配置文件中的值。");
+      } catch (error) { showError(`恢复默认配置失败：${error.message}`); }
+    });
+
+    byId("reload-config").addEventListener("click", loadConfig);
+
+    // ---- 会话历史 ---------------------------------------------------------
+    const state = { sessions:[], session:null, selectedSessionId:null, expandedKeys:new Set() };
+    let keywordTimer = null;
+
+    function filteredSessions() {
+      const keyword = byId("session-keyword").value.trim().toLowerCase();
+      if (!keyword) return state.sessions;
+      return state.sessions.filter(item =>
+        item.session_id.toLowerCase().includes(keyword)
+        || item.original_prompt.toLowerCase().includes(keyword));
+    }
+
+    function renderSessionList() {
+      const root = byId("session-list");
+      root.replaceChildren();
+      const sessions = filteredSessions();
+      if (!sessions.length) {
+        root.append(make("div", "empty", state.sessions.length ? "没有匹配的会话" : "暂无会话，请先通过 OpenClaw 发起一次对话"));
+        return;
+      }
+      for (const item of sessions) {
+        const card = make("button", `card${item.session_id === state.selectedSessionId ? " selected" : ""}`);
+        card.type = "button";
+        card.dataset.sessionId = item.session_id;
+        card.append(make("div", "card-title", `会话：${shortId(item.session_id)}`));
+        card.append(make("div", "card-row", `意图：${reasonSummary(item.original_prompt) || "未绑定"}`));
+        card.append(make("div", "card-row timeline-time", `最近活跃：${formatTime(item.updated_at)}`));
+        const badges = make("div", "badges");
+        badges.append(make("span", "badge", `${item.tool_call_count} 次工具调用`));
+        badges.append(make("span", "badge", `${item.verdict_count} 条判定反馈`));
+        card.append(badges);
+        card.addEventListener("click", () => selectSession(item.session_id));
+        root.append(card);
+      }
+    }
+
+    function timelineEntries() {
+      const entries = [];
+      for (const call of state.session.tool_chain || []) {
+        entries.push({ kind:"call", timestamp:call.timestamp, entry:call });
+      }
+      for (const verdict of state.session.verdicts || []) {
+        entries.push({ kind:"verdict", timestamp:verdict.timestamp, entry:verdict });
+      }
+      return entries.sort((a, b) => (a.timestamp - b.timestamp) || (a.kind === "verdict" ? -1 : 1));
+    }
+
+    function renderTimeline() {
+      const root = byId("timeline");
+      root.replaceChildren();
+      if (!state.session) { root.append(make("div", "empty", "请选择一个会话")); return; }
+      const entries = timelineEntries();
+      if (!entries.length) {
+        root.append(make("div", "empty", "该会话还没有工具调用记录"));
+        return;
+      }
+      entries.forEach((item, index) => {
+        const entry = item.entry;
+        const box = make("div", `tl-event ${item.kind}${entry.action ? ` ${entry.action}` : ""}`);
+        const card = make("div", "card");
+        if (item.kind === "verdict") {
+          card.append(make("div", "card-title", `判定 ${index + 1} · ${entry.tool_name}`));
+          card.append(make("div", "card-row timeline-time", `时间（本地）：${formatTime(entry.timestamp)} · 判定反馈`));
+          const score = Number(entry.score);
+          const scorebar = make("div", "scorebar");
+          const fill = make("span", "");
+          fill.style.width = `${Math.round(Math.min(1, Math.max(0, score)) * 100)}%`;
+          scorebar.append(fill);
+          const blockMark = make("span", "mark");
+          blockMark.style.left = "40%";
+          const reviewMark = make("span", "mark");
+          reviewMark.style.left = "70%";
+          scorebar.append(blockMark, reviewMark);
+          card.append(scorebar);
+          card.append(make("div", "card-row", `意图匹配分：<span class="score">${score.toFixed(4)}</span>（低于 0.40 阻断 / 低于 0.70 人工复核）`));
+          card.append(make("div", "card-row", `判定动作：${actionLabel(entry.action)}`));
+          if (entry.reason) card.append(make("div", "card-row", `判定说明：${entry.reason}`));
+          if (entry.deviation) card.append(make("div", "card-row", `偏离点：${entry.deviation}`));
+        } else {
+          card.append(make("div", "card-title", `执行 ${index + 1} · ${entry.tool_name}`));
+          card.append(make("div", "card-row timeline-time", `时间（本地）：${formatTime(entry.timestamp)} · 执行记录`));
+        }
+        const argsText = Object.keys(entry.arguments || {}).length
+          ? JSON.stringify(entry.arguments)
+          : "（无参数）";
+        card.append(make("div", "card-row", `参数摘要：${reasonSummary(argsText)}`));
+        const badges = make("div", "badges");
+        badges.append(make("span", "badge", item.kind === "verdict" ? "意图判定" : "工具执行"));
+        if (entry.action) badges.append(make("span", `badge ${actionBadgeClass(entry.action)}`, actionLabel(entry.action)));
+        card.append(badges);
+        box.append(card);
+        root.append(box);
+      });
+    }
+
+    function field(root, label, value) {
+      const row = make("div", "field");
+      row.append(make("div", "field-label", label));
+      row.append(make("div", "field-value", value ?? "—"));
+      root.append(row);
+    }
+
+    function jsonDetails(title, value, detailKey) {
+      const details = document.createElement("details");
+      details.open = state.expandedKeys.has(detailKey);
+      details.dataset.detailKey = detailKey;
+      details.append(make("summary", "", title));
+      details.append(make("pre", "", JSON.stringify(value, null, 2)));
+      details.addEventListener("toggle", () => {
+        if (details.open) state.expandedKeys.add(detailKey);
+        else state.expandedKeys.delete(detailKey);
+      });
+      return details;
+    }
+
+    function renderAuditRelated(items) {
+      const root = make("div", "");
+      if (!items.length) { root.append(make("p", "hint", "审计模块中暂无该会话的关联事件。")); return root; }
+      root.append(make("p", "hint", `审计模块关联到 ${items.length} 条任务（Trace），点击可跳转到审计界面查看详情：`));
+      const list = make("div", "relation-list");
+      for (const trace of items) {
+        const button = make("a", "link-button", `${shortId(trace.trace_id)} · ${trace.event_count} 个事件 · ${trace.direct_risk_source_count} 个风险`);
+        button.href = "/audit";
+        button.target = "_blank";
+        button.rel = "noopener";
+        list.append(button);
+      }
+      root.append(list);
+      return root;
+    }
+
+    async function loadAuditRelated(sessionId) {
+      const root = byId("audit-related");
+      if (!root) return;
+      root.replaceChildren(make("div", "loading", "正在查询审计关联…"));
+      try {
+        const data = await requestJson(`/v1/audit/traces?session_id=${encodeURIComponent(sessionId)}&limit=50`);
+        root.replaceChildren();
+        root.append(make("h3", "", "审计事件关联"));
+        root.append(renderAuditRelated(data.items || []));
+      } catch (error) {
+        root.replaceChildren();
+        root.append(make("h3", "", "审计事件关联"));
+        root.append(make("p", "hint", `审计关联查询暂不可用：${error.message}`));
+      }
+    }
+
+    function renderSessionDetail() {
+      const root = byId("session-detail");
+      root.replaceChildren();
+      if (!state.session) { root.append(make("div", "empty", "请选择一个会话")); return; }
+      const session = state.session;
+      root.append(make("h3", "", "会话概览"));
+      field(root, "会话 ID", session.session_id);
+      field(root, "用户原始意图", session.original_prompt || "未绑定");
+      field(root, "工具调用次数", `${(session.tool_chain || []).length}${session.chain_truncated ? "（超出上限已截断，仅保留最近记录）" : ""}`);
+      field(root, "判定反馈条数", (session.verdicts || []).length);
+      field(root, "最近活跃时间", formatTime(session.updated_at));
+      root.append(jsonDetails("工具链完整记录（展开查看）", session.tool_chain, `${session.session_id}:chain`));
+      root.append(jsonDetails("判定反馈完整记录（展开查看）", session.verdicts, `${session.session_id}:verdicts`));
+      const auditBox = make("div", "");
+      auditBox.id = "audit-related";
+      root.append(auditBox);
+      loadAuditRelated(session.session_id);
+    }
+
+    async function selectSession(sessionId) {
+      state.selectedSessionId = sessionId;
+      renderSessionList();
+      byId("timeline").replaceChildren(make("div", "loading", "正在加载时间线…"));
+      byId("session-detail").replaceChildren(make("div", "loading", "正在加载会话详情…"));
+      try {
+        const data = await requestJson(`/v1/tool/session/${encodeURIComponent(sessionId)}`);
+        state.session = data.session;
+        renderTimeline();
+        renderSessionDetail();
+        clearError();
+      } catch (error) {
+        state.session = null;
+        byId("timeline").replaceChildren(make("div", "empty", "会话读取失败"));
+        byId("session-detail").replaceChildren(make("div", "empty", `会话读取失败：${error.message}`));
+        showError(`会话读取失败：${error.message}`);
+      }
+    }
+
+    async function refreshSessions() {
+      byId("refresh-state").textContent = "正在刷新";
+      try {
+        const data = await requestJson(`/v1/tool/session?limit=200`);
+        state.sessions = data.items;
+        renderSessionList();
+        if (state.selectedSessionId && state.sessions.some(item => item.session_id === state.selectedSessionId)) {
+          await selectSession(state.selectedSessionId);
+        } else if (state.sessions.length) {
+          await selectSession(state.sessions[0].session_id);
+        } else {
+          state.selectedSessionId = null;
+          state.session = null;
+          renderTimeline();
+          byId("session-detail").replaceChildren(make("div", "empty", "暂无会话"));
+        }
+        byId("last-refresh").textContent = new Date().toLocaleTimeString();
+        clearError();
+      } catch (error) { showError(`会话列表刷新失败：${error.message}`); }
+    }
+
+    byId("refresh-sessions").addEventListener("click", refreshSessions);
+    byId("session-keyword").addEventListener("input", () => {
+      window.clearTimeout(keywordTimer);
+      keywordTimer = window.setTimeout(() => { renderSessionList(); }, 300);
+    });
+    byId("auto-refresh").addEventListener("change", clearError);
+    window.setInterval(() => { if (byId("auto-refresh").checked) refreshSessions(); }, 5000);
+
+    byId("cleanup-expired").addEventListener("click", async () => {
+      if (!window.confirm("确定清理全部过期会话吗？仅清理已超过 TTL 的会话，活跃会话不受影响。")) return;
+      try {
+        const data = await requestJson("/v1/tool/session/cleanup_expired", { method:"POST" });
+        showNotice(`已清理 ${data.cleaned} 个过期会话。`);
+        clearError();
+        await refreshSessions();
+      } catch (error) { showError(`清理过期会话失败：${error.message}`); }
+    });
+
+    // ---- 调试预检 ---------------------------------------------------------
+    function renderModuleResult(result) {
+      const card = make("div", "module-card");
+      card.append(make("h4", "", result.module === "access_control" ? "权限检查（access_control）" : "意图匹配裁判（tool_guard）"));
+      const verdict = make("div", `verdict-line ${actionBadgeClass(result.action)}`, `判定：${actionLabel(result.action)}`);
+      card.append(verdict);
+      card.append(make("div", "kv", `<b>风险分：</b>${result.risk_score}`));
+      card.append(make("div", "kv", `<b>成功：</b>${result.success ? "是" : "否"}`));
+      if (result.details && result.details.score !== undefined) {
+        card.append(make("div", "kv", `<b>意图匹配分：</b>${result.details.score}`));
+      }
+      if (result.details && result.details.deviation) {
+        card.append(make("div", "kv", `<b>偏离点：</b>${result.details.deviation}`));
+      }
+      card.append(make("div", "kv full", `<b>判定说明：</b>${result.reason || "—"}`));
+      if (result.error) card.append(make("div", "kv full", `<b>错误：</b>${result.error}`));
+      if (result.details) card.append(jsonDetails("模块详情（展开查看）", result.details, `debug:${result.module}`));
+      return card;
+    }
+
+    byId("run-precheck").addEventListener("click", async () => {
+      const root = byId("precheck-result");
+      const sessionId = byId("dbg-session").value.trim();
+      const toolName = byId("dbg-tool").value.trim();
+      const argsText = byId("dbg-args").value.trim();
+      if (!sessionId || !toolName || !argsText) { showError("调试预检需要填写会话 ID、工具名称与参数（JSON）。"); return; }
+      let argumentsValue;
+      try { argumentsValue = JSON.parse(argsText); } catch (error) { showError("工具参数不是合法的 JSON：" + error.message); return; }
+      root.replaceChildren(make("div", "loading", "正在执行预检…"));
+      const body = {
+        context: {
+          trace_id: `debug-${Date.now()}`,
+          session_id: sessionId,
+          user_id: "web-console",
+          stage: "tool_pre",
+          timestamp: new Date().toISOString(),
+        },
+        payload: {
+          tool_name: toolName,
+          tool_call_id: `debug-call-${Date.now()}`,
+          arguments: argumentsValue,
+          sequence: 0,
+        },
+      };
+      try {
+        const data = await requestJson("/v1/tool/pre_check", { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(body) });
+        root.replaceChildren();
+        const final = make("div", `final-verdict ${actionBadgeClass(data.action)}`);
+        final.append(make("div", "label", "最终动作"));
+        final.append(make("div", "title", actionLabel(data.action)));
+        final.append(make("div", "sub", `风险分：${data.risk_score}；${data.reason || "passed"}`));
+        root.append(final);
+        const grid = make("div", "module-grid");
+        for (const result of data.module_results || []) grid.append(renderModuleResult(result));
+        root.append(grid);
+        root.append(make("p", "hint", "提示：若 tool_guard 显示「无会话上下文」，请先在会话历史中确认该会话已绑定用户意图，或调用 /v1/tool/session/prompt 绑定。"));
+        clearError();
+      } catch (error) {
+        root.replaceChildren(make("div", "empty", `预检失败：${error.message}`));
+        showError(`预检失败：${error.message}`);
+      }
+    });
+
+    byId("clear-precheck").addEventListener("click", () => {
+      byId("precheck-result").replaceChildren();
+    });
+
+    // ---- 启动 -------------------------------------------------------------
+    loadConfig();
+    refreshSessions();
+  </script>
+</body>
+</html>

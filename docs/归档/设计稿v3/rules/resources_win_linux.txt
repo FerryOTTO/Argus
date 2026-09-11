@@ -1,0 +1,117 @@
+# Clawguard 资源规则 — 跨平台完整版（Windows + Linux）
+# 格式: 路径模式 | 所需等级 | 继承模式(flat/inherit/override)
+#
+# 设计原则：
+#   1. 根/盘符/主目录默认 internal(inherit)，敏感子目录用 override 收紧
+#   2. 文件级规则（如 /etc/shadow）比目录通配更具体，同深度时自动优先
+#   3. 工具分四档：public 查询 / internal 读 / secret 写 / top_secret 执行
+#   4. 未列出的资源默认 99 级 → 零信任拦截
+#
+# 切换为生产规则：set CLAWGUARD_RESOURCES_FILE=<本文件路径> 或替换 rules/resources.txt
+# 说明：匹配在本机为大小写不敏感（fnmatch 的 Windows normcase），Linux 部署时如需大小写敏感需在引擎层调整。
+
+# ═══════════════════════════════════════════════════════════════
+# 0. 工具规则（tool: 深度=100+冒号数，恒高于路径规则）
+# ═══════════════════════════════════════════════════════════════
+tool:*                  | internal    | flat      # 未列出的工具默认 internal
+tool:query_weather      | public      | flat
+tool:web_search         | public      | flat      # 只读公开信息
+tool:read_file          | internal    | flat
+tool:list_dir           | internal    | flat
+tool:write_file         | secret      | flat
+tool:delete_file        | secret      | flat
+tool:http_request       | secret      | flat      # 外发网络请求（泄露面）
+tool:execute_bash       | top_secret  | flat
+tool:code_interpreter   | top_secret  | flat      # 任意代码执行
+
+# ═══════════════════════════════════════════════════════════════
+# 1. 数据库规则（按真实命名，未列出的库零信任拦截）
+# ═══════════════════════════════════════════════════════════════
+db:public_db            | public      | flat
+db:internal_db          | internal    | flat
+db:secret_db            | secret      | flat
+db:huawei_db            | top_secret  | flat
+
+# ═══════════════════════════════════════════════════════════════
+# 2. Windows 文件系统
+# ═══════════════════════════════════════════════════════════════
+
+# —— 盘符根兜底（未列出的子目录继承此等级）——
+C:\                      | internal    | inherit
+D:\                      | internal    | inherit
+E:\                      | internal    | inherit
+
+# —— 系统目录：操作系统核心，最高保护 ——
+C:\Windows\*             | top_secret  | override
+C:\Windows\System32\*    | top_secret  | override
+C:\Program Files\*       | secret      | override
+C:\Program Files (x86)\* | secret      | override
+C:\ProgramData\*         | secret      | override
+
+# —— 用户目录树：父 internal，逐层 override ——
+C:\Users\*               | internal    | inherit
+C:\Users\Public\*        | public      | override   # 公开共享区
+C:\Users\Default\*       | internal    | override
+C:\Users\guest\*         | public      | override   # 访客用户
+C:\Users\admin\*         | secret      | override
+C:\Users\admin\Desktop\*   | internal   | override  # 日常办公区
+C:\Users\admin\Documents\* | internal   | override
+C:\Users\admin\Downloads\* | internal   | override
+C:\Users\admin\AppData\*   | secret     | override  # 应用配置/缓存，可能含凭证
+C:\Users\admin\.ssh\*      | top_secret | override  # SSH 私钥
+C:\Users\admin\secrets\*   | top_secret | override  # 机密项目目录
+C:\Users\admin\.gitconfig  | secret     | override  # 单文件级规则示例
+
+# —— 其他磁盘根按需细化 ——
+D:\Public\*              | public      | override
+D:\Projects\*            | internal    | override
+
+# ═══════════════════════════════════════════════════════════════
+# 3. Linux 文件系统（FHS 标准目录）
+# ═══════════════════════════════════════════════════════════════
+
+# —— 根兜底 ——
+/                        | internal    | inherit
+
+# —— 系统配置与安全敏感目录 ——
+/etc/*                   | secret      | override
+/etc/shadow              | top_secret  | override   # 口令哈希，单文件级
+/etc/ssh/*               | top_secret  | override   # 主机私钥
+/etc/passwd              | secret      | override
+
+# —— 系统程序 ——
+/bin/*                   | secret      | override
+/sbin/*                  | secret      | override
+/usr/*                   | secret      | override
+/boot/*                  | secret      | override
+/opt/*                   | secret      | override
+
+# —— 内核与设备接口 ——
+/proc/*                  | top_secret  | override
+/dev/*                   | top_secret  | override
+
+# —— 运行时数据 ——
+/var/*                   | internal    | inherit
+/var/log/*               | secret      | override   # 日志可能含敏感信息
+/var/lib/*               | secret      | override
+/var/www/*               | public      | override   # Web 根目录公开
+
+# —— 用户与家目录 ——
+/home/*                  | internal    | inherit
+/home/public/*           | public      | override   # 公开共享
+/root/*                  | top_secret  | override   # root 家目录
+/root/.ssh/*             | top_secret  | override
+
+# —— 临时与可挂载 ——
+/tmp/*                   | internal    | override
+/mnt/*                   | internal    | override
+/media/*                 | internal    | override
+/srv/*                   | internal    | override
+
+# ═══════════════════════════════════════════════════════════════
+# 4. 扩展名兜底（深度 0，仅在没有路径规则命中时生效）
+# ═══════════════════════════════════════════════════════════════
+*.log                    | secret      | flat
+*.pem                    | top_secret  | flat      # 私钥文件
+*.key                    | top_secret  | flat
+*.env                    | top_secret  | flat      # 环境变量可能含密钥

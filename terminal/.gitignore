@@ -1,0 +1,26 @@
+.env
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+node_modules/
+runtime/
+*.log
+*.db
+clawguard/modules/retrieval_guard/models/*
+!clawguard/modules/retrieval_guard/models/.gitkeep
+clawguard/modules/io_guard/original/models/
+clawguard/modules/io_guard/original/model_heads/*/
+clawguard/modules/io_guard/original/runtime/
+clawguard/modules/io_guard/original/work/
+
+# OpenGuard
+openguard/original/.env
+openguard/original/jwt_private.pem
+openguard/original/jwt_public.pem
+openguard/original/keys/*.pem
+openguard/original/data/
+openguard/original/node_modules/
+openguard/original/__pycache__/
+openguard/original/runtime/

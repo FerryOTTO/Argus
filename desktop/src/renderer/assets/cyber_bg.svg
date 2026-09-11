@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="600" viewBox="0 0 1200 600" fill="none">
+  <rect width="1200" height="600" fill="#0E1420"/>
+  <!-- Circuit grid lines -->
+  <g stroke="#1E293B" stroke-width="1" opacity="0.6">
+    <path d="M0 100H1200 M0 200H1200 M0 300H1200 M0 400H1200 M0 500H1200"/>
+    <path d="M100 0V600 M200 0V600 M300 0V600 M400 0V600 M500 0V600 M600 0V600 M700 0V600 M800 0V600 M900 0V600 M1000 0V600 M1100 0V600"/>
+  </g>
+  <!-- Glowing Orange Circuit Traces -->
+  <g stroke="#FF6900" stroke-width="2.5" stroke-linecap="round" opacity="0.85">
+    <path d="M200 300 H350 L450 200 H650 L750 300 H950"/>
+    <path d="M300 450 H420 L520 350 H720 L800 450 H1050"/>
+    <path d="M150 150 H280 L350 220 H500"/>
+    <path d="M600 120 H800 L880 200 H1100"/>
+  </g>
+  <!-- Glowing Cyan High-Frequency Traces -->
+  <g stroke="#00F2FE" stroke-width="2" stroke-linecap="round" opacity="0.8">
+    <path d="M100 250 H220 L300 170 H480 L560 250 H850"/>
+    <path d="M400 400 H550 L650 500 H900"/>
+    <path d="M700 220 H820 L900 140 H1120"/>
+  </g>
+  <!-- Neural Data Nodes -->
+  <g fill="#FF6900">
+    <circle cx="350" cy="200" r="5"/>
+    <circle cx="450" cy="200" r="4"/>
+    <circle cx="650" cy="200" r="4"/>
+    <circle cx="750" cy="300" r="6"/>
+    <circle cx="520" cy="350" r="5"/>
+    <circle cx="800" cy="450" r="5"/>
+  </g>
+  <g fill="#00F2FE">
+    <circle cx="220" cy="250" r="4"/>
+    <circle cx="300" cy="170" r="5"/>
+    <circle cx="480" cy="170" r="4"/>
+    <circle cx="560" cy="250" r="6"/>
+    <circle cx="900" cy="140" r="5"/>
+  </g>
+  <!-- Futuristic Hexagonal Badges -->
+  <g stroke="#FF8533" stroke-width="1.5" fill="#FF6900" fill-opacity="0.1">
+    <polygon points="600,280 625,295 625,325 600,340 575,325 575,295"/>
+    <polygon points="300,150 315,160 315,180 300,190 285,180 285,160"/>
+    <polygon points="900,420 918,432 918,454 900,466 882,454 882,432"/>
+  </g>
+</svg>

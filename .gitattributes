@@ -1,0 +1,31 @@
+# 统一换行与二进制判定，避免不同平台提交时互相打架。
+# 文本文件在仓库里一律存 LF，Windows 的批处理脚本检出为 CRLF。
+
+* text=auto eol=lf
+
+# Windows 批处理必须是 CRLF，否则 cmd 解析会出问题
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+
+# 二进制资源，禁止 Git 做换行转换
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.svg   text
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.pdf   binary
+*.docx  binary
+*.xlsx  binary
+*.db    binary
+
+# 锁文件：虽然生成，但要保证逐字节一致，不做合并
+package-lock.json  -diff linguist-generated
+go.sum             -diff
+
+# 明确标注生成物，GitHub 语言统计不会被前端构建产物带偏
+gateway/web/dist/**  linguist-generated
+terminal/openclaw_adapter/plugins/clawguard-adapter/dist/**  linguist-generated

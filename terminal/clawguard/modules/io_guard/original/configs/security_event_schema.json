@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.example/io-guard/security-event.schema.json",
+  "title": "Unified Security Event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "event_id",
+    "parent_event_id",
+    "trace_id",
+    "session_id",
+    "user_id",
+    "timestamp",
+    "stage",
+    "source_module",
+    "content",
+    "decision",
+    "metadata"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "event_id": { "type": "string", "minLength": 1 },
+    "parent_event_id": { "type": ["string", "null"] },
+    "trace_id": { "type": "string", "minLength": 1 },
+    "session_id": { "type": "string" },
+    "user_id": { "type": "string" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "stage": {
+      "enum": [
+        "user_input",
+        "prompt_guard",
+        "knowledge",
+        "planning",
+        "tool_call",
+        "tool_result",
+        "sandbox",
+        "output_guard",
+        "final_output",
+        "error"
+      ]
+    },
+    "source_module": { "type": "string", "minLength": 1 },
+    "content": { "type": "object" },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action", "risk_score", "reason", "confidence"],
+      "properties": {
+        "action": { "enum": ["allow", "block", "modify"] },
+        "risk_score": { "type": "number", "minimum": 0, "maximum": 1 },
+        "reason": { "type": "string" },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["tool_name", "model", "latency_ms"],
+      "properties": {
+        "tool_name": { "type": ["string", "null"] },
+        "model": { "type": ["string", "null"] },
+        "latency_ms": { "type": ["number", "null"], "minimum": 0 }
+      }
+    }
+  }
+}

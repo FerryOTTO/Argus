@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="640" viewBox="0 0 1200 640" fill="none">
+  <!-- Sandstone Stone Relief Base -->
+  <rect width="1200" height="640" fill="#F4EFEA"/>
+  
+  <defs>
+    <linearGradient id="stone_grad" x1="0" y1="0" x2="1200" y2="640" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F7F4F0"/>
+      <stop offset="0.5" stop-color="#EEE8E0"/>
+      <stop offset="1" stop-color="#E2DACF"/>
+    </linearGradient>
+
+    <linearGradient id="dragon_gold" x1="200" y1="100" x2="900" y2="500" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF6900" stop-opacity="0.35"/>
+      <stop offset="0.5" stop-color="#D4A373" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#FF8533" stop-opacity="0.2"/>
+    </linearGradient>
+
+    <filter id="emboss" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="1" dy="2" stdDeviation="1.5" flood-color="#7D7265" flood-opacity="0.25"/>
+      <feDropShadow dx="-1" dy="-1" stdDeviation="1" flood-color="#FFFFFF" flood-opacity="0.8"/>
+    </filter>
+
+    <filter id="soft_glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Textured Background Grid Lines -->
+  <g stroke="#E3DBD0" stroke-width="1" opacity="0.65">
+    <path d="M0 80H1200 M0 160H1200 M0 240H1200 M0 320H1200 M0 400H1200 M0 480H1200 M0 560H1200"/>
+    <path d="M100 0V640 M200 0V640 M300 0V640 M400 0V640 M500 0V640 M600 0V640 M700 0V640 M800 0V640 M900 0V640 M1000 0V640 M1100 0V640"/>
+  </g>
+
+  <!-- Auspicious Clouds (Dunhuang / Classical Relief Style) -->
+  <g stroke="#CFC5B8" stroke-width="2" fill="none" opacity="0.7" filter="url(#emboss)">
+    <path d="M150 180 C 130 150, 80 150, 70 180 C 60 210, 110 220, 140 210 C 170 200, 200 230, 230 210 C 260 190, 240 160, 210 160 C 190 160, 180 140, 150 180 Z" fill="#EAE3D9" fill-opacity="0.6"/>
+    <path d="M980 140 C 960 110, 910 110, 900 140 C 890 170, 940 180, 970 170 C 1000 160, 1030 190, 1060 170 C 1090 150, 1070 120, 1040 120 C 1020 120, 1010 100, 980 140 Z" fill="#EAE3D9" fill-opacity="0.6"/>
+    <path d="M420 480 C 400 450, 350 450, 340 480 C 330 510, 380 520, 410 510 C 440 500, 470 530, 500 510 C 530 490, 510 460, 480 460 C 460 460, 450 440, 420 480 Z" fill="#EAE3D9" fill-opacity="0.6"/>
+    <path d="M820 450 C 800 420, 750 420, 740 450 C 730 480, 780 490, 810 480 C 840 470, 870 500, 900 480 C 930 460, 910 430, 880 430 C 860 430, 850 410, 820 450 Z" fill="#EAE3D9" fill-opacity="0.6"/>
+  </g>
+
+  <!-- Majestic Stone Dragon Relief Silhouette & Contours -->
+  <g filter="url(#emboss)">
+    <!-- Dragon Serpentine Body Swirls -->
+    <path d="M 220 380 C 260 260, 380 220, 480 280 C 580 340, 680 210, 780 260 C 860 300, 940 240, 1000 180" 
+          stroke="url(#dragon_gold)" stroke-width="48" stroke-linecap="round" fill="none" opacity="0.85"/>
+    <path d="M 220 380 C 260 260, 380 220, 480 280 C 580 340, 680 210, 780 260 C 860 300, 940 240, 1000 180" 
+          stroke="#C5B9AA" stroke-width="40" stroke-linecap="round" fill="none" opacity="0.9"/>
+    <path d="M 220 380 C 260 260, 380 220, 480 280 C 580 340, 680 210, 780 260 C 860 300, 940 240, 1000 180" 
+          stroke="#FAF7F2" stroke-width="32" stroke-linecap="round" fill="none" opacity="0.95"/>
+
+    <!-- Tail Fin Relief -->
+    <path d="M 180 420 Q 220 380 240 410 Q 220 450 180 420 Z" fill="#D3C7B7" stroke="#BAAE9E" stroke-width="2"/>
+    <path d="M 160 440 Q 210 400 220 440 Q 190 470 160 440 Z" fill="#D3C7B7" stroke="#BAAE9E" stroke-width="2"/>
+
+    <!-- Dragon Scales Texture Lines -->
+    <g stroke="#B8AC9D" stroke-width="2" fill="none" opacity="0.75">
+      <path d="M300 290 Q315 280 330 290 M320 280 Q335 270 350 280 M340 270 Q355 260 370 270"/>
+      <path d="M420 260 Q435 250 450 260 M440 255 Q455 245 470 255 M460 260 Q475 250 490 260"/>
+      <path d="M540 295 Q555 285 570 295 M560 290 Q575 280 590 290 M580 275 Q595 265 610 275"/>
+      <path d="M660 240 Q675 230 690 240 M680 235 Q695 225 710 235 M700 240 Q715 230 730 240"/>
+      <path d="M780 265 Q795 255 810 265 M800 260 Q815 250 830 260 M820 250 Q835 240 850 250"/>
+      <path d="M880 230 Q895 220 910 230 M900 220 Q915 210 930 220 M920 205 Q935 195 950 205"/>
+    </g>
+
+    <!-- Dragon Spine Fins (Flame Spines) -->
+    <g fill="#E4DACD" stroke="#B3A594" stroke-width="1.5">
+      <polygon points="280,290 290,265 305,285"/>
+      <polygon points="330,270 345,245 355,268"/>
+      <polygon points="380,260 395,235 408,260"/>
+      <polygon points="440,250 455,225 468,255"/>
+      <polygon points="510,275 528,250 538,280"/>
+      <polygon points="570,295 588,270 598,290"/>
+      <polygon points="640,255 658,225 668,250"/>
+      <polygon points="710,235 728,205 738,235"/>
+      <polygon points="780,245 798,215 808,245"/>
+      <polygon points="850,250 868,220 878,245"/>
+      <polygon points="920,215 938,185 948,210"/>
+    </g>
+
+    <!-- Powerful Dragon Claws (Three/Four Talons) -->
+    <g stroke="#9C8F7E" stroke-width="3" fill="#EAE3D8" stroke-linejoin="round">
+      <!-- Front Claw 1 -->
+      <path d="M 620 320 L 640 380 L 625 410 M 640 380 L 655 415 M 640 380 L 675 405"/>
+      <!-- Front Claw 2 -->
+      <path d="M 820 280 L 850 340 L 835 375 M 850 340 L 865 380 M 850 340 L 885 365"/>
+      <!-- Back Claw -->
+      <path d="M 360 260 L 340 320 L 320 345 M 340 320 L 335 355 M 340 320 L 360 350"/>
+    </g>
+
+    <!-- Magnificent Dragon Head (Carved Face, Horns, Whiskers) -->
+    <g transform="translate(980, 120)">
+      <!-- Main Jaw & Snout -->
+      <path d="M 20 60 C 50 30, 90 40, 110 65 C 130 90, 80 120, 50 115 C 20 110, -10 90, 20 60 Z" 
+            fill="#FAF6F0" stroke="#B0A290" stroke-width="2.5"/>
+      <!-- Nose / Muzzle Crest -->
+      <path d="M 90 55 C 105 45, 120 60, 110 75 C 95 90, 85 75, 90 55 Z" 
+            fill="#EFE7DD" stroke="#B0A290" stroke-width="2"/>
+      <!-- Majestic Horns (Branching Coral Horn) -->
+      <path d="M 15 45 C 5 15, -25 0, -45 -15 C -25 -5, -10 10, -5 30" 
+            stroke="#D4A373" stroke-width="6" stroke-linecap="round" fill="none"/>
+      <path d="M 0 35 C -15 20, -35 25, -50 20" 
+            stroke="#C0B2A0" stroke-width="4" stroke-linecap="round" fill="none"/>
+      <!-- Dragon Eye (Inlaid with subtle amber glow) -->
+      <circle cx="55" cy="65" r="7" fill="#FF8533" filter="url(#soft_glow)"/>
+      <circle cx="55" cy="65" r="5" fill="#4A3E31"/>
+      <circle cx="57" cy="63" r="1.5" fill="#FFFFFF"/>
+      <!-- Flowing Dragon Whiskers -->
+      <path d="M 85 85 C 120 100, 160 85, 190 120 C 160 115, 120 125, 90 95" 
+            stroke="#D97706" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.75"/>
+      <path d="M 80 95 C 100 130, 140 150, 170 175" 
+            stroke="#B5A795" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.8"/>
+      <!-- Flowing Mane -->
+      <path d="M -10 65 C -40 70, -70 50, -95 60 C -70 75, -45 85, -20 80" 
+            fill="#EAE2D7" stroke="#BAAC9B" stroke-width="2"/>
+      <path d="M -5 80 C -35 95, -60 85, -85 105 C -55 110, -30 105, -10 95" 
+            fill="#EAE2D7" stroke="#BAAC9B" stroke-width="2"/>
+    </g>
+
+    <!-- Flaming Pearl of Wisdom / AI Core Energy Orb -->
+    <g transform="translate(1100, 240)">
+      <circle cx="0" cy="0" r="28" fill="#FF8533" fill-opacity="0.15" filter="url(#soft_glow)"/>
+      <circle cx="0" cy="0" r="18" fill="#FFFBF5" stroke="#FF6900" stroke-width="2.5"/>
+      <circle cx="0" cy="0" r="10" fill="#FF6900" fill-opacity="0.6"/>
+      <path d="M -25 -5 Q -40 -20 -30 -35 Q -15 -25 -5 -15" stroke="#FF8533" stroke-width="2" fill="none"/>
+      <path d="M 20 -10 Q 35 -30 45 -20 Q 30 -5 15 0" stroke="#FF8533" stroke-width="2" fill="none"/>
+      <path d="M 5 25 Q 15 45 -5 40 Q -10 25 0 15" stroke="#FF8533" stroke-width="2" fill="none"/>
+    </g>
+  </g>
+
+  <!-- Modern Subtle Watermark Calligraphy Seal -->
+  <g transform="translate(80, 520)" opacity="0.45">
+    <rect width="36" height="36" rx="6" fill="none" stroke="#FF6900" stroke-width="1.5"/>
+    <text x="18" y="23" font-family="'PingFang SC', serif" font-size="14" font-weight="bold" fill="#FF6900" text-anchor="middle">御</text>
+  </g>
+</svg>

@@ -1,0 +1,15 @@
+{
+  "mode": "rbac",
+  "block_unknown_users": false,
+  "risk_link_enabled": true,
+  "risk_window_seconds": 300,
+  "risk_threshold": 0.6,
+  "risk_probe_block_count": 3,
+  "risk_escalation_threshold": 0.5,
+  "quarantine_enabled": true,
+  "quarantine_block_count": 8,
+  "quarantine_risk_threshold": 0.85,
+  "quarantine_long_window_seconds": 3600,
+  "quarantine_long_window_count": 15,
+  "default_user_level": "public"
+}

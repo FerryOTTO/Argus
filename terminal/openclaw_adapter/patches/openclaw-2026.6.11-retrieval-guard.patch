@@ -1,0 +1,60 @@
+--- a/dist/proxy-CoylXPU6.js
++++ b/dist/proxy-CoylXPU6.js
+@@ -605,6 +605,57 @@
+ 			})));
+ 		});
+ 		await Promise.all(updateEvents);
++		// ★★★ SafeGuard 开始：web_search/web_fetch 结果进 AI 上下文前，调 Clawguard :8000 统一检查 ★★★
++		// 开关：SAFEGUARD_ENABLED=false 则完全跳过（fail-open）
++		// 拦截逻辑（A URL白名单 / B 注入检测 / C 包装）在 Clawguard 侧 adapter 完成
++		const SAFEGUARD_URL = "http://127.0.0.1:8000";
++		const SAFEGUARD_ENABLED = true;
++		const SAFEGUARD_TIMEOUT_MS = 15000;
++		const SAFEGUARD_MIN_LENGTH = 50; // 与 cleaner.MIN_LENGTH 一致：短内容不送检
++
++		const toolName = prepared.toolCall.name;
++		if (SAFEGUARD_ENABLED && (toolName === "web_search" || toolName === "web_fetch") && result && !result.error) {
++			try {
++				// 提取原始文本（观测确认：content[0].text 是 JSON 字符串，含 url/text 等字段）
++				const raw = result.content?.[0]?.text ?? result.content?.[0] ?? "";
++				const text = typeof raw === "string" ? raw : JSON.stringify(raw);
++				if (!text || text.length < SAFEGUARD_MIN_LENGTH) return { result, isError: false };
++
++				// 提取 URL（web_fetch JSON 的 url/finalUrl 字段；解析失败则为空，交给 Clawguard 侧处理）
++				let checkUrl = "";
++				try {
++					const parsed = JSON.parse(text);
++					if (parsed && typeof parsed === "object") {
++						checkUrl = parsed.url || parsed.finalUrl || "";
++					}
++				} catch { /* 非 JSON，URL 留空 */ }
++
++				console.log(`[SafeGuard] ${toolName} len=${text.length} url=${checkUrl} callId=${prepared.toolCall.id}`);
++				const res = await fetch(`${SAFEGUARD_URL}/v1/content/check`, {
++					method: "POST",
++					headers: { "Content-Type": "application/json" },
++					body: JSON.stringify({
++						context: { stage: "content" },
++						payload: { text, url: checkUrl, tool: toolName, tool_call_id: prepared.toolCall.id }
++					}),
++					signal: AbortSignal.timeout(SAFEGUARD_TIMEOUT_MS),
++				});
++				if (res.ok) {
++					const j = await res.json();
++					if (j.action === "block") {
++						console.log(`[SafeGuard] BLOCK ${toolName} reason=${j.reason}`);
++						return { result: createErrorToolResult(`[SafeGuard] 内容安全检查未通过：${j.reason}`), isError: true };
++					}
++					if (j.action === "rewrite" && j.data?.text) {
++						console.log(`[SafeGuard] REWRITE ${toolName} len=${j.data.text.length}`);
++						result.content[0].text = j.data.text; // 写回 C 层包装文本
++					}
++				}
++			} catch (err) {
++				console.error(`[SafeGuard] 失败(fail-open): ${err.message}`);
++			}
++		}
++		// ★★★ SafeGuard 结束 ★★★
+ 		return {
+ 			result,
+ 			isError: false

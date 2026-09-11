@@ -1,0 +1,21 @@
+# Clawguard 用户规则
+# 格式: 用户名或ID | 默认等级 | 特例(逗号分隔,可选)
+
+adminuser | top_secret | *
+usr_O89khiPJP4zshemJ | top_secret | *
+admin_01 | top_secret | *
+robertwright | secret |
+usr_R4jyvizIyZZd4tKG | secret |
+benjaminsmith | internal |
+usr_OwZ1cvpJrHVyzp5N | internal |
+user_01 | internal |
+williamsims | public |
+usr_IyQ8D49eVuOWQfoM | public |
+intern_01 | public | tool:query_weather
+auditor_01 | internal | !tool:write_file,tool:read_file
+guest_01 | public | C:\Users\Public\*
+user_public | public |
+user_internal | internal |
+user_secret | secret |
+user_admin | top_secret | *
+_u | top_secret | *

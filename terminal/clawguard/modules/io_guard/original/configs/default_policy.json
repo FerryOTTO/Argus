@@ -1,0 +1,68 @@
+{
+  "policy_id": "io-guard-target-taxonomy-v1",
+  "target_taxonomy": {
+    "risk_source": [
+      "malicious_user_instruction_or_jailbreak",
+      "direct_prompt_injection",
+      "indirect_prompt_injection",
+      "unreliable_or_misinformation"
+    ],
+    "failure_mode": [
+      "harmful_or_offensive_content",
+      "harmful_or_illegal_guidance",
+      "malicious_executable_generation",
+      "unauthorized_information_disclosure",
+      "inaccurate_misleading_or_unverified_information"
+    ]
+  },
+  "decision_thresholds": {
+    "rewrite": 0.55,
+    "block": 0.85
+  },
+  "audit": {
+    "content_storage": "sanitized",
+    "max_content_chars": 2000
+  },
+  "disclosure": {
+    "authorized_scopes": [
+      "pii",
+      "customer_support",
+      "hr",
+      "finance"
+    ]
+  },
+  "question_decomposition": {
+    "enabled": true,
+    "min_chars": 60,
+    "max_parts": 8,
+    "strategy": "lossless_heuristic_v1"
+  },
+  "semantic_detection": {
+    "enabled": true,
+    "backend": "stage_char_classifier",
+    "model_dir": "../model_heads/io-guard-stage-char-v3",
+    "policy_score": 0.9,
+    "detector_threshold": 0.55,
+    "threshold_overrides": {
+      "input": 0.6825,
+      "output": 0.3,
+      "content": 0.7
+    }
+  },
+  "media_extraction": {
+    "enabled": true,
+    "max_file_bytes": 15000000,
+    "max_text_chars": 50000,
+    "max_attachments": 5,
+    "remote": {
+      "max_bytes": 5000000,
+      "timeout_ms": 8000
+    },
+    "ocr": {
+      "enabled": true,
+      "lang": "ch",
+      "device": "cpu",
+      "max_images": 4
+    }
+  }
+}

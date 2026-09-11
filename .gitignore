@@ -1,0 +1,108 @@
+# ═══════════════════════════════════════════════════════════════
+#  Argus · 统一的 Git 忽略规则
+#  三条底线：① 永不入库密钥  ② 永不入库运行期数据  ③ 永不入库构建产物
+# ═══════════════════════════════════════════════════════════════
+
+# ────────────────────────── 编辑器 / 操作系统 ──────────────────────────
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/
+*.swp
+*~
+
+# ────────────────────────── 密钥与本地凭据（最高优先级）──────────────────────────
+# 终端绑定网关后自动生成的设备身份，含 token 与分配到的 Key
+terminal/configs/remote.json
+terminal/configs/remote.json.bak
+
+# 网关数据库（含真实用户、供应商 Key、配额与审计数据）
+gateway/data/
+data/
+*.db
+*.db-wal
+*.db-shm
+
+# 证书 / 私钥 / 环境变量
+*.pem
+*.key
+.env
+.env.local
+**/openguard/original/.env
+**/openguard/original/keys/
+**/openguard/original/jwt_private.pem
+**/openguard/original/jwt_public.pem
+
+# 运行期数据目录
+**/openguard/original/data/
+
+# ────────────────────────── 备份 / 临时文件 ──────────────────────────
+*.bak
+*.bak-*
+*.orig
+*.rej
+*.tmp
+*.old
+**/package-lock.json.local
+
+# ────────────────────────── Python（terminal/）──────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+env/
+
+terminal/runtime/
+terminal/runtime-logs/
+terminal/**/*.log
+terminal/_clawguard.*.log
+terminal/openguard/original/*.log
+terminal/openguard/original/runtime/
+
+# 检索 / IO 守卫的模型权重体积大，按需本地下载
+terminal/clawguard/modules/retrieval_guard/models/*
+!terminal/clawguard/modules/retrieval_guard/models/.gitkeep
+terminal/clawguard/modules/io_guard/original/models/
+terminal/clawguard/modules/io_guard/original/model_heads/*/
+terminal/clawguard/modules/io_guard/original/runtime/
+terminal/clawguard/modules/io_guard/original/work/
+
+# ────────────────────────── Go（gateway/）──────────────────────────
+gateway/bin/
+gateway/.go/
+gateway/*.exe
+gateway/llmgate
+gateway/llmgate-*
+
+# ────────────────────────── Node / Electron ──────────────────────────
+node_modules/
+**/node_modules/
+.npm/
+
+# 桌面端构建与打包产物
+desktop/dist/
+desktop/release/
+desktop/release-nsis/
+desktop/.stage/
+desktop/runtime-logs/
+desktop/.test-user-data*/
+
+# 网关前端构建产物由 `npm run build` 生成后提交（内嵌进 Go 二进制），
+# 因此 gateway/web/dist 不在此处忽略。
+
+# ────────────────────────── 打包 / 分发产物 ──────────────────────────
+*.exe
+*.msi
+*.dmg
+*.AppImage
+*.zip
+/release/
+/build-output/

@@ -1,0 +1,5 @@
+# Retrieval Guard 模块依赖（PIGuard 推理）
+# 建议使用 conda 环境 face_test（Python 3.11 + CUDA 已就绪）
+torch>=2.0
+transformers>=4.40
+PyYAML>=6.0

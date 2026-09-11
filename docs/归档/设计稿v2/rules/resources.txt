@@ -1,0 +1,56 @@
+# ================================================================
+# Clawguard 资源规则 — Windows 环境
+# 格式: 资源路径/工具/数据库 | 所需等级
+#
+# 特殊规则：
+#   - 规则里没写的路径 → 默认需等级 99（默认拦截，零信任）
+#   - 只有写进规则且等级够的用户才能访问
+# ================================================================
+
+# ═══════════════════════════════════════════════════════════════
+# 等级 1 (public) — williamsims
+# ═══════════════════════════════════════════════════════════════
+D:\bilibili\*                  | public
+D:\BaiduNetdiskDownload\*      | public
+C:\Users\Public\*              | public
+/agent                         | public
+tool:query_weather             | public
+db:public_db                   | public
+
+# ═══════════════════════════════════════════════════════════════
+# 等级 2 (internal) — benjaminsmith 及以上
+# ═══════════════════════════════════════════════════════════════
+C:\Users\admin\Desktop\*       | internal
+C:\Users\admin\Documents\*     | internal
+D:\*                            | internal
+tool:read_file                 | internal
+
+# ═══════════════════════════════════════════════════════════════
+# 等级 3 (secret) — robertwright 及以上
+# ═══════════════════════════════════════════════════════════════
+C:\Users\admin\AppData\*       | secret
+C:\Users\admin\.gitconfig      | secret
+C:\Program Files\*              | secret
+C:\Program Files (x86)\*        | secret
+E:\tiaozhanbei\MAC\*           | secret
+E:\AI\*                         | secret
+E:\cyber\*                      | secret
+tool:write_file                | secret
+
+# ═══════════════════════════════════════════════════════════════
+# 等级 4 (top_secret) — 只有 adminuser
+# ═══════════════════════════════════════════════════════════════
+C:\Windows\*                    | top_secret
+C:\Windows\System32\*          | top_secret
+C:\Users\admin\.ssh\*          | top_secret
+C:\Intel\*                      | top_secret
+C:\guochuang\*                  | top_secret
+C:\Aomei\*                      | top_secret
+C:\hlnet\*                      | top_secret
+E:\epic\*                       | top_secret
+tool:execute_bash               | top_secret
+db:huawei_db                    | top_secret
+/admin/*                        | top_secret
+/channels                       | top_secret
+/nodes                          | top_secret
+/models/config                  | top_secret

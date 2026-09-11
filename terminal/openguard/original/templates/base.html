@@ -1,0 +1,269 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>{% block title %}OpenGuard{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  {% block extra_head %}{% endblock %}
+  <script>
+    // Apply theme early to avoid flash
+    (function(){
+      try {
+        var t = localStorage.getItem('openguard-theme');
+        if (t === 'dark' || t === 'light') {
+          document.documentElement.setAttribute('data-theme', t);
+        } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      } catch(e) {}
+    })();
+  </script>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar" aria-label="侧边导航">
+    <div class="sidebar-brand">
+      <div class="logo-mark" title="OpenGuard">OG</div>
+      <div style="min-width:0;flex:1">
+        <div class="brand-title">OpenGuard</div>
+        <div class="brand-sub">Multi-Tenant Gateway</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav" aria-label="主导航">
+      <div>
+        <div class="nav-section-label">概览</div>
+        <a href="/dashboard" class="nav-item" data-page="dashboard">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+          <span class="txt">仪表盘</span>
+        </a>
+        <a href="/admin" class="nav-item" data-page="admin">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span class="txt">管理后台</span>
+        </a>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-card" aria-label="当前用户">
+        <div class="user-avatar" id="sidebar-avatar">—</div>
+        <div class="user-meta">
+          <div class="name" id="sidebar-user">未登录</div>
+          <div class="sub" id="sidebar-role">—</div>
+        </div>
+      </div>
+      <button class="btn-logout" type="button" onclick="doLogout()" aria-label="退出登录">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        <span>退出登录</span>
+      </button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-title">
+        <h2>{% block topbar_title %}OpenGuard{% endblock %}</h2>
+        <span class="sub">{% block topbar_sub %}{% endblock %}</span>
+      </div>
+      <div class="topbar-actions">
+        <button class="theme-toggle" type="button" onclick="toggleTheme()" title="切换主题" aria-label="切换主题">
+          <svg class="icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg class="icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="content">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+
+<script>
+// Theme toggle
+function toggleTheme() {
+  var html = document.documentElement;
+  var current = html.getAttribute('data-theme');
+  var next = current === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  try { localStorage.setItem('openguard-theme', next); } catch(e) {}
+}
+
+// Logout
+async function doLogout() {
+  if (!confirm('确认退出登录？')) return;
+  try {
+    await fetchWithAuth('/auth/logout', { method: 'POST' });
+  } catch(e) {}
+  document.cookie = 'token=; path=/; max-age=0';
+  document.cookie = 'refresh_token=; path=/; max-age=0';
+  window.location.href = '/login';
+}
+
+// Set active nav
+(function(){
+  var path = window.location.pathname;
+  document.querySelectorAll('.nav-item').forEach(function(el){
+    var href = el.getAttribute('href');
+    if (href === path || (path.startsWith('/dashboard') && href === '/dashboard') || (path.startsWith('/admin') && href === '/admin')) {
+      el.classList.add('active');
+    }
+  });
+})();
+
+// Format date
+function parseTs(ts) {
+  // 统一解析：number=毫秒；数字字符串=按长度判毫秒/秒；ISO 字符串=Date.parse
+  if (ts == null || ts === '') return null;
+  if (typeof ts === 'number') return new Date(ts);
+  var s = String(ts);
+  if (/^\d+(\.\d+)?$/.test(s)) {
+    var n = Number(s);
+    return new Date(n > 1e12 ? n : n * 1000);
+  }
+  var d = new Date(s);
+  return isNaN(d.getTime()) ? null : d;
+}
+function fmtDate(ts) {
+  var d = parseTs(ts);
+  if (!d) return '—';
+  return d.toLocaleString('zh-CN', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
+}
+function fmtRel(ts) {
+  var d = parseTs(ts);
+  if (!d) return '—';
+  var diff = Date.now() - d.getTime();
+  var s = Math.floor(diff / 1000);
+  if (s < 60) return s + '秒前';
+  var m = Math.floor(s / 60);
+  if (m < 60) return m + '分钟前';
+  var h = Math.floor(m / 60);
+  if (h < 24) return h + '小时前';
+  var days = Math.floor(h / 24);
+  if (days < 7) return days + '天前';
+  return d.toLocaleDateString('zh-CN');
+}
+function fmtNum(n) {
+  if (n == null) return '0';
+  return Number(n).toLocaleString('en-US');
+}
+function fmtTokens(n) {
+  if (n == null) return '0';
+  n = Number(n);
+  if (n >= 1000000) return (n/1000000).toFixed(1) + 'M';
+  if (n >= 1000) return (n/1000).toFixed(1) + 'K';
+  return n.toString();
+}
+function fmtReset(ts) {
+  if (!ts) return '—';
+  try {
+    var d = new Date(typeof ts === 'number' ? ts : ts * 1000);
+    var diff = d.getTime() - Date.now();
+    if (diff <= 0) return '重置中';
+    var days = Math.floor(diff / 86400000);
+    var hours = Math.floor((diff % 86400000) / 3600000);
+    if (days > 0) return '重置：' + days + ' 天 ' + hours + ' 小时后';
+    return '重置：' + hours + ' 小时后';
+  } catch(e) { return '—'; }
+}
+
+// ===== Auth-aware fetch (CSRF + silent refresh) =====
+function getCookie(name) {
+  var m = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+  return m ? decodeURIComponent(m[1]) : '';
+}
+function getStoredAuth(name) {
+  try { return localStorage.getItem(name) || ''; } catch(e) { return ''; }
+}
+function authToken() {
+  return getStoredAuth('openguard_token') || getCookie('token');
+}
+function refreshToken() {
+  return getStoredAuth('openguard_refresh_token') || getCookie('refresh_token');
+}
+function saveAuthTokens(data) {
+  var token = data && data.access_token;
+  var refresh = data && data.refresh_token;
+  try {
+    if (token) localStorage.setItem('openguard_token', token);
+    if (refresh) localStorage.setItem('openguard_refresh_token', refresh);
+  } catch(e) {}
+  if (token) document.cookie = 'token=' + encodeURIComponent(token) + '; Path=/; Max-Age=900; SameSite=Lax';
+  if (refresh) document.cookie = 'refresh_token=' + encodeURIComponent(refresh) + '; Path=/; Max-Age=604800; SameSite=Lax';
+}
+function csrfToken() {
+  return getCookie('csrf_token');
+}
+async function tryRefresh() {
+  try {
+    var rt = refreshToken();
+    if (!rt) return false;
+    var r = await fetch('/auth/refresh', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: rt }),
+      credentials: 'include'
+    });
+    if (!r.ok) return false;
+    var d = await r.json();
+    if (d.access_token) {
+      saveAuthTokens(d);
+      return true;
+    }
+  } catch(e) {}
+  return false;
+}
+async function fetchWithAuth(url, opts) {
+  opts = opts || {};
+  var method = (opts.method || 'GET').toUpperCase();
+  var headers = Object.assign({}, opts.headers || {});
+  if (method !== 'GET' && method !== 'HEAD') {
+    var csrf = csrfToken();
+    if (csrf) headers['X-CSRF-Token'] = csrf;
+  }
+  if (opts.body != null && typeof opts.body !== 'string' && !headers['Content-Type']) {
+    headers['Content-Type'] = 'application/json';
+  }
+  var bearer = authToken();
+  if (bearer && !headers['Authorization']) headers['Authorization'] = 'Bearer ' + bearer;
+  opts.headers = headers;
+  opts.credentials = 'include';
+
+  var r = await fetch(url, opts);
+  if (r.status === 401) {
+    var ok = await tryRefresh();
+    if (ok) {
+      var retryHeaders = Object.assign({}, headers);
+      var csrf2 = csrfToken();
+      if (csrf2 && method !== 'GET' && method !== 'HEAD') retryHeaders['X-CSRF-Token'] = csrf2;
+      opts.headers = retryHeaders;
+      r = await fetch(url, opts);
+    } else {
+      window.location.href = '/login';
+      throw new Error('登录已过期，请重新登录');
+    }
+  }
+  return r;
+}
+
+// Load current user
+async function loadCurrentUser() {
+  try {
+    var r = await fetchWithAuth('/me');
+    if (!r.ok) return;
+    var me = await r.json();
+    var userEl = document.getElementById('sidebar-user');
+    var roleEl = document.getElementById('sidebar-role');
+    var avatarEl = document.getElementById('sidebar-avatar');
+    if (userEl) userEl.textContent = me.username || '用户';
+    if (roleEl) roleEl.textContent = (me.role || 'user').toUpperCase();
+    if (avatarEl) avatarEl.textContent = (me.username || '?').charAt(0).toUpperCase();
+  } catch(e) {}
+}
+loadCurrentUser();
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>
