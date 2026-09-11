@@ -3,7 +3,7 @@
     <div class="page-header">
       <div>
         <h2 class="page-title">终端管理</h2>
-        <p class="page-subtitle">登记并管理接入平台的智能体终端（OpenClaw）：查看运行数据，远程下发 Clawguard 安全配置</p>
+        <p class="page-subtitle">登记并管理接入平台的智能体终端（OpenClaw）：查看运行数据，远程下发 Argus 安全配置</p>
       </div>
       <el-button type="primary" @click="openDialog()">
         <el-icon><Plus /></el-icon>添加终端
@@ -41,9 +41,9 @@
           <span v-else class="cell-sub">未上报</span>
         </template>
       </el-table-column>
-      <el-table-column label="Clawguard 版本" width="130">
+      <el-table-column label="Argus 版本" width="130">
         <template #default="{ row }">
-          <el-tag v-if="row.clawguard_version" size="small" type="info">{{ row.clawguard_version }}</el-tag>
+          <el-tag v-if="row.argus_version" size="small" type="info">{{ row.argus_version }}</el-tag>
           <span v-else class="cell-sub">未上报</span>
         </template>
       </el-table-column>
@@ -135,7 +135,7 @@
         <el-form-item label="绑定用户" prop="bound_user_id">
           <el-select
             v-model="form.bound_user_id"
-            placeholder="选择 Clawguard 控制台用户（可留空）"
+            placeholder="选择 Argus 控制台用户（可留空）"
             clearable
             style="width: 100%"
           >
@@ -174,7 +174,7 @@
     <!-- 修改配置 Dialog（可视化编辑器，schema 见 config/terminalConfigSchema.ts） -->
     <el-dialog
       v-model="configDialogVisible"
-      title="修改终端 Clawguard 配置"
+      title="修改终端 Argus 配置"
       width="960px"
       top="4vh"
     >

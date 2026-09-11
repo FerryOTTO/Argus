@@ -605,9 +605,9 @@ async function executePreparedToolCall(prepared, signal, emit) {
 			})));
 		});
 		await Promise.all(updateEvents);
-		// ★★★ SafeGuard 开始：web_search/web_fetch 结果进 AI 上下文前，调 Clawguard :8000 统一检查 ★★★
+		// ★★★ SafeGuard 开始：web_search/web_fetch 结果进 AI 上下文前，调 Argus :8000 统一检查 ★★★
 		// 开关：SAFEGUARD_ENABLED=false 则完全跳过（fail-open）
-		// 拦截逻辑（A URL白名单 / B 注入检测 / C 包装）在 Clawguard 侧 adapter 完成
+		// 拦截逻辑（A URL白名单 / B 注入检测 / C 包装）在 Argus 侧 adapter 完成
 		const SAFEGUARD_URL = "http://127.0.0.1:8000";
 		const SAFEGUARD_ENABLED = true;
 		const SAFEGUARD_TIMEOUT_MS = 15000;
@@ -621,7 +621,7 @@ async function executePreparedToolCall(prepared, signal, emit) {
 				const text = typeof raw === "string" ? raw : JSON.stringify(raw);
 				if (!text || text.length < SAFEGUARD_MIN_LENGTH) return { result, isError: false };
 
-				// 提取 URL（web_fetch JSON 的 url/finalUrl 字段；解析失败则为空，交给 Clawguard 侧处理）
+				// 提取 URL（web_fetch JSON 的 url/finalUrl 字段；解析失败则为空，交给 Argus 侧处理）
 				let checkUrl = "";
 				try {
 					const parsed = JSON.parse(text);

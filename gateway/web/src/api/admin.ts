@@ -181,7 +181,7 @@ export function updateTerminalConfig(id: number, config: string) {
   return api.put(`/api/admin/terminals/${id}/config`, { config })
 }
 
-// Agent audit events（终端 Clawguard 审计事件，审计日志 · 终端审计板块）
+// Agent audit events（终端 Argus 审计事件，审计日志 · 终端审计板块）
 export function getAgentAuditEvents(params: {
   terminal_id?: number
   stage?: string

@@ -1,4 +1,4 @@
-# Clawguard 资源规则 — 跨平台完整版（Windows + Linux）
+# Argus 资源规则 — 跨平台完整版（Windows + Linux）
 # 格式: 路径模式 | 所需等级 | 继承模式(flat/inherit/override)
 #
 # 设计原则：
@@ -7,7 +7,7 @@
 #   3. 工具分四档：public 查询 / internal 读 / secret 写 / top_secret 执行
 #   4. 未列出的资源默认 99 级 → 零信任拦截
 #
-# 切换为生产规则：set CLAWGUARD_RESOURCES_FILE=<本文件路径> 或替换 rules/resources.txt
+# 切换为生产规则：set ARGUS_RESOURCES_FILE=<本文件路径> 或替换 rules/resources.txt
 # 说明：匹配在本机为大小写不敏感（fnmatch 的 Windows normcase），Linux 部署时如需大小写敏感需在引擎层调整。
 
 # ═══════════════════════════════════════════════════════════════

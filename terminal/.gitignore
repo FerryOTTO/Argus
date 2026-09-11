@@ -8,12 +8,12 @@ node_modules/
 runtime/
 *.log
 *.db
-clawguard/modules/retrieval_guard/models/*
-!clawguard/modules/retrieval_guard/models/.gitkeep
-clawguard/modules/io_guard/original/models/
-clawguard/modules/io_guard/original/model_heads/*/
-clawguard/modules/io_guard/original/runtime/
-clawguard/modules/io_guard/original/work/
+argus/modules/retrieval_guard/models/*
+!argus/modules/retrieval_guard/models/.gitkeep
+argus/modules/io_guard/original/models/
+argus/modules/io_guard/original/model_heads/*/
+argus/modules/io_guard/original/runtime/
+argus/modules/io_guard/original/work/
 
 # OpenGuard
 openguard/original/.env

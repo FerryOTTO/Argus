@@ -296,7 +296,7 @@ type telemetryRegisterRequest struct {
 	OSInfo           string `json:"os_info"`
 	AgentType        string `json:"agent_type"`
 	AgentVersion     string `json:"agent_version"`
-	ClawguardVersion string `json:"clawguard_version"`
+	ArgusVersion string `json:"argus_version"`
 }
 
 // Register handles POST /telemetry/v1/register.
@@ -348,7 +348,7 @@ func (h *TelemetryHandler) Register(c *gin.Context) {
 		strings.TrimSpace(req.Hostname),
 		strings.TrimSpace(req.OSInfo),
 		strings.TrimSpace(req.AgentVersion),
-		strings.TrimSpace(req.ClawguardVersion),
+		strings.TrimSpace(req.ArgusVersion),
 	); err != nil {
 		slog.Error("failed to activate terminal", "error", err, "terminal_id", terminal.ID)
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -469,7 +469,7 @@ type telemetryHeartbeatRequest struct {
 	OSInfo           string `json:"os_info"`
 	AgentType        string `json:"agent_type"`
 	AgentVersion     string `json:"agent_version"`
-	ClawguardVersion string `json:"clawguard_version"`
+	ArgusVersion string `json:"argus_version"`
 }
 
 // Heartbeat handles POST /telemetry/v1/heartbeat.
@@ -489,7 +489,7 @@ func (h *TelemetryHandler) Heartbeat(c *gin.Context) {
 		strings.TrimSpace(req.Hostname),
 		strings.TrimSpace(req.OSInfo),
 		strings.TrimSpace(req.AgentVersion),
-		strings.TrimSpace(req.ClawguardVersion),
+		strings.TrimSpace(req.ArgusVersion),
 	); err != nil {
 		slog.Error("failed to record heartbeat", "error", err, "terminal_id", id)
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -529,7 +529,7 @@ func (h *TelemetryHandler) Heartbeat(c *gin.Context) {
 }
 
 // GetConfig handles GET /telemetry/v1/config.
-// 客户端拉取集控下发的 Clawguard 配置（幂等；config 为空串表示无下发配置）。
+// 客户端拉取集控下发的 Argus 配置（幂等；config 为空串表示无下发配置）。
 func (h *TelemetryHandler) GetConfig(c *gin.Context) {
 	id := terminalID(c)
 	terminal, err := h.terminalStore.GetByID(id)

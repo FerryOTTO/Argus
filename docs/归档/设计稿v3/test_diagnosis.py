@@ -3,7 +3,7 @@ sys.path.insert(0, 'E:\\tiaozhanbei\\MAC\\v1\\auth-gateway-extracted')
 from auth_gateway import check, check_reason, sync_external_user, _store
 
 # 诊断信息
-print("=== Clawguard 诊断 ===")
+print("=== Argus 诊断 ===")
 print()
 
 # 1. 检查所有用户

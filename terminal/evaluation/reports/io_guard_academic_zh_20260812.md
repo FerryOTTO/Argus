@@ -107,7 +107,7 @@ python evaluation\scripts\eval_io_guard_academic_zh.py `
 
 ```powershell
 python -m pytest `
-  clawguard\modules\io_guard\original\tests\test_academic_zh_safety.py `
+  argus\modules\io_guard\original\tests\test_academic_zh_safety.py `
   -q
 ```
 

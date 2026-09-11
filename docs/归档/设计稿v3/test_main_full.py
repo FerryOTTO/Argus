@@ -57,5 +57,5 @@ for msg in messages:
         print(f'  reason: {ok} {reason}')
 
         if not result:
-            print(f'  🛡️ [Clawguard] 您的等级 ({security_level}) 无权访问: {rvalue}')
+            print(f'  🛡️ [Argus] 您的等级 ({security_level}) 无权访问: {rvalue}')
     print()

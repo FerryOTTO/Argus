@@ -174,7 +174,7 @@
         </div>
       </el-tab-pane>
 
-      <!-- 终端审计 Tab（Clawguard 客户端上报的审计事件，以终端为单位查看） -->
+      <!-- 终端审计 Tab（Argus 客户端上报的审计事件，以终端为单位查看） -->
       <el-tab-pane label="终端审计" name="agent">
         <!-- 统计卡：未选终端=全部终端口径；选中终端后联动为该终端口径 -->
         <div v-if="statsCards" class="agent-stats-row">
@@ -238,7 +238,7 @@
                 </div>
                 <div class="agent-term-foot">
                   <span>最近审计：{{ lastEventLabel(t) }}</span>
-                  <span v-if="t.clawguard_version" class="agent-term-ver">CG {{ t.clawguard_version }}</span>
+                  <span v-if="t.argus_version" class="agent-term-ver">CG {{ t.argus_version }}</span>
                 </div>
               </div>
               <el-empty v-if="!agentLoadingTerminals && !filteredTerminalStats.length" description="暂无终端，请先在「终端管理」添加" :image-size="64" />
@@ -314,7 +314,7 @@
               />
             </div>
 
-            <!-- 时间线视图（参考 Clawguard 审计页：事件卡片流 + 风险色） -->
+            <!-- 时间线视图（参考 Argus 审计页：事件卡片流 + 风险色） -->
             <div v-if="agentViewMode === 'timeline'" v-loading="agentLoading" class="agent-timeline">
               <div
                 v-for="(ev, idx) in agentEvents"
@@ -588,7 +588,7 @@ async function fetchUsers() {
   }
 }
 
-// --- 终端审计（Clawguard 客户端上报事件） ---
+// --- 终端审计（Argus 客户端上报事件） ---
 const stageOptions = [
   { label: '输入检测', value: 'input' },
   { label: '工具前置', value: 'tool_pre' },
@@ -718,7 +718,7 @@ function lastEventLabel(t: any) {
 }
 
 const agentEmptyText = computed(() => {
-  if (!agentTerminalStats.value.length) return '暂无审计事件，等待终端 Clawguard 上报'
+  if (!agentTerminalStats.value.length) return '暂无审计事件，等待终端 Argus 上报'
   if (selectedTerminal.value && selectedTerminal.value.total_events === 0) return '该终端暂无审计事件'
   return '当前条件下没有匹配的审计事件'
 })
@@ -1566,7 +1566,7 @@ onMounted(() => {
   margin-left: 12px;
 }
 
-// --- 时间线视图（参考原 Clawguard 审计页事件卡流） ---
+// --- 时间线视图（参考原 Argus 审计页事件卡流） ---
 .agent-timeline {
   min-height: 300px;
   padding: 2px 2px 6px;

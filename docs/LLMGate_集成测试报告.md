@@ -1,7 +1,7 @@
-# LLMGate × Clawguard 桌面端 集成测试报告
+# LLMGate × Argus 桌面端 集成测试报告
 
 - **测试时间**：2026-09-09 03:00 – 03:45
-- **被测范围**：LLMGate 服务端（Go/Gin，本次运行于 `http://127.0.0.1:8081`）+ Clawguard Python 后端（`http://127.0.0.1:8000`）+ clawguard-desktop Electron 桌面端
+- **被测范围**：LLMGate 服务端（Go/Gin，本次运行于 `http://127.0.0.1:8081`）+ Argus Python 后端（`http://127.0.0.1:8000`）+ argus-desktop Electron 桌面端
 - **测试方法**：脚本化接口全量测试（含 mock 上游大模型服务、进程重启验证、边界/异常注入）+ 数据库直查取证 + 前端与构建产物校验
 - **测试脚本**：`E:\tiaozhanbei\MAC\.tools\test_llmgate.py`（`setup` / `run` 两阶段）、`.tools\retest.py`（失败项复测）、结果明细 `.tools\test_results.json`
 - **用例统计**：接口级用例 **76 项，通过 66，失败 10**；另有阶段一 2 项、边界/异常场景 12 项。
@@ -11,7 +11,7 @@
   |---|---|---|
   | 服务端真实缺陷（7） | C5、C6、C7、L8、F4、N2、M5 | 分别对应 BUG-04、BUG-05、BUG-02、BUG-01、BUG-10、BUG-06 |
   | 测试脚本自身问题（3，源于 2 处根因） | L2 | mock 上游的 SSE 使用了非法的 chunked 编码（未写分帧），修正分帧后流式转发 100% 正常 |
-  | | I8、I9 | 用例把审计事件 `content` 传成了字符串；服务端期望对象，`REMOTE.md` 与 Clawguard `AuditEvent.content: Dict[str, Any]` 一致，服务端行为正确。改传对象后 accepted=1、重复上传 duplicates=1（幂等正常） |
+  | | I8、I9 | 用例把审计事件 `content` 传成了字符串；服务端期望对象，`REMOTE.md` 与 Argus `AuditEvent.content: Dict[str, Any]` 一致，服务端行为正确。改传对象后 accepted=1、重复上传 duplicates=1（幂等正常） |
 
   即：**7 项为服务端真实缺陷，3 项为测试脚本问题（L2 一处 + content 类型一处）**，修正脚本后该 3 项全部复测通过。
 
@@ -28,7 +28,7 @@
 | BUG-03 | **P0** | 新增模型/提供商必须重启进程才生效 | 确认 |
 | BUG-04 | **P1** | 普通用户（role=user）无法登录控制台，多用户自助体系不可用 | 确认 |
 | BUG-05 | **P1** | 用户自助接口 `/api/user/*` 全部 404，README 与实现不一致 | 确认 |
-| BUG-06 | **P1** | Clawguard Python 侧企业同步链路完全未实现（`/v1/remote/*` 404） | 确认 |
+| BUG-06 | **P1** | Argus Python 侧企业同步链路完全未实现（`/v1/remote/*` 404） | 确认 |
 | BUG-07 | P2 | 注册码可重复使用并轮换凭据，违反"一次性"安全约定 | 确认 |
 | BUG-08 | P2 | 删除不存在的用户返回 500（应为 404） | 确认 |
 | BUG-09 | P2 | 删除有历史会话日志的 API Key 返回 500（外键约束冲突） | 确认 |
@@ -186,7 +186,7 @@ README 第 109–115 行仍列出 `/api/user/api-keys`、`/api/user/usage` 等�
 
 ---
 
-### BUG-06（P1）Clawguard Python 侧企业同步链路完全未实现
+### BUG-06（P1）Argus Python 侧企业同步链路完全未实现
 
 **现象**
 桌面端 `src/renderer/components/EnterpriseMini.vue` 第 29 行调用：
@@ -201,12 +201,12 @@ fetch("http://127.0.0.1:8000/v1/remote/status")
 |---|---|
 | `GET /v1/remote/status` | **404**（路由不存在） |
 | `POST /v1/remote/register`、`/sync-config`、`/unbind` | **全部不存在** |
-| `clawguard/remote/` 包（client / store / config_apply / counters / audit_tail / scheduler） | **目录不存在** |
+| `argus/remote/` 包（client / store / config_apply / counters / audit_tail / scheduler） | **目录不存在** |
 | `configs/remote.json`（token、terminal_id、llm 凭据） | **文件不存在** |
 | `runtime/remote/cursors.json`（上报游标） | **文件不存在** |
 
 **根因**
-`ClawguardV2.1/docs/LLMGate对接方案.md` 的 P0–P3 阶段（注册与安全存储、心跳+配置同步、report+审计上传、企业版 UI）**尚未开工**，仅完成了"本地模块配置读写"（`clawguard/api/local_config_routes.py`）和 `enterprise_status()` 这个只读占位接口。
+`Argus/docs/LLMGate对接方案.md` 的 P0–P3 阶段（注册与安全存储、心跳+配置同步、report+审计上传、企业版 UI）**尚未开工**，仅完成了"本地模块配置读写"（`argus/api/local_config_routes.py`）和 `enterprise_status()` 这个只读占位接口。
 
 **影响**
 - **合并链路实际是断的**：LLMGate 服务端六个遥测接口全部就绪（本次测试 13 项遥测用例全通过），但没有任何客户端会去调用它们。管理台永远不会出现真实的在线终端。
@@ -220,7 +220,7 @@ GET http://127.0.0.1:8000/v1/remote/status   → 404 Not Found
 ```
 
 **修复建议**
-按对接方案第 4 章补齐 `clawguard/remote/` 六个模块与四个 `/v1/remote/*` 接口；前端至少在 fetch 失败时给出"未接入企业版"的显式提示，不要静默吞异常。
+按对接方案第 4 章补齐 `argus/remote/` 六个模块与四个 `/v1/remote/*` 接口；前端至少在 fetch 失败时给出"未接入企业版"的显式提示，不要静默吞异常。
 
 ---
 
@@ -287,7 +287,7 @@ GET /api/admin/conversations → {"data":null,"page":1,"page_size":20,"total":0}
 
 ### BUG-12（P2）Python `enterprise_status()` 死代码
 
-`ClawguardV2.1/clawguard/api/local_config_routes.py` 第 204 行 `return` 之后，第 205–207 行仍有一段重复的 `remote = _read_json(...)` / `bound = ...` / `tok = ...` 逻辑，**永远不可达**。应为重构残留，需清理（后续若要补 `/v1/remote/status`，正好在此实现）。
+`Argus/argus/api/local_config_routes.py` 第 204 行 `return` 之后，第 205–207 行仍有一段重复的 `remote = _read_json(...)` / `bound = ...` / `tok = ...` 逻辑，**永远不可达**。应为重构残留，需清理（后续若要补 `/v1/remote/status`，正好在此实现）。
 
 ---
 
@@ -297,7 +297,7 @@ GET /api/admin/conversations → {"data":null,"page":1,"page_size":20,"total":0}
 |---|---|
 | 端口冲突 | `对接方案` 与 `REMOTE.md` 约定 LLMGate 在 **8080**，但本机 8080 长期被一个 CEF 远程调试进程占用（返回 `CEF remote debugging` 页面）。按默认配置启动会直接 `bind: address already in use`。 |
 | 二进制不可用 | 仓库中的 `bin/llmgate` 是 **macOS Mach-O**（文件头 `cf fa ed fe`），在 Windows 上无法执行；`Makefile` 的 `build` 目标输出的 `bin/llmgate.exe` 路径与实际启动脚本也不一致。本次测试是用 `go build -o llmgate.exe ./cmd/server/` 现场编译的。 |
-| 启动脚本未包含 LLMGate | `scripts/Start-ClawguardDesktop.ps1` 只启动 FastAPI(8000)、OpenClaw(18789)、Bridge(18080)、OpenGuard(3000)，**没有启动 LLMGate**；`src/main/daemon.js` 的 `startAll()` 同样未纳入。也就是说合并后桌面端启动时不会拉起网关。 |
+| 启动脚本未包含 LLMGate | `scripts/Start-ArgusDesktop.ps1` 只启动 FastAPI(8000)、OpenClaw(18789)、Bridge(18080)、OpenGuard(3000)，**没有启动 LLMGate**；`src/main/daemon.js` 的 `startAll()` 同样未纳入。也就是说合并后桌面端启动时不会拉起网关。 |
 
 ---
 
@@ -338,8 +338,8 @@ security:
 | 审计与仪表盘 | 审计日志列表与导出、仪表盘统计、终端审计列表/统计/按终端聚合/导出 | ✅ 7/7 |
 | 系统设置 | GET / PUT（含 enterprise_name、system_base_url、open_models、llm_base_url） | ✅ 2/2 |
 | LLMGate 前端 | SPA 首页、JS/CSS/vite.svg 资源全部 200 | ✅ |
-| Clawguard 8000 | `/health`、`GET`/`PUT /v1/local/config`、`/v1/local/enterprise/status`、`/v1/desktop/runtime`、`/v1/audit/overview` | ✅ 6/7（`/v1/remote/status` 见 BUG-06） |
-| Electron 桌面端 | `vite build` 成功（1591 modules，11.28s）、打包产物 `Clawguard.exe`（177MB）存在、5 个内嵌 iframe 监控页与 OpenGuard 登录页均 200 | ✅ |
+| Argus 8000 | `/health`、`GET`/`PUT /v1/local/config`、`/v1/local/enterprise/status`、`/v1/desktop/runtime`、`/v1/audit/overview` | ✅ 6/7（`/v1/remote/status` 见 BUG-06） |
+| Electron 桌面端 | `vite build` 成功（1591 modules，11.28s）、打包产物 `Argus.exe`（177MB）存在、5 个内嵌 iframe 监控页与 OpenGuard 登录页均 200 | ✅ |
 
 ---
 

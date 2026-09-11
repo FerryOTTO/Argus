@@ -2,7 +2,7 @@
 
 把「命令执行」和「文件读取」放进 Docker 容器里跑，再通过 MCP 协议暴露给 OpenCode / OpenClaw。
 
-它是 ClawGuard 的**执行侧隔离层**：ClawGuard 负责「判断该不该拦」，Sandbox 负责「就算放行了也只在一个一次性容器里动手」。
+它是 Argus 的**执行侧隔离层**：Argus 负责「判断该不该拦」，Sandbox 负责「就算放行了也只在一个一次性容器里动手」。
 
 ## 1. 它能干什么
 
@@ -52,7 +52,7 @@ python check_env.py --fix    # 尝试自动开启 WSL2 等
 
 ## 4. 启动方式
 
-三种传输方式按需选一种，**默认用 HTTP**（ClawGuard 的 `configs/modules.yaml` 就是这么配的）。
+三种传输方式按需选一种，**默认用 HTTP**（Argus 的 `configs/modules.yaml` 就是这么配的）。
 
 ### 4.1 HTTP（推荐，默认端口 9876）
 
@@ -125,12 +125,12 @@ OpenClaw / OpenCode
    Sandbox MCP  ──►  Docker 容器（sandbox-exec / sandbox-file）
         ▲
         │ 访问控制 + 审计事件
-   ClawGuard 运行时（terminal/clawguard）
+   Argus 运行时（terminal/argus）
 ```
 
 - 配置项：`terminal/configs/modules.yaml` → `sandbox.url`（默认 `http://127.0.0.1:9876`）；
-- 本地配置文件路径映射：`terminal/clawguard/api/local_config_routes.py` 里的 `"sandbox"` 条目；
-- 审计归类：`terminal/clawguard/modules/audit/original/query.py` 已把 `sandbox` / `sandbox_mcp` 视为同类来源。
+- 本地配置文件路径映射：`terminal/argus/api/local_config_routes.py` 里的 `"sandbox"` 条目；
+- 审计归类：`terminal/argus/modules/audit/original/query.py` 已把 `sandbox` / `sandbox_mcp` 视为同类来源。
 
 ## 7. 常见问题
 

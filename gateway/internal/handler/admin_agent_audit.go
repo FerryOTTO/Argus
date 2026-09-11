@@ -12,7 +12,7 @@ import (
 	"github.com/llmgate/llmgate/internal/store"
 )
 
-// AdminAgentAuditHandler 处理"审计日志 · 终端审计"板块的查询端点（Clawguard 上报事件）。
+// AdminAgentAuditHandler 处理"审计日志 · 终端审计"板块的查询端点（Argus 上报事件）。
 type AdminAgentAuditHandler struct {
 	eventStore *store.AgentAuditEventStore
 }

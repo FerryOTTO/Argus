@@ -12,7 +12,7 @@ import os
 import httpx
 from fastapi import Request, Response, HTTPException
 from config import config
-from middleware import auth_middleware, get_clawguard_headers
+from middleware import auth_middleware, get_argus_headers
 from database import find_agent_by_user
 
 OPENCLAW_URL = config.openclaw_url.rstrip("/")
@@ -101,7 +101,7 @@ async def proxy_to_openclaw(request: Request) -> Response:
 
     body = await request.body() if request.method in ("POST", "PUT", "PATCH") else None
 
-    # 注入 Agent ID + 签名 + 用户信息 + Clawguard 身份头
+    # 注入 Agent ID + 签名 + 用户信息 + Argus 身份头
     headers = {
         "X-Agent-Id": agent_id,
         "X-Agent-Id-Sig": agent_sig,
@@ -111,8 +111,8 @@ async def proxy_to_openclaw(request: Request) -> Response:
         "x-forwarded-security-level": user.security_level,
         "x-forwarded-for": request.client.host if request.client else "127.0.0.1",
     }
-    # 注入 Clawguard 统一身份头（对接方案 7.7）
-    headers.update(get_clawguard_headers(user))
+    # 注入 Argus 统一身份头（对接方案 7.7）
+    headers.update(get_argus_headers(user))
     if user.role == "admin":
         headers["X-Is-Admin"] = "true"
 
@@ -206,8 +206,8 @@ async def ws_proxy(websocket: WebSocket) -> None:
         "x-forwarded-session-id": payload["sid"],
         "x-forwarded-security-level": payload.get("security_level", "internal"),
     }
-    # 注入 Clawguard 统一身份头（对接方案 7.7）
-    headers.update(get_clawguard_headers(payload))
+    # 注入 Argus 统一身份头（对接方案 7.7）
+    headers.update(get_argus_headers(payload))
     if payload.get("role") == "admin":
         headers["X-Is-Admin"] = "true"
 

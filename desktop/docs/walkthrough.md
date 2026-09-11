@@ -1,6 +1,6 @@
-# Clawguard Desktop 桌面客户端实施与验证记录
+# Argus Desktop 桌面客户端实施与验证记录
 
-依据您的要求，所有桌面端代码与辅助脚本均收拢在全新的独立目录 `e:/tiaozhanbei/MAC/clawguard-desktop` 中，未在父工作区根目录中遗留任何杂乱脚本。同时，深入汲取 CSDN 教程《小米MiMoCode官网颜值高？Codex：拿来吧，您嘞！1:1完美复刻～》的设计精髓，完成了小米 **MiMo Code**（`mimo.xiaomi.com/zh/mimocode`）1:1 高保真设计与守护体系的工程构建。
+依据您的要求，所有桌面端代码与辅助脚本均收拢在全新的独立目录 `e:/tiaozhanbei/MAC/argus-desktop` 中，未在父工作区根目录中遗留任何杂乱脚本。同时，深入汲取 CSDN 教程《小米MiMoCode官网颜值高？Codex：拿来吧，您嘞！1:1完美复刻～》的设计精髓，完成了小米 **MiMo Code**（`mimo.xiaomi.com/zh/mimocode`）1:1 高保真设计与守护体系的工程构建。
 
 ---
 
@@ -8,7 +8,7 @@
 
 ### 1.1 独立整洁的目录工程结构
 
-所有构建脚本、配置文件、设计规范与源码均独立闭环在 `clawguard-desktop/` 内：
+所有构建脚本、配置文件、设计规范与源码均独立闭环在 `argus-desktop/` 内：
 
 - **`DESIGN.md`**：参照 Google Labs 规范建立的 MiMo Code 设计规范文档，固化小米橙色彩 Token（`#FF6900`）、极客深空灰阶（`#0B0E14` / `#121824`）与 `coder-card` 交互标准。
 - **`src/main/`**：Electron 主进程无边框窗口、系统原生拖拽、IPC 通信与后台 `DaemonManager`。
@@ -50,7 +50,7 @@
 
 ## 3. 运行与验证指令
 
-在 `e:/tiaozhanbei/MAC/clawguard-desktop` 目录下：
+在 `e:/tiaozhanbei/MAC/argus-desktop` 目录下：
 
 bash
 

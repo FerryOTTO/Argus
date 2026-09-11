@@ -665,8 +665,8 @@ const features = computed(() => featureCopy[locale.value].map(([title, body], in
 })))
 
 const installCommand = computed(() => platform.value === 'unix'
-  ? 'git clone https://github.com/FerryOTTO/Argus.git && cd Argus/terminal && python3 -m venv .venv && . .venv/bin/activate && python -m pip install -r requirements.txt && python -m uvicorn clawguard.api.main:app --host 127.0.0.1 --port 8000'
-  : 'git clone https://github.com/FerryOTTO/Argus.git; cd Argus\terminal; py -m venv .venv; .\.venv\Scripts\python.exe -m pip install -r requirements.txt; .\.venv\Scripts\python.exe -m uvicorn clawguard.api.main:app --host 127.0.0.1 --port 8000')
+  ? 'git clone https://github.com/FerryOTTO/Argus.git && cd Argus/terminal && python3 -m venv .venv && . .venv/bin/activate && python -m pip install -r requirements.txt && python -m uvicorn argus.api.main:app --host 127.0.0.1 --port 8000'
+  : 'git clone https://github.com/FerryOTTO/Argus.git; cd Argus\terminal; py -m venv .venv; .\.venv\Scripts\python.exe -m pip install -r requirements.txt; .\.venv\Scripts\python.exe -m uvicorn argus.api.main:app --host 127.0.0.1 --port 8000')
 
 function setLocale(nextLocale) {
   if (nextLocale === locale.value) return

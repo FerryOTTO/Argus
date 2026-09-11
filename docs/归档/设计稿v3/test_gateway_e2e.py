@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Clawguard v3 网关集成测试
+Argus v3 网关集成测试
 test_gateway_e2e.py
 ============================================================
 在 OpenGuard 网关上做端到端验证：
@@ -115,8 +115,8 @@ def test_module_smoke():
         "C:\\Users\\admin\\AppData\\Roaming\\* | top_secret | flat\n",
         encoding="utf-8")
 
-    os.environ["CLAWGUARD_USERS_FILE"] = str(uf)
-    os.environ["CLAWGUARD_RESOURCES_FILE"] = str(rf)
+    os.environ["ARGUS_USERS_FILE"] = str(uf)
+    os.environ["ARGUS_RESOURCES_FILE"] = str(rf)
     sys.path.insert(0, str(Path(__file__).parent))
 
     import auth_gateway
@@ -182,7 +182,7 @@ def test_http_acl_matrix():
                 assert code not in (401, 403), (
                     f"{username} 访问 {path}: 应放行但得到 {code}（body: {body[:120]}）")
             else:
-                # 应拦截：403 且是 Clawguard 的 ACCESS_DENIED
+                # 应拦截：403 且是 Argus 的 ACCESS_DENIED
                 assert code == 403, (
                     f"{username} 访问 {path}: 应拦截但得到 {code}（body: {body[:120]}）")
                 try:
@@ -223,7 +223,7 @@ def test_ws_chat_precheck():
                 while True:
                     try:
                         msg = await asyncio.wait_for(ws.recv(), timeout=8)
-                        if "Clawguard" in msg:
+                        if "Argus" in msg:
                             return "block"
                     except asyncio.TimeoutError:
                         return "skip"   # 网关在等 Bridge(:18080)，全链路未就绪
@@ -244,7 +244,7 @@ def test_ws_chat_precheck():
 
 def run_all_tests():
     print("=" * 60)
-    print("Clawguard v3 网关集成测试")
+    print("Argus v3 网关集成测试")
     print(f"目标网关: {BASE}")
     print("=" * 60)
     print()

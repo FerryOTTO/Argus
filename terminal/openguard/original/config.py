@@ -12,7 +12,7 @@ load_dotenv()
 def _fallback_keys_dir() -> Path:
     """包目录不可写时的密钥回退目录（如安装到 Program Files）。"""
     base = os.getenv("LOCALAPPDATA") or str(Path.home())
-    return Path(base) / "ClawGuard" / "keys"
+    return Path(base) / "Argus" / "keys"
 
 
 def _ensure_keypair(keys_dir: Path) -> bool:
@@ -103,9 +103,9 @@ class Config:
     bridge_url: str = os.getenv("BRIDGE_URL", "ws://127.0.0.1:18080")
     bridge_token: str = os.getenv("BRIDGE_TOKEN", "")
 
-    # Clawguard
-    clawguard_url: str = os.getenv("CLAWGUARD_URL", "http://127.0.0.1:8000")
-    clawguard_timeout: int = int(os.getenv("CLAWGUARD_TIMEOUT", "10"))
+    # Argus
+    argus_url: str = os.getenv("ARGUS_URL", "http://127.0.0.1:8000")
+    argus_timeout: int = int(os.getenv("ARGUS_TIMEOUT", "10"))
     trace_id_prefix: str = os.getenv("TRACE_ID_PREFIX", "openguard")
 
     # ===== LLM 代理：4 家主流提供商（DeepSeek / MiniMax / GLM / Kimi） =====

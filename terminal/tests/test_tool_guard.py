@@ -1,4 +1,4 @@
-"""Clawguard — Tool Guard 意图匹配裁判测试套件
+"""Argus — Tool Guard 意图匹配裁判测试套件
 
 覆盖:
 - 会话存储:prompt 绑定、工具链记录、参数摘要、链长上限、TTL 清理
@@ -29,11 +29,11 @@ sys.path.insert(0, str(ROOT))
 
 import httpx
 
-from clawguard.adapters.tool_guard_adapter import ToolGuardAdapter
-from clawguard.common.models import RequestContext, SecurityRequest
-from clawguard.modules.tool_guard.intent_match import IntentMatchDetector
-from clawguard.modules.tool_guard.llm_config import ToolGuardLLMConfig
-from clawguard.modules.tool_guard.session_store import (
+from argus.adapters.tool_guard_adapter import ToolGuardAdapter
+from argus.common.models import RequestContext, SecurityRequest
+from argus.modules.tool_guard.intent_match import IntentMatchDetector
+from argus.modules.tool_guard.llm_config import ToolGuardLLMConfig
+from argus.modules.tool_guard.session_store import (
     ToolSessionStore,
     summarize_arguments,
 )
@@ -94,7 +94,7 @@ class TestSessionStore:
         store = ToolSessionStore(ttl_seconds=3600)
         store.set_prompt("s1", "整理本地项目资料并输出报告")
         store.record_call("s1", "read_file", {"path": "C:/demo/a.txt"})
-        store.record_call("s1", "web_search", {"query": "clawguard", "limit": 5})
+        store.record_call("s1", "web_search", {"query": "argus", "limit": 5})
         session = store.get("s1")
         assert session is not None
         assert session.original_prompt == "整理本地项目资料并输出报告"
@@ -453,7 +453,7 @@ def _store_with_context() -> ToolSessionStore:
 
 def run_all_tests():
     print("=" * 70)
-    print("Clawguard Tool Guard — 意图匹配裁判测试套件")
+    print("Argus Tool Guard — 意图匹配裁判测试套件")
     print("=" * 70)
 
     test_groups = [

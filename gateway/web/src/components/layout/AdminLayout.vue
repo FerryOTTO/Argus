@@ -3,7 +3,7 @@
     <el-aside width="220px" class="sidebar">
       <div class="logo">
         <el-icon :size="24"><Connection /></el-icon>
-        <span>Clawguard 控制台</span>
+        <span>Argus 控制台</span>
       </div>
       <el-menu
         :default-active="activeMenu"

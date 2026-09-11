@@ -1,4 +1,4 @@
-# middleware.py — JWT 认证中间件 + CSRF 保护 + Clawguard 身份传递
+# middleware.py — JWT 认证中间件 + CSRF 保护 + Argus 身份传递
 import hashlib
 import hmac
 import secrets
@@ -138,7 +138,7 @@ async def auth_middleware(request: Request) -> UserContext:
 
     # trace_id：优先从请求头读取（上游已生成），否则从 JWT payload 取，否则新建
     trace_id = (
-        request.headers.get("X-Clawguard-Trace-Id")
+        request.headers.get("X-Argus-Trace-Id")
         or payload.get("trace_id")
         or f"{config.trace_id_prefix}-{uuid.uuid4().hex[:12]}"
     )
@@ -165,13 +165,13 @@ async def admin_required(request: Request) -> UserContext:
     return user
 
 
-# ====== Clawguard 身份头注入（对接方案 7.7） ======
+# ====== Argus 身份头注入（对接方案 7.7） ======
 
-def get_clawguard_headers(user_ctx: dict | UserContext) -> dict[str, str]:
-    """从用户上下文组装 X-Clawguard-* 请求头。
+def get_argus_headers(user_ctx: dict | UserContext) -> dict[str, str]:
+    """从用户上下文组装 X-Argus-* 请求头。
 
     这些头在转发给 OpenClaw 时注入，
-    OpenClaw Adapter 读取后组装 RequestContext 调用 Clawguard。
+    OpenClaw Adapter 读取后组装 RequestContext 调用 Argus。
     对应对接方案 7.7 节。
 
     参数 user_ctx 可以是一个 dict（来自 JWT payload）或 UserContext 对象。
@@ -191,11 +191,11 @@ def get_clawguard_headers(user_ctx: dict | UserContext) -> dict[str, str]:
         )
 
     headers = {
-        "X-Clawguard-User-Id": uc.user_id,
-        "X-Clawguard-Session-Id": uc.session_id,
-        "X-Clawguard-Trace-Id": uc.trace_id,
-        "X-Clawguard-Role": uc.role,
-        "X-Clawguard-Security-Level": uc.security_level,
+        "X-Argus-User-Id": uc.user_id,
+        "X-Argus-Session-Id": uc.session_id,
+        "X-Argus-Trace-Id": uc.trace_id,
+        "X-Argus-Role": uc.role,
+        "X-Argus-Security-Level": uc.security_level,
         # 网关注入的上下文防篡改签名（下游可用 bridge_token 验证）
         "X-Openguard-Sig": sign_user_context(uc),
     }

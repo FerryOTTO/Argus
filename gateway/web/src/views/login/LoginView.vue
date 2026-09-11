@@ -3,7 +3,7 @@
     <div class="login-card">
       <div class="login-header">
         <el-icon :size="40" color="#409eff"><Connection /></el-icon>
-        <h1>{{ enterpriseName || 'Clawguard 控制台' }}</h1>
+        <h1>{{ enterpriseName || 'Argus 控制台' }}</h1>
         <p>AI 模型访问网关 · 智能体终端安全管控平台（仅管理员可登录）</p>
       </div>
       <el-form

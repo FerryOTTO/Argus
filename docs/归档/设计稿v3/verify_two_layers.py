@@ -16,7 +16,7 @@ from auth_gateway import (
 )
 
 print("=" * 60)
-print("Clawguard v3 两层拦截验证")
+print("Argus v3 两层拦截验证")
 print("=" * 60)
 
 # ============================================================

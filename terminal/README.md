@@ -1,10 +1,10 @@
-# Clawguard V2.1
+# Argus V2.1
 
 ## 项目简介
 
-Clawguard 是一个面向智能体应用的全链路安全防护学生项目。目前项目以 OpenClaw 为首个接入对象，在尽量少修改 OpenClaw 和各成员原有安全模块的前提下，将输入输出防护、访问控制、工具安全、检索安全、沙箱执行和审计能力接入同一条运行链路。
+Argus 是一个面向智能体应用的全链路安全防护学生项目。目前项目以 OpenClaw 为首个接入对象，在尽量少修改 OpenClaw 和各成员原有安全模块的前提下，将输入输出防护、访问控制、工具安全、检索安全、沙箱执行和审计能力接入同一条运行链路。
 
-本仓库是 Clawguard V2.1 的统一对接仓库。当前版本已经建立公共数据结构、统一 FastAPI 接口、模块注册表和基础配置，并接入 IO Guard、Access Control、Tool Guard、Retrieval Guard、Audit、OpenGuard 与 Sandbox 的真实实现。
+本仓库是 Argus V2.1 的统一对接仓库。当前版本已经建立公共数据结构、统一 FastAPI 接口、模块注册表和基础配置，并接入 IO Guard、Access Control、Tool Guard、Retrieval Guard、Audit、OpenGuard 与 Sandbox 的真实实现。
 
 ## 1. 功能列表
 
@@ -25,7 +25,7 @@ Clawguard 是一个面向智能体应用的全链路安全防护学生项目。�
 
 | 方法 | 路径 | 作用 |
 |---|---|---|
-| `GET` | `/health` | 查看 Clawguard 和各 Adapter 的状态 |
+| `GET` | `/health` | 查看 Argus 和各 Adapter 的状态 |
 | `POST` | `/v1/input/check` | 输入安全检查 |
 | `POST` | `/v1/tool/pre_check` | 访问控制和工具安全检查 |
 | `POST` | `/v1/content/check` | 检索内容和可选上下文检查 |
@@ -36,7 +36,7 @@ Clawguard 是一个面向智能体应用的全链路安全防护学生项目。�
 
 IO Guard 当前覆盖输入、外部内容和输出三个阶段，只返回 `allow`、`rewrite`、`block`。其检测目标收敛为四类风险来源和五类输出失败模式，并支持对 PDF、DOCX、XLSX、CSV、文本和常见图片附件做文本抽取/OCR 后复用输入检测管线。
 
-`/v1/content/check` 按“Retrieval Guard 净化 → IO Guard Context 复检”的顺序执行；Retrieval Guard 阻断时不会继续调用后续模块。详细安装、附件协议、配置和测试方法见 [`clawguard/modules/io_guard/README.md`](clawguard/modules/io_guard/README.md)。
+`/v1/content/check` 按“Retrieval Guard 净化 → IO Guard Context 复检”的顺序执行；Retrieval Guard 阻断时不会继续调用后续模块。详细安装、附件协议、配置和测试方法见 [`argus/modules/io_guard/README.md`](argus/modules/io_guard/README.md)。
 
 ### Access Control 访问控制（动态自适应防线、近永久隔离与管理后台深度实装）
 
@@ -48,13 +48,13 @@ IO Guard 当前覆盖输入、外部内容和输出三个阶段，只返回 `all
 4. **近永久隔离区（Quarantine Store & API）**：针对低频慢速探测攻击设立跨窗口联合判据，违规用户入隔离区后剥夺高权限工具自主调用权；
 5. **管理后台可视化热重载**：全面实装 OpenGuard Admin UI“规则修改”与“用户管理”面板，支持对 `users.txt` 与 `resources.txt` 进行在线编辑、语法校验、SQLite 原子持久化与毫秒级免重启热重载。
 
-详细架构设计与测试用例见后文 [2.3 访问控制特色架构](#23-访问控制access-control特色架构) 及 [`clawguard/modules/access_control/README.md`](clawguard/modules/access_control/README.md)。
+详细架构设计与测试用例见后文 [2.3 访问控制特色架构](#23-访问控制access-control特色架构) 及 [`argus/modules/access_control/README.md`](argus/modules/access_control/README.md)。
 
 ## 2. 系统架构
 
-Clawguard V2.1 使用一个统一 FastAPI 服务向 OpenClaw 提供安全接口。OpenClaw 运行到相应阶段时调用对应接口，FastAPI 路由再通过 Adapter 调用仓库内部的安全模块。
+Argus V2.1 使用一个统一 FastAPI 服务向 OpenClaw 提供安全接口。OpenClaw 运行到相应阶段时调用对应接口，FastAPI 路由再通过 Adapter 调用仓库内部的安全模块。
 
-Retrieval Guard 与 IO Guard、Access Control、Tool Guard、Audit 一样，共用 Clawguard FastAPI，不再单独启动 Retrieval Guard FastAPI 服务，也不需要额外的 `base_url` 或 `timeout_seconds` 配置。
+Retrieval Guard 与 IO Guard、Access Control、Tool Guard、Audit 一样，共用 Argus FastAPI，不再单独启动 Retrieval Guard FastAPI 服务，也不需要额外的 `base_url` 或 `timeout_seconds` 配置。
 
 沙箱由于采用 MCP 协议并需要独立运行环境，继续作为单独的 Sandbox MCP 服务接入 OpenClaw。
 
@@ -63,7 +63,7 @@ flowchart LR
     U[用户] --> G[OpenGuard]
     G --> O[OpenClaw]
 
-    O -->|输入阶段| API[Clawguard FastAPI :8000]
+    O -->|输入阶段| API[Argus FastAPI :8000]
     O -->|工具调用前| API
     O -->|工具结果阶段| API
     O -->|输出阶段| API
@@ -128,8 +128,8 @@ flowchart TD
     subgraph DataPlane["② 运行时零信任卡点鉴权 (Data Plane)"]
         OG -->|2. WebSocket 长连转发| Bridge["Bridge 桥接服务 (:18080)"]
         Bridge -->|3. TypeBox 标准 RPC| OC["OpenClaw 网关 (:18789)"]
-        OC -->|before_tool_call 钩子| Hook["clawguard-adapter 插件"]
-        Hook -->|4. POST /v1/tool/pre_check| API["Clawguard 统一服务 (:8000)"]
+        OC -->|before_tool_call 钩子| Hook["argus-adapter 插件"]
+        Hook -->|4. POST /v1/tool/pre_check| API["Argus 统一服务 (:8000)"]
         
         subgraph ACEngine["Access Control 核心决策引擎"]
             ID["三向身份逆向解析<br/>(user_id / username / agent_id)"] --> MAC["多级密级判定<br/>(MAC 标签 + RBAC 规则)"]
@@ -225,18 +225,18 @@ quarantine_triggered = (block_count_5m >= 8) or (probe_likely and risk_score >= 
 
 * **用户多级密级管理**：在 OpenGuard 管理后台用户列表中实装四级色彩徽章与下拉选择框，管理员可随时调整任一用户的密级；
 * **在线规则管理专属 Tab**：支持对 `users.txt` 与 `resources.txt` 进行全量可视化 CRUD 维护与语法校验；
-* **基于 mtime 的毫秒级自动热重载**：Clawguard 规则引擎后台线程持续感知规则文件的修改时间戳，磁盘更新后毫秒级内自动重构内存规则树，实现业务零中断热重载。
+* **基于 mtime 的毫秒级自动热重载**：Argus 规则引擎后台线程持续感知规则文件的修改时间戳，磁盘更新后毫秒级内自动重构内存规则树，实现业务零中断热重载。
 
 ## 3. 项目结构
 
 ```text
-clawguard/
+argus/
 ├── README.md                         # 项目总说明
 ├── requirements.txt                 # 统一 FastAPI 的最小依赖
 ├── .env.example                     # 环境变量示例
 ├── .gitignore
 │
-├── clawguard/                        # Clawguard Python 包
+├── argus/                        # Argus Python 包
 │   ├── __init__.py
 │   ├── api/
 │   │   ├── __init__.py
@@ -291,7 +291,7 @@ clawguard/
 | 环境 | 推荐版本 | 用途 |
 |---|---|---|
 | Windows | Windows 10/11 64 位 | 当前主要开发环境 |
-| Python | **Python 3.11.9 64 位** | Clawguard、OpenGuard 和 Python 安全模块 |
+| Python | **Python 3.11.9 64 位** | Argus、OpenGuard 和 Python 安全模块 |
 | Git | Git 2.x | 代码协作和版本管理 |
 | OpenClaw | 2026.6.11 | 当前统一测试版本 |
 
@@ -319,7 +319,7 @@ Python 应显示 `3.11.x`。团队统一安装目标为 `3.11.9`。
 
 ```powershell
 git clone https://github.com/WT-ever/ClawguardV2.1.git
-cd ClawguardV2.1
+cd Argus
 ```
 
 仓库是私有仓库，需要先获得负责人邀请并登录有权限的 GitHub 账号。
@@ -357,7 +357,7 @@ python -m pip install -r requirements.txt
 各模块接入后，根据模块自身 README 安装额外依赖。例如：
 
 ```powershell
-python -m pip install -r clawguard\modules\io_guard\requirements.txt
+python -m pip install -r argus\modules\io_guard\requirements.txt
 ```
 
 如果模型模块依赖发生冲突，可以暂时为该模块建立独立虚拟环境，但其对外输入输出仍必须符合公共数据结构。
@@ -375,8 +375,8 @@ Copy-Item .env.example .env
 当前支持：
 
 ```text
-CLAWGUARD_CONFIG=configs/modules.yaml
-CLAWGUARD_POLICY=configs/policy.yaml
+ARGUS_CONFIG=configs/modules.yaml
+ARGUS_POLICY=configs/policy.yaml
 ```
 
 路径既可以是项目根目录下的相对路径，也可以是绝对路径。默认不需要创建 `.env`，程序会直接读取 `configs/` 下的文件。
@@ -445,22 +445,22 @@ block > human_review > rewrite > allow
 - 优先使用相对于项目根目录的路径；
 - 大模型权重不要提交 GitHub；
 - 在模块 README 中写清模型名称、下载方式和目标目录；
-- 访问控制规则放入 `clawguard/modules/access_control/rules/`。
+- 访问控制规则放入 `argus/modules/access_control/rules/`。
 
 ## 7. 启动方式
 
-### 7.1 启动统一 Clawguard FastAPI
+### 7.1 启动统一 Argus FastAPI
 
 在项目根目录运行：
 
 ```powershell
-python -m uvicorn clawguard.api.main:app --host 127.0.0.1 --port 8000 --reload
+python -m uvicorn argus.api.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
 未激活虚拟环境时：
 
 ```powershell
-.\.venv\Scripts\python.exe -m uvicorn clawguard.api.main:app --host 127.0.0.1 --port 8000 --reload
+.\.venv\Scripts\python.exe -m uvicorn argus.api.main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
 启动成功后访问：
@@ -496,7 +496,7 @@ $body = @{
         session_id = "default_session"
     }
     payload = @{
-        text = "hello clawguard"
+        text = "hello argus"
     }
 } | ConvertTo-Json -Depth 5
 
@@ -597,19 +597,19 @@ git switch -c module/io-guard
 模块负责人主要修改：
 
 ```text
-clawguard/modules/<模块名>/original/
-clawguard/adapters/<模块名>_adapter.py
-clawguard/modules/<模块名>/README.md
+argus/modules/<模块名>/original/
+argus/adapters/<模块名>_adapter.py
+argus/modules/<模块名>/README.md
 模块自己的 requirements.txt、规则和测试数据
 ```
 
 公共文件包括：
 
 ```text
-clawguard/common/models.py
-clawguard/common/utils.py
-clawguard/core/registry.py
-clawguard/api/main.py
+argus/common/models.py
+argus/common/utils.py
+argus/core/registry.py
+argus/api/main.py
 configs/modules.yaml
 configs/policy.yaml
 ```
@@ -650,21 +650,21 @@ git push -u origin module/io-guard
 
 ## 9. 常见问题
 
-### 9.1 启动时提示 `No module named clawguard`
+### 9.1 启动时提示 `No module named argus`
 
 确认当前目录是仓库根目录，即能够看到：
 
 ```text
 README.md
 requirements.txt
-clawguard/
+argus/
 configs/
 ```
 
 然后使用模块方式启动：
 
 ```powershell
-python -m uvicorn clawguard.api.main:app --reload
+python -m uvicorn argus.api.main:app --reload
 ```
 
 ### 9.2 提示缺少 `fastapi`、`pydantic` 或 `uvicorn`
@@ -698,7 +698,7 @@ IO Guard 已接入真实实现。其他模块若仍是基础模板，可能返�
 
 ### 9.5 Retrieval Guard 是否需要启动 8765 端口？
 
-不需要。V2.1 中 Retrieval Guard 使用统一 Clawguard FastAPI，通过 `/v1/content/check` 提供能力。其代码由 `retrieval_guard_adapter.py` 从仓库内部调用。
+不需要。V2.1 中 Retrieval Guard 使用统一 Argus FastAPI，通过 `/v1/content/check` 提供能力。其代码由 `retrieval_guard_adapter.py` 从仓库内部调用。
 
 只有 Sandbox MCP 继续使用独立端口，默认是 `9876`。
 
@@ -709,7 +709,7 @@ IO Guard 已接入真实实现。其他模块若仍是基础模板，可能返�
 同时检查是否通过环境变量指定了另一份配置文件：
 
 ```powershell
-Get-ChildItem Env:CLAWGUARD_CONFIG
+Get-ChildItem Env:ARGUS_CONFIG
 ```
 
 ### 9.7 模型文件应该放在哪里？
@@ -717,7 +717,7 @@ Get-ChildItem Env:CLAWGUARD_CONFIG
 模型文件放在对应模块约定的本地目录中，例如：
 
 ```text
-clawguard/modules/retrieval_guard/models/
+argus/modules/retrieval_guard/models/
 ```
 
 该目录中的模型文件默认不会提交 Git。模块 README 必须写明模型下载地址和文件放置方式。
@@ -727,17 +727,17 @@ clawguard/modules/retrieval_guard/models/
 开发时可以临时换端口：
 
 ```powershell
-python -m uvicorn clawguard.api.main:app --host 127.0.0.1 --port 8010
+python -m uvicorn argus.api.main:app --host 127.0.0.1 --port 8010
 ```
 
-同时修改 OpenClaw Adapter 中的 Clawguard 服务地址。
+同时修改 OpenClaw Adapter 中的 Argus 服务地址。
 
 ### 9.9 PowerShell 无法激活虚拟环境
 
 可以不修改系统策略，直接使用虚拟环境中的 Python：
 
 ```powershell
-.\.venv\Scripts\python.exe -m uvicorn clawguard.api.main:app --reload
+.\.venv\Scripts\python.exe -m uvicorn argus.api.main:app --reload
 ```
 
 ### 9.10 如何确认本地代码是否落后于远程？

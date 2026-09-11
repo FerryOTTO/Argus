@@ -49,7 +49,7 @@ function ensureRemoteTemplate(daemon) {
 function findOpenClawEntry() {
   const home = process.env.USERPROFILE || process.env.HOME || ''
   const candidates = [
-    (process.env.ARGUS_OPENCLAW_ENTRY || process.env.CLAWGUARD_OPENCLAW_ENTRY),
+    (process.env.ARGUS_OPENCLAW_ENTRY),
     process.env.APPDATA && path.join(process.env.APPDATA, 'npm', 'node_modules', 'openclaw', 'openclaw.mjs'),
     home && path.join(home, 'AppData', 'Roaming', 'npm', 'node_modules', 'openclaw', 'openclaw.mjs')
   ]

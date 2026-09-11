@@ -157,7 +157,7 @@ const stats = reactive({
 
 const recentEvents = ref<any[]>([])
 const terminalRows = ref<any[]>([])
-const eventsEmptyText = '暂无安全事件，等待终端 Clawguard 上报'
+const eventsEmptyText = '暂无安全事件，等待终端 Argus 上报'
 const terminalsEmptyText = '暂无终端，请先添加终端接入'
 
 // 数字格式化：万/亿 简洁展示（token 量级较大时避免挤爆卡片）

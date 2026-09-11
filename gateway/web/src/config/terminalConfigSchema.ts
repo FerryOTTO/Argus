@@ -1,7 +1,7 @@
 // ============================================================================
-// Clawguard 集控配置包 schema v1（终端"修改配置"可视化编辑器的唯一数据源）
+// Argus 集控配置包 schema v1（终端"修改配置"可视化编辑器的唯一数据源）
 //
-// 设计依据：ClawguardV2.1/CONFIGS.md（2026-09 实测结论）
+// 设计依据：Argus/CONFIGS.md（2026-09 实测结论）
 //  - 仅收录"已生效"配置项；CONFIGS.md 中标注 ⚠️ 的声明未接线项一律不收
 //  - 键路径收敛命名：modules.* / io_guard_policy.* / access.* /
 //    access_rules.* / retrieval.* / integration.*
@@ -169,7 +169,7 @@ const fetchGuardFields: FieldDef[] = [
 const retrievalModuleFields: FieldDef[] = [
   { key: 'retrieval_enabled', path: ['modules', 'retrieval_guard', 'enabled'], label: '启用 Retrieval Guard', type: 'bool', def: true, desc: 'URL 白名单 + 注入检测 + 提示词包装总开关' },
   { key: 'retrieval_on_error', path: ['modules', 'retrieval_guard', 'on_error'], label: '异常兜底', type: 'select', def: 'allow', options: ON_ERROR_OPTIONS },
-  { key: 'retrieval_model_path', path: ['modules', 'retrieval_guard', 'model_path'], label: 'PIGuard 模型目录', type: 'text', def: '', placeholder: '如 clawguard/modules/retrieval_guard/models/PIGuard', desc: '相对 Clawguard 项目根；留空 = 使用客户端本地默认（不写入配置包）' },
+  { key: 'retrieval_model_path', path: ['modules', 'retrieval_guard', 'model_path'], label: 'PIGuard 模型目录', type: 'text', def: '', placeholder: '如 argus/modules/retrieval_guard/models/PIGuard', desc: '相对 Argus 项目根；留空 = 使用客户端本地默认（不写入配置包）' },
   { key: 'guard_a', path: ['modules', 'retrieval_guard', 'guards', 'A'], label: 'A 层 URL 白名单', type: 'bool', def: true },
   { key: 'guard_b', path: ['modules', 'retrieval_guard', 'guards', 'B'], label: 'B 层 PIGuard 注入检测', type: 'bool', def: true },
   { key: 'guard_c', path: ['modules', 'retrieval_guard', 'guards', 'C'], label: 'C 层提示词包装', type: 'bool', def: true },
@@ -196,7 +196,7 @@ const retrievalPromptWrapFields: FieldDef[] = [
 ]
 
 // ---------------------------------------------------------------------------
-// 模块 4：访问控制（modules.access_control 段 + CLAWGUARD_* env + 规则文件，
+// 模块 4：访问控制（modules.access_control 段 + ARGUS_* env + 规则文件，
 //  CONFIGS.md §2.1/§4：users.txt / resources.txt / 风险联动与隔离）
 // ---------------------------------------------------------------------------
 const accessModuleFields: FieldDef[] = [
@@ -209,9 +209,9 @@ const accessPolicyFields: FieldDef[] = [
     { label: 'RBAC 角色访问', value: 'rbac' },
     { label: 'MAC 强制访问', value: 'mac' },
     { label: 'Hybrid 混合', value: 'hybrid' },
-  ], desc: '对应 CLAWGUARD_MODE' },
+  ], desc: '对应 ARGUS_MODE' },
   { key: 'block_unknown', path: ['access', 'block_unknown_users'], label: '拦截未知用户', type: 'bool', def: false, desc: '未在规则文件中的用户是否直接拦截' },
-  { key: 'risk_link', path: ['access', 'risk_link_enabled'], label: '审计风险联动', type: 'bool', def: true, desc: '关闭则退化为纯 RBAC 判定（对应 CLAWGUARD_AC_RISK_LINK）' },
+  { key: 'risk_link', path: ['access', 'risk_link_enabled'], label: '审计风险联动', type: 'bool', def: true, desc: '关闭则退化为纯 RBAC 判定（对应 ARGUS_AC_RISK_LINK）' },
   { key: 'risk_window', path: ['access', 'risk_window_seconds'], label: '风险滑窗时长', type: 'number', def: 300, min: 30, max: 86400, step: 30, unit: '秒' },
   { key: 'risk_threshold', path: ['access', 'risk_threshold'], label: '高风险事件阈值', type: 'number', def: 0.6, min: 0, max: 1, step: 0.05, desc: '单事件风险分 ≥ 此值计为高风险事件' },
   { key: 'probe_count', path: ['access', 'risk_probe_block_count'], label: '试探标记拦截数', type: 'number', def: 3, min: 1, max: 100, desc: '窗内拦截 ≥ 此数 → probe_likely 试探标记' },
@@ -291,14 +291,14 @@ const humanReviewModuleFields: FieldDef[] = [
 // 模块 8：OpenClaw 接入集成（原 openclaw.config 插件段，CONFIGS.md §9）
 // ---------------------------------------------------------------------------
 const integrationFields: FieldDef[] = [
-  { key: 'clawguard_url', path: ['integration', 'clawguard_url'], label: 'Clawguard API 地址', type: 'text', def: 'http://127.0.0.1:8000', desc: 'OpenClaw 插件访问本机 Clawguard 服务的地址' },
-  { key: 'api_token_env', path: ['integration', 'api_token_env'], label: 'API 令牌环境变量名', type: 'text', def: 'CLAWGUARD_API_TOKEN', desc: '令牌本身不进配置文件，仅指定读取的环境变量名' },
+  { key: 'argus_url', path: ['integration', 'argus_url'], label: 'Argus API 地址', type: 'text', def: 'http://127.0.0.1:8000', desc: 'OpenClaw 插件访问本机 Argus 服务的地址' },
+  { key: 'api_token_env', path: ['integration', 'api_token_env'], label: 'API 令牌环境变量名', type: 'text', def: 'ARGUS_API_TOKEN', desc: '令牌本身不进配置文件，仅指定读取的环境变量名' },
   { key: 'timeout_ms', path: ['integration', 'timeout_ms'], label: 'HTTP 调用超时', type: 'number', def: 30000, min: 1000, max: 300000, step: 1000, unit: '毫秒' },
   { key: 'fail_mode', path: ['integration', 'fail_mode'], label: '插件故障模式', type: 'select', def: 'closed', options: [
     { label: 'closed 故障即拦截', value: 'closed' },
     { label: 'open 故障即放行', value: 'open' },
   ], desc: '插件自身故障时的安全策略' },
-  { key: 'media_check', path: ['integration', 'enable_media_check'], label: '附件送检', type: 'bool', def: true, desc: '是否启用附件送 Clawguard 检测' },
+  { key: 'media_check', path: ['integration', 'enable_media_check'], label: '附件送检', type: 'bool', def: true, desc: '是否启用附件送 Argus 检测' },
   { key: 'media_root', path: ['integration', 'media_root'], label: '附件根目录', type: 'text', def: '', placeholder: '空 = 按协议字段', desc: '留空 = 使用协议默认（不写入配置包）' },
   { key: 'protected_tools', path: ['integration', 'protected_tools'], label: '回检保护工具', type: 'tags', def: ['web_fetch', 'web_search'], desc: '内容回检保护的工具名单，按回车添加' },
 ]
@@ -361,7 +361,7 @@ export const CONFIG_GROUPS: ConfigGroup[] = [
     sections: [{ title: '兜底动作', fields: humanReviewModuleFields }],
   },
   {
-    id: 'integration', label: 'OpenClaw 集成', desc: 'Clawguard 接入插件参数',
+    id: 'integration', label: 'OpenClaw 集成', desc: 'Argus 接入插件参数',
     sections: [{ title: '插件接入', fields: integrationFields }],
   },
 ]

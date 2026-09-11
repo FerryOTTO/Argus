@@ -1,6 +1,6 @@
-# Clawguard Desktop 桌面客户端 (MiMo Code 1:1 高保真版)
+# Argus Desktop 桌面客户端 (MiMo Code 1:1 高保真版)
 
-Clawguard 智能安全智能体桌面守护客户端，采用 **Electron + Vite + Vue 3 + Tailwind CSS + Lucide Icons** 构建，深度复刻小米 **MiMo Code** 官方（`mimo.xiaomi.com/zh/mimocode`）的设计美学与核心交互特效。
+Argus 智能安全智能体桌面守护客户端，采用 **Electron + Vite + Vue 3 + Tailwind CSS + Lucide Icons** 构建，深度复刻小米 **MiMo Code** 官方（`mimo.xiaomi.com/zh/mimocode`）的设计美学与核心交互特效。
 
 ---
 
@@ -22,7 +22,7 @@ Clawguard 智能安全智能体桌面守护客户端，采用 **Electron + Vite 
 ## 二、架构全景图
 
 ```
-clawguard-desktop/
+argus-desktop/
 ├── DESIGN.md                 # MiMo Code 官方设计系统规范（参照 Google Labs 规范）
 ├── package.json              # 项目依赖与启动脚本
 ├── vite.config.js            # Vite 配置文件
@@ -91,7 +91,7 @@ npm run build
 ## 四、守护进程管理说明
 
 桌面端主进程内置 `DaemonManager`，在客户端启动时会自动探测并启动后台三大守护核心：
-1. **Clawguard API**：`py -m uvicorn clawguard.api.main:app --port 8000`
+1. **Argus API**：`py -m uvicorn argus.api.main:app --port 8000`
 2. **OpenGuard Bridge**：`node openguard/original/bridge.js` (:18080)
 3. **OpenClaw Gateway**：`openclaw gateway run` (:18789)
 

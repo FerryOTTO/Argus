@@ -8,7 +8,7 @@
 )
 
 # Argus 服务日志控制台
-# 由桌面端 daemon 或 Start-ClawguardDesktop.ps1 以「可见窗口」方式拉起：
+# 由桌面端 daemon 或 Start-ArgusDesktop.ps1 以「可见窗口」方式拉起：
 #   实时打印完整日志行，同时把同样的内容追加写入 -LogFile。
 # 关闭本窗口即结束该服务。
 

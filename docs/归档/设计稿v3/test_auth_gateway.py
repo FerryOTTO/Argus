@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Clawguard v3 测试套件
+Argus v3 测试套件
 test_auth_gateway.py
 """
 
@@ -556,7 +556,7 @@ def test_check_reason():
 
     try:
         # 测试 RBAC 模式
-        os.environ["CLAWGUARD_MODE"] = "rbac"
+        os.environ["ARGUS_MODE"] = "rbac"
         auth_gateway.ACCESS_CONTROL_MODE = "rbac"
         ok, reason = check_reason("user_internal", "", "tool:read_file", "")
         assert ok == True
@@ -569,7 +569,7 @@ def test_check_reason():
         # 测试 MAC 模式
         store.set_mac_label("user_mac", 3, {"财务"})
         store.set_resource_mac_label("tool:write_file", 3, {"财务"})
-        os.environ["CLAWGUARD_MODE"] = "mac"
+        os.environ["ARGUS_MODE"] = "mac"
         auth_gateway.ACCESS_CONTROL_MODE = "mac"
         ok, reason = check_reason("user_mac", "", "tool:write_file", "")
         assert ok == True
@@ -579,7 +579,7 @@ def test_check_reason():
     finally:
         auth_gateway._store = old_store
         shutil.rmtree(tmpdir)
-        os.environ["CLAWGUARD_MODE"] = "rbac"
+        os.environ["ARGUS_MODE"] = "rbac"
         auth_gateway.ACCESS_CONTROL_MODE = "rbac"
 
 
@@ -628,7 +628,7 @@ def test_sync_external_user():
 def run_all_tests():
     """运行全部测试"""
     print("=" * 60)
-    print("Clawguard v3 测试套件")
+    print("Argus v3 测试套件")
     print("=" * 60)
     print()
 

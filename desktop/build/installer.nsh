@@ -1,4 +1,4 @@
-﻿; Clawguard 自定义 NSIS 逻辑（中文注释）。
+﻿; Argus 自定义 NSIS 逻辑（中文注释）。
 ; 做一件事：卸载时多一个“清理残留”选项页，可勾选
 ;   1) Python 依赖包（pip 卸载装机时装的包）
 ;   2) OpenClaw 全局包（npm 卸载全局 openclaw）

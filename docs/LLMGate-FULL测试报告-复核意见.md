@@ -22,7 +22,7 @@
 
 ### 1. 独立复现(同一套数据、不同仓库)
 
-用 `test/eval_dataset.py`,被测仓库换成 `E:\tiaozhanbei\MAC\ClawguardV2.1`,得到:
+用 `test/eval_dataset.py`,被测仓库换成 `E:\tiaozhanbei\MAC\Argus`,得到:
 
 | 模块 | 报告命中 | 我复现命中 | 是否一致 |
 |---|---|---|---|
@@ -43,8 +43,8 @@
 
 ```
 与 model_heads / PIGuard / *.joblib 相关条目：(无)
-LLMGate-FULL/terminal/clawguard/modules/access_control/original/rules/users.txt     262 B
-LLMGate-FULL/terminal/clawguard/modules/access_control/original/rules/resources.txt 2363 B
+LLMGate-FULL/terminal/argus/modules/access_control/original/rules/users.txt     262 B
+LLMGate-FULL/terminal/argus/modules/access_control/original/rules/resources.txt 2363 B
 ```
 
 **结论:报告 §2.2「成品开箱缺 io_guard 模型头与 PIGuard」完全属实** —— 包里连一个 `.joblib` 都没有,713 MB 的 PIGuard 更不可能有。

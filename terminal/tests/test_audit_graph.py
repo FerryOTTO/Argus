@@ -8,7 +8,7 @@ from pathlib import Path
 import networkx as nx
 import pytest
 
-from clawguard.modules.audit.original import (
+from argus.modules.audit.original import (
     AuditQuery,
     AuditStore,
     GraphIntegrityError,

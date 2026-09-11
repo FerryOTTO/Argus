@@ -1,0 +1,12 @@
+{
+  "id": "argus-session-test",
+  "name": "Argus Session Test",
+  "description": "验证 before_tool_call 的 ctx 会话字段（临时观测插件）",
+  "activation": {
+    "onStartup": true
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false
+  }
+}

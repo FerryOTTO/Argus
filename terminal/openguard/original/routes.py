@@ -76,7 +76,7 @@ def _token_response(data: dict) -> JSONResponse:
 async def desktop_login(request: Request):
     """本机个人版会话：不开放企业管理能力，仅用于本地工作台聊天。"""
     client_host = request.client.host if request.client else ""
-    if client_host not in {"127.0.0.1", "::1", "localhost"} or request.headers.get("X-Clawguard-Desktop") != "1":
+    if client_host not in {"127.0.0.1", "::1", "localhost"} or request.headers.get("X-Argus-Desktop") != "1":
         raise HTTPException(status_code=403, detail={"error": "仅允许本机桌面端调用", "code": "DESKTOP_ONLY"})
     try:
         return _token_response(await authenticate_desktop_user(client_host))
@@ -374,12 +374,12 @@ if str(_PROJECT_ROOT) not in sys.path:
 
 
 def _get_ac_store():
-    from clawguard.modules.access_control.original import auth_gateway
+    from argus.modules.access_control.original import auth_gateway
     return auth_gateway._store
 
 
 def _get_quarantine_store():
-    from clawguard.modules.access_control.quarantine_store import QuarantineStore
+    from argus.modules.access_control.quarantine_store import QuarantineStore
     return QuarantineStore()
 
 

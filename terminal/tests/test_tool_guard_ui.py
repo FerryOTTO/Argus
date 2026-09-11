@@ -1,4 +1,4 @@
-"""Clawguard — Tool Guard 管理界面与运行期查询接口测试
+"""Argus — Tool Guard 管理界面与运行期查询接口测试
 
 覆盖:
 - 页面可访问性:``/tool-guard`` 返回 200、无外部资源、全中文、无圆角
@@ -17,10 +17,10 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from clawguard.api.main import app
-from clawguard.api.tool_guard_routes import router as tool_guard_router
-from clawguard.modules.tool_guard import session_store
-from clawguard.modules.tool_guard.llm_config import ToolGuardLLMConfig
+from argus.api.main import app
+from argus.api.tool_guard_routes import router as tool_guard_router
+from argus.modules.tool_guard import session_store
+from argus.modules.tool_guard.llm_config import ToolGuardLLMConfig
 
 
 CLIENT = TestClient(app)

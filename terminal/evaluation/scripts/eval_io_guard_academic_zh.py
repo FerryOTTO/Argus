@@ -16,7 +16,7 @@ from typing import Any
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-IO_GUARD_ROOT = REPO_ROOT / "clawguard/modules/io_guard/original"
+IO_GUARD_ROOT = REPO_ROOT / "argus/modules/io_guard/original"
 sys.path.insert(0, str(IO_GUARD_ROOT / "src"))
 
 from io_guard import GuardRequest, IOGuard, SourceType  # noqa: E402

@@ -25,7 +25,7 @@ func NewTerminalStore(db *sqlx.DB) *TerminalStore {
 const terminalColumns = `
 	SELECT t.id, t.name, t.agent_type, t.bound_user_id, u.username AS bound_username,
 	       t.description, t.status, t.hostname, t.os_info, t.agent_version,
-	       t.clawguard_version, t.last_seen_at, t.token_usage_total, t.alert_count_total,
+	       t.argus_version, t.last_seen_at, t.token_usage_total, t.alert_count_total,
 	       t.desired_config, t.config_version, t.config_updated_at,
 	       t.config_applied_version, t.config_applied_at,
 	       t.registration_code_hash, t.telemetry_token_hash, t.llm_api_key_id,
@@ -193,15 +193,15 @@ func (s *TerminalStore) GetByRegistrationCodeHash(hash string) (*model.AgentTerm
 
 // Activate binds a fresh telemetry token hash and records the registration
 // (hostname/versions come from the client), setting status to active.
-func (s *TerminalStore) Activate(id int64, tokenHash, hostname, osInfo, agentVersion, clawguardVersion string) error {
+func (s *TerminalStore) Activate(id int64, tokenHash, hostname, osInfo, agentVersion, argusVersion string) error {
 	now := time.Now()
 	query := `
 		UPDATE agent_terminals
 		SET status = 'active', registration_code_hash = '', telemetry_token_hash = ?, hostname = ?, os_info = ?,
-		    agent_version = ?, clawguard_version = ?, last_seen_at = ?, updated_at = ?
+		    agent_version = ?, argus_version = ?, last_seen_at = ?, updated_at = ?
 		WHERE id = ?
 	`
-	if _, err := ExecWithRetry(s.db, query, tokenHash, hostname, osInfo, agentVersion, clawguardVersion, now, now, id); err != nil {
+	if _, err := ExecWithRetry(s.db, query, tokenHash, hostname, osInfo, agentVersion, argusVersion, now, now, id); err != nil {
 		return fmt.Errorf("failed to activate terminal: %w", err)
 	}
 	return nil
@@ -236,7 +236,7 @@ func (s *TerminalStore) Revoke(id int64) error {
 
 // TouchHeartbeat refreshes runtime metadata and last_seen_at on heartbeat.
 // It never overwrites hostname/versions with empty strings (partial payloads).
-func (s *TerminalStore) TouchHeartbeat(id int64, hostname, osInfo, agentVersion, clawguardVersion string) error {
+func (s *TerminalStore) TouchHeartbeat(id int64, hostname, osInfo, agentVersion, argusVersion string) error {
 	var sets []string
 	var args []interface{}
 
@@ -252,9 +252,9 @@ func (s *TerminalStore) TouchHeartbeat(id int64, hostname, osInfo, agentVersion,
 		sets = append(sets, "agent_version = ?")
 		args = append(args, agentVersion)
 	}
-	if clawguardVersion != "" {
-		sets = append(sets, "clawguard_version = ?")
-		args = append(args, clawguardVersion)
+	if argusVersion != "" {
+		sets = append(sets, "argus_version = ?")
+		args = append(args, argusVersion)
 	}
 	now := time.Now()
 	sets = append(sets, "last_seen_at = ?", "updated_at = ?")
@@ -282,7 +282,7 @@ func (s *TerminalStore) ApplyReportDelta(id int64, tokenUsageDelta, alertDelta i
 	return nil
 }
 
-// UpdateDesiredConfig stores the admin-authored clawguard config and bumps
+// UpdateDesiredConfig stores the admin-authored argus config and bumps
 // the config version. An empty config clears the pending config.
 func (s *TerminalStore) UpdateDesiredConfig(id int64, config string) error {
 	query := `

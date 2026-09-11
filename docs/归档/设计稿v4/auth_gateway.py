@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Clawguard v3/v4 — 访问控制网关
+"""Argus v3/v4 — 访问控制网关
 
 改进点：
   1. RBAC + MAC 双模型切换（rbac/mac/hybrid）
@@ -22,11 +22,11 @@ from dataclasses import dataclass, field
 # === 配置 ===
 
 BASE_DIR = Path(__file__).parent
-USERS_FILE = Path(os.getenv("CLAWGUARD_USERS_FILE", BASE_DIR / "rules" / "users.txt"))
-RESOURCES_FILE = Path(os.getenv("CLAWGUARD_RESOURCES_FILE", BASE_DIR / "rules" / "resources.txt"))
+USERS_FILE = Path(os.getenv("ARGUS_USERS_FILE", BASE_DIR / "rules" / "users.txt"))
+RESOURCES_FILE = Path(os.getenv("ARGUS_RESOURCES_FILE", BASE_DIR / "rules" / "resources.txt"))
 
-ACCESS_CONTROL_MODE = os.getenv("CLAWGUARD_MODE", "rbac")  # rbac | mac | hybrid
-BLOCK_UNKNOWN_USERS = os.getenv("CLAWGUARD_BLOCK_UNKNOWN_USERS", "false").lower() == "true"
+ACCESS_CONTROL_MODE = os.getenv("ARGUS_MODE", "rbac")  # rbac | mac | hybrid
+BLOCK_UNKNOWN_USERS = os.getenv("ARGUS_BLOCK_UNKNOWN_USERS", "false").lower() == "true"
 
 DEFAULT_USER_LEVEL = 1
 DEFAULT_RESOURCE_LEVEL = 99  # 零信任：未匹配资源默认拦截
@@ -101,7 +101,7 @@ class _TextBackend(_RuleBackend):
         return users
 
     def save_users(self, users: dict[str, dict]) -> None:
-        lines = ["# Clawguard 用户规则", "# 格式: 用户名或ID | 默认等级 | 特例(逗号分隔,可选)", ""]
+        lines = ["# Argus 用户规则", "# 格式: 用户名或ID | 默认等级 | 特例(逗号分隔,可选)", ""]
         for uid, data in users.items():
             level_name = {1: "public", 2: "internal", 3: "secret", 4: "top_secret"}.get(data["level"], "internal")
             specials = ",".join(data["specials"]) if data.get("specials") else ""
@@ -126,7 +126,7 @@ class _TextBackend(_RuleBackend):
         return resources
 
     def save_resources(self, resources: list[tuple]) -> None:
-        lines = ["# Clawguard 资源规则", "# 格式: 路径模式 | 所需等级 | 继承模式(flat/inherit/override)", ""]
+        lines = ["# Argus 资源规则", "# 格式: 路径模式 | 所需等级 | 继承模式(flat/inherit/override)", ""]
         for pattern, required, inherit_mode in resources:
             level_name = {1: "public", 2: "internal", 3: "secret", 4: "top_secret"}.get(required, "internal")
             lines.append(f"{pattern} | {level_name} | {inherit_mode}")
@@ -620,7 +620,7 @@ if __name__ == "__main__":
 
     cmd = sys.argv[1]
     if cmd == "demo":
-        print(f"=== Clawguard v3/v4 演示 ===")
+        print(f"=== Argus v3/v4 演示 ===")
         print(f"当前模式: {ACCESS_CONTROL_MODE}")
         print("\n用户规则:")
         for u in list_user_rules():
@@ -643,7 +643,7 @@ if __name__ == "__main__":
         if new_mode not in ("rbac", "mac", "hybrid"):
             print(f"错误: 未知模式 {new_mode}")
             sys.exit(1)
-        os.environ["CLAWGUARD_MODE"] = new_mode
+        os.environ["ARGUS_MODE"] = new_mode
         print(f"模式已切换为: {new_mode}")
     elif cmd == "add-user":
         if len(sys.argv) < 4:

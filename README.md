@@ -78,7 +78,7 @@ go run cmd/server/main.go -config configs/config.yaml
 ```powershell
 cd terminal
 python -m pip install -r requirements.txt
-python -m uvicorn clawguard.api.main:app --host 0.0.0.0 --port 8000
+python -m uvicorn argus.api.main:app --host 0.0.0.0 --port 8000
 ```
 
 终端起来后监听 <http://127.0.0.1:8000>，这是 OpenClaw 兼容 API，
@@ -139,10 +139,10 @@ powershell -ExecutionPolicy Bypass -File .\start-argus.ps1
 |---|---|
 | `terminal/configs/modules.yaml` | 各防护模块总开关与参数 |
 | `terminal/configs/policy.yaml` | IO 守卫策略 |
-| `terminal/clawguard/modules/access_control/original/rules/resources.txt` | 资源访问控制规则（一行一条） |
-| `terminal/clawguard/modules/io_guard/original/configs/default_policy.json` | 内容检测默认策略 |
-| `terminal/clawguard/modules/retrieval_guard/original/a_url/whitelist.yaml` | 检索白名单 |
-| `terminal/clawguard/modules/retrieval_guard/original/c_prompt/config.yaml` | 提示注入检测配置 |
+| `terminal/argus/modules/access_control/original/rules/resources.txt` | 资源访问控制规则（一行一条） |
+| `terminal/argus/modules/io_guard/original/configs/default_policy.json` | 内容检测默认策略 |
+| `terminal/argus/modules/retrieval_guard/original/a_url/whitelist.yaml` | 检索白名单 |
+| `terminal/argus/modules/retrieval_guard/original/c_prompt/config.yaml` | 提示注入检测配置 |
 
 > **关于 `users.txt`**：用户与等级由网关统一下发，终端本地不再维护 `users.txt`。
 > 每个终端只对应一个用户，等级只有一个，在网关「终端管理 → 修改配置」里改。

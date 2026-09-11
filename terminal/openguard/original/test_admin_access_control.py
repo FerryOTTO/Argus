@@ -229,7 +229,7 @@ def test_admin_quarantine_and_audit(client):
 
 def test_user_registration_and_deletion_sync_to_ac(client):
     """测试用户注册自动同步到 AC 规则库，用户删除自动从 AC 规则库清理"""
-    from clawguard.modules.access_control.original import auth_gateway
+    from argus.modules.access_control.original import auth_gateway
     admin_h = _create_auth_headers("usr_admin_01", "super_admin", "admin", "top_secret")
 
     # 1. 注册新用户

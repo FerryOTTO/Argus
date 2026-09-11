@@ -2,11 +2,11 @@
 
 为 OpenClaw 提供 JWT 多用户认证 + Agent 隔离 + Web 聊天界面。
 
-## 在 Clawguard 中的位置
+## 在 Argus 中的位置
 
-用户 → OpenGuard (:3000) → OpenClaw (:18789) → Clawguard (:8000)
+用户 → OpenGuard (:3000) → OpenClaw (:18789) → Argus (:8000)
 
-OpenGuard 在代理请求时注入 X-Clawguard-* 身份头（对接方案 7.7 节）。
+OpenGuard 在代理请求时注入 X-Argus-* 身份头（对接方案 7.7 节）。
 
 ## 快速启动
 
@@ -53,14 +53,14 @@ python seed.py -n 10 --admin adminuser
 
 | Header | 说明 |
 |--------|------|
-| X-Clawguard-User-Id | 用户 ID |
-| X-Clawguard-Session-Id | 会话 ID |
-| X-Clawguard-Trace-Id | 链路追踪 ID |
-| X-Clawguard-Role | 角色 |
-| X-Clawguard-Security-Level | 安全级别 |
+| X-Argus-User-Id | 用户 ID |
+| X-Argus-Session-Id | 会话 ID |
+| X-Argus-Trace-Id | 链路追踪 ID |
+| X-Argus-Role | 角色 |
+| X-Argus-Security-Level | 安全级别 |
 
 ## 运行测试
 
 ```bash
-python test_clawguard_integration.py
+python test_argus_integration.py
 ```

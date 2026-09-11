@@ -34,7 +34,7 @@ OpenGuard 是一个面向 OpenClaw AI Agent 引擎的多租户认证与网关服
 | LLM 密钥集中 | 真实 API Key 只存在于网关 `.env`，OpenClaw 侧统一走 `platform-proxy` → OpenGuard `/llm/v1` 代理 | ✅ 已完成 |
 | 用量计量 | 每次模型调用记录 token 用量 + 提供商 + 成本（按 `model_pricing` 定价计算），管理员可查询 | ✅ 已完成 |
 | 管理后台 | 用户角色/状态/配额管理、用量查询、Admin 路径保护 | ✅ 已完成 |
-| Clawguard 对接 | 注入 `X-Clawguard-*` 身份头 + `X-Openguard-Sig` 防篡改签名 | ✅ 已完成 |
+| Argus 对接 | 注入 `X-Argus-*` 身份头 + `X-Openguard-Sig` 防篡改签名 | ✅ 已完成 |
 | **技能系统** | 公有/私有技能定义 + 安装指针 + 内容落盘（Bridge 写文件到 agent 工作区），完整 CRUD | ✅ 已完成 |
 
 ## 2. 系统架构
@@ -47,7 +47,7 @@ flowchart LR
     O -->|agent 会话| A[用户 Agent]
     A -->|platform-proxy| P[OpenGuard /llm/v1 代理]
     P -->|模型路由| R[多提供商 LLM]
-    G -->|X-Clawguard-* 身份头| C[Clawguard :8000]
+    G -->|X-Argus-* 身份头| C[Argus :8000]
     G -->|SQLite| D[(auth.db)]
     P -->|计量/周度配额| D
 ```
@@ -65,7 +65,7 @@ auth-gateway/
 ├── routes.py            # 认证/SSO/Admin/Agent/聊天历史路由（/me 返回配额+模型）
 ├── proxy.py             # HTTP + WS 反向代理（注入身份头）
 ├── llm_proxy.py         # LLM 代理：多提供商路由、周度配额检查、流式透传
-├── clawguard_client.py  # Clawguard 安全检查 HTTP 客户端
+├── argus_client.py  # Argus 安全检查 HTTP 客户端
 ├── session_store.py     # 会话白名单（内存/Redis）
 ├── rate_limiter.py      # 内存速率限制
 ├── sso.py               # 通用 OIDC/OAuth2 登录
@@ -162,14 +162,14 @@ DEFAULT_MODEL=deepseek/deepseek-v4-flash
 OPENCLAW_URL=http://127.0.0.1:18789
 BRIDGE_URL=ws://127.0.0.1:18080
 BRIDGE_TOKEN=bridge_shared_token
-CLAWGUARD_URL=http://127.0.0.1:8000
+ARGUS_URL=http://127.0.0.1:8000
 ADMIN_USERNAME=adminuser
 ```
 
 ### 4.4 启动
 
 ```powershell
-# 启动顺序：Clawguard → OpenClaw Gateway → Bridge → OpenGuard
+# 启动顺序：Argus → OpenClaw Gateway → Bridge → OpenGuard
 
 # 1. OpenGuard
 python main.py
@@ -367,7 +367,7 @@ model_pricing = {
 | `OPENCLAW_URL` | `http://127.0.0.1:18789` | OpenClaw 网关 |
 | `BRIDGE_URL` | `ws://127.0.0.1:18080` | Bridge 地址 |
 | `BRIDGE_TOKEN` | 空 | HMAC 共享密钥（OpenGuard 与 Bridge 必须一致） |
-| `CLAWGUARD_URL` | `http://127.0.0.1:8000` | Clawguard 服务 |
+| `ARGUS_URL` | `http://127.0.0.1:8000` | Argus 服务 |
 | `LLM_PROXY_TOKEN` | 空 | OpenClaw → 网关代理的共享凭证 |
 | `LLM_PROXY_REQUIRE_AGENT` | `false` | 为 `true` 时拒绝无法归属（缺 `X-Agent-Id`）的 LLM 请求，防止配额绕过 |
 | **4 家主流提供商** | | |

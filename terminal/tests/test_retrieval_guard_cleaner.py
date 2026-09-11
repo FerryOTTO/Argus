@@ -5,10 +5,10 @@ import json
 
 from fastapi.testclient import TestClient
 
-from clawguard.adapters.retrieval_guard_adapter import RetrievalGuardAdapter
-from clawguard.api.main import app
-from clawguard.common.models import RequestContext, SecurityRequest
-from clawguard.modules.retrieval_guard.original.cleaner import clean
+from argus.adapters.retrieval_guard_adapter import RetrievalGuardAdapter
+from argus.api.main import app
+from argus.common.models import RequestContext, SecurityRequest
+from argus.modules.retrieval_guard.original.cleaner import clean
 
 
 def _boundary(body: str) -> str:

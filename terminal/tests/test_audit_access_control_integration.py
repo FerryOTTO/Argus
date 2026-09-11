@@ -9,12 +9,12 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from clawguard.adapters.access_control_adapter import AccessControlAdapter
-from clawguard.adapters.audit_adapter import AuditAdapter
-from clawguard.api.main import app
-from clawguard.common.models import ModuleResult, RequestContext, SecurityRequest
-from clawguard.core.registry import registry
-from clawguard.modules.audit.integration import emit_module_audit_event
+from argus.adapters.access_control_adapter import AccessControlAdapter
+from argus.adapters.audit_adapter import AuditAdapter
+from argus.api.main import app
+from argus.common.models import ModuleResult, RequestContext, SecurityRequest
+from argus.core.registry import registry
+from argus.modules.audit.integration import emit_module_audit_event
 
 
 CLIENT = TestClient(app)
@@ -106,8 +106,8 @@ def stored_events(path: Path) -> list[dict]:
 def integration_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     destination = tmp_path / "access-control-audit.jsonl"
     tool_adapter = CountingToolAdapter()
-    monkeypatch.setenv("CLAWGUARD_AUDIT_PATH", str(destination))
-    monkeypatch.setenv("CLAWGUARD_AUDIT_RISK_THRESHOLD", "0.5")
+    monkeypatch.setenv("ARGUS_AUDIT_PATH", str(destination))
+    monkeypatch.setenv("ARGUS_AUDIT_RISK_THRESHOLD", "0.5")
     monkeypatch.setitem(registry._adapters, "access_control", AccessControlAdapter())
     monkeypatch.setitem(registry._adapters, "tool_guard", tool_adapter)
     monkeypatch.setitem(registry._adapters, "audit", AuditAdapter())

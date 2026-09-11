@@ -33,7 +33,7 @@ type AgentAuditStats struct {
 	HighRiskToday int64 `json:"high_risk_today"` // 今日 risk_score >= 0.7
 }
 
-// AgentAuditEventStore 负责终端 Clawguard 审计事件（agent_audit_events）的读写。
+// AgentAuditEventStore 负责终端 Argus 审计事件（agent_audit_events）的读写。
 type AgentAuditEventStore struct {
 	db *sqlx.DB
 }
@@ -155,7 +155,7 @@ func (s *AgentAuditEventStore) TerminalStats() ([]model.AgentTerminalAuditStats,
 	var stats []model.AgentTerminalAuditStats
 	if err := s.db.Select(&stats, `
 		SELECT t.id AS terminal_id, t.name AS terminal_name, t.agent_type, t.status,
-		       t.hostname, t.os_info, t.agent_version, t.clawguard_version, t.last_seen_at,
+		       t.hostname, t.os_info, t.agent_version, t.argus_version, t.last_seen_at,
 		       COUNT(e.id) AS total_events,
 		       COALESCE(SUM(CASE WHEN e.event_time >= ? THEN 1 ELSE 0 END), 0) AS today_events,
 		       COALESCE(SUM(CASE WHEN e.event_time >= ? AND e.action != 'allow' THEN 1 ELSE 0 END), 0) AS alerts_today,

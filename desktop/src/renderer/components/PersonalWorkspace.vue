@@ -131,13 +131,13 @@
         <div class="welcome-state">
           <div class="welcome-icon"><ShieldCheck :size="24" /></div>
           <h2>聊天已搬到原生 OpenClaw</h2>
-          <p>个人版工作台不再内置聊天，防护由 :18789 的 clawguard-adapter 插件执行。本页只保留实时审计，拦截与放行记录会自动同步到上方。</p>
+          <p>个人版工作台不再内置聊天，防护由 :18789 的 argus-adapter 插件执行。本页只保留实时审计，拦截与放行记录会自动同步到上方。</p>
         </div>
       </section>
 
       <footer class="composer-wrap">
         <div v-if="backendError" class="composer-error"><AlertCircle :size="14" />{{ backendError }}</div>
-        <!-- Step 5：聊天已搬到原生 OpenClaw（:18789 + clawguard-adapter 插件），本工作台不再直连 :3000。
+        <!-- Step 5：聊天已搬到原生 OpenClaw（:18789 + argus-adapter 插件），本工作台不再直连 :3000。
              保留输入框作本地备注占位，发送走原生通道；审计页（:8000）不受影响。 -->
         <form class="composer" @submit.prevent="sendNativeHint">
           <textarea
@@ -152,7 +152,7 @@
             <Send :size="16" />
           </button>
         </form>
-        <div class="composer-hint"><span>个人版聊天请用原生 OpenClaw（:18789），防护由 clawguard-adapter 插件执行</span><span>审计数据来自 :8000</span></div>
+        <div class="composer-hint"><span>个人版聊天请用原生 OpenClaw（:18789），防护由 argus-adapter 插件执行</span><span>审计数据来自 :8000</span></div>
       </footer>
     </main>
   </div>
@@ -184,7 +184,7 @@ const emit = defineEmits(['back-home'])
 // Step 5：老链路（:3000 OpenGuard）已下线。聊天走原生 OpenClaw（:18789），
 // 本页只保留审计（:8000）。下面 API_BASE/sessions/socket 等老链路代码整体停用，
 // 保留 audit 相关与通用工具函数；回滚时把 ARGUS_LEGACY_CHAIN=1 打开并恢复本文件备份即可。
-const AUDIT_API_BASE = String((import.meta.env.VITE_ARGUS_AUDIT_BASE || import.meta.env.VITE_CLAWGUARD_AUDIT_BASE) || 'http://127.0.0.1:8000').replace(/\/$/, '')
+const AUDIT_API_BASE = String((import.meta.env.VITE_ARGUS_AUDIT_BASE) || 'http://127.0.0.1:8000').replace(/\/$/, '')
 const input = ref('')
 const inputElement = ref(null)
 const backendError = ref('')

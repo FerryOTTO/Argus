@@ -37,6 +37,9 @@ data/
 # 运行期数据目录
 **/openguard/original/data/
 
+# 仓库根运行期状态（隔离库、临时工作目录等；测试/联调时按需生成）
+/runtime/
+
 # ────────────────────────── 备份 / 临时文件 ──────────────────────────
 *.bak
 *.bak-*
@@ -63,17 +66,17 @@ env/
 terminal/runtime/
 terminal/runtime-logs/
 terminal/**/*.log
-terminal/_clawguard.*.log
+terminal/_argus.*.log
 terminal/openguard/original/*.log
 terminal/openguard/original/runtime/
 
 # 检索 / IO 守卫的模型权重体积大，按需本地下载
-terminal/clawguard/modules/retrieval_guard/models/*
-!terminal/clawguard/modules/retrieval_guard/models/.gitkeep
-terminal/clawguard/modules/io_guard/original/models/
-terminal/clawguard/modules/io_guard/original/model_heads/*/
-terminal/clawguard/modules/io_guard/original/runtime/
-terminal/clawguard/modules/io_guard/original/work/
+terminal/argus/modules/retrieval_guard/models/*
+!terminal/argus/modules/retrieval_guard/models/.gitkeep
+terminal/argus/modules/io_guard/original/models/
+terminal/argus/modules/io_guard/original/model_heads/*/
+terminal/argus/modules/io_guard/original/runtime/
+terminal/argus/modules/io_guard/original/work/
 
 # ────────────────────────── Go（gateway/）──────────────────────────
 gateway/bin/

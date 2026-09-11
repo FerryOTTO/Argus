@@ -16,11 +16,13 @@ CREATE TABLE IF NOT EXISTS agent_terminals (
     hostname TEXT NOT NULL DEFAULT '',
     os_info TEXT NOT NULL DEFAULT '',
     agent_version TEXT NOT NULL DEFAULT '',
+    -- 列名 `clawguard_version` 是历史名，迁移文件一旦发布就不再改写；
+    -- 品牌统一后由 012_argus_rebrand.sql 迁移为 `argus_version`。
     clawguard_version TEXT NOT NULL DEFAULT '',
     last_seen_at DATETIME,
     token_usage_total INTEGER NOT NULL DEFAULT 0,
     alert_count_total INTEGER NOT NULL DEFAULT 0,
-    -- 集控下发的 Clawguard 配置（原样文本，语义由客户端解释，见 REMOTE.md）
+    -- 集控下发的 Argus 配置（原样文本，语义由客户端解释，见 REMOTE.md）
     desired_config TEXT NOT NULL DEFAULT '',
     config_version INTEGER NOT NULL DEFAULT 0,
     config_updated_at DATETIME,

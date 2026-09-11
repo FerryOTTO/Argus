@@ -1,5 +1,5 @@
 """
-Clawguard 访问控制 — 端到端测试（E2E）
+Argus 访问控制 — 端到端测试（E2E）
 ============================================================
 测试路径：用户 → OpenGuard (:3000) → check() → OpenClaw (:18789)
 
@@ -85,7 +85,7 @@ def run_case(username: str, path: str, expect_code: int, desc: str) -> bool:
             actual = resp.status
     except urllib.error.HTTPError as e:
         actual = e.code
-        # 读取 Clawguard 返回的拦截原因
+        # 读取 Argus 返回的拦截原因
         try:
             detail = json.loads(e.read())
             reason = detail.get("detail", {}).get("reason", str(detail))
@@ -109,7 +109,7 @@ def run_case(username: str, path: str, expect_code: int, desc: str) -> bool:
 
 # ============================================================
 print("=" * 72)
-print("       🛡️  Clawguard 端到端测试")
+print("       🛡️  Argus 端到端测试")
 print("=" * 72)
 print(f"  OpenGuard:  {BASE}")
 print(f"  OpenClaw:   http://127.0.0.1:18789")

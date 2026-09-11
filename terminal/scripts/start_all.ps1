@@ -1,4 +1,4 @@
-﻿# Clawguard V2.1 全服务启动脚本
+﻿# Argus V2.1 全服务启动脚本
 # 按顺序检查并启动所有服务
 
 $ErrorActionPreference = "Continue"
@@ -7,7 +7,7 @@ $ROOT = Split-Path -Parent $ROOT
 
 Write-Host ""
 Write-Host "============================================"  -ForegroundColor Cyan
-Write-Host "  Clawguard V2.1 — 全服务启动"              -ForegroundColor Cyan
+Write-Host "  Argus V2.1 — 全服务启动"              -ForegroundColor Cyan
 Write-Host "============================================"  -ForegroundColor Cyan
 Write-Host ""
 
@@ -44,25 +44,25 @@ if ($dockerOk) {
     Write-Host "[SKIP] Docker 未安装，跳过 Sandbox MCP"
 }
 
-# 3. 启动 Clawguard FastAPI（单独开一个可见控制台窗口，实时显示日志）
+# 3. 启动 Argus FastAPI（单独开一个可见控制台窗口，实时显示日志）
 Write-Host ""
-Write-Host "--- Clawguard ---" -ForegroundColor Cyan
-Start-Process powershell -ArgumentList "-NoLogo -ExecutionPolicy Bypass -File `"$ROOT\scripts\start_clawguard.ps1`"" -WindowStyle Normal
-Write-Host "[START] Clawguard FastAPI — 已打开“Clawguard 实时日志”窗口，等待端口 8000..."
+Write-Host "--- Argus ---" -ForegroundColor Cyan
+Start-Process powershell -ArgumentList "-NoLogo -ExecutionPolicy Bypass -File `"$ROOT\scripts\start_argus.ps1`"" -WindowStyle Normal
+Write-Host "[START] Argus FastAPI — 已打开“Argus 实时日志”窗口，等待端口 8000..."
 
-# 等待 Clawguard 就绪
-$clawguardOk = $false
+# 等待 Argus 就绪
+$argusOk = $false
 for ($i = 1; $i -le 15; $i++) {
     try {
         $r = Invoke-RestMethod -Uri "http://127.0.0.1:8000/health" -TimeoutSec 2 -ErrorAction Stop
-        Write-Host "[OK] Clawguard API       http://127.0.0.1:8000/health"
-        $clawguardOk = $true
+        Write-Host "[OK] Argus API       http://127.0.0.1:8000/health"
+        $argusOk = $true
         break
     } catch {
         Start-Sleep -Seconds 2
     }
 }
-if (-not $clawguardOk) { Write-Host "[WARN] Clawguard 未能在 30s 内就绪" -ForegroundColor Yellow }
+if (-not $argusOk) { Write-Host "[WARN] Argus 未能在 30s 内就绪" -ForegroundColor Yellow }
 
 # 4. 启动 OpenClaw (手动步骤提示)
 Write-Host ""
@@ -101,13 +101,13 @@ Write-Host "============================================" -ForegroundColor Cyan
 Write-Host "  启动完成" -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "[OK] Clawguard API       http://127.0.0.1:8000/health" -ForegroundColor $(if($clawguardOk){'Green'}else{'Red'})
+Write-Host "[OK] Argus API       http://127.0.0.1:8000/health" -ForegroundColor $(if($argusOk){'Green'}else{'Red'})
 Write-Host "[OK] OpenClaw Gateway    http://127.0.0.1:18789"         -ForegroundColor $(if($openclawOk){'Green'}else{'Yellow'})
 Write-Host "[OK] OpenGuard           http://127.0.0.1:3000"          -ForegroundColor $(if($openguardOk){'Green'}else{'Red'})
 Write-Host ""
-if ($clawguardOk) {
-    Write-Host "Clawguard 实时日志见单独的“Clawguard 实时日志”窗口（关闭该窗口即停止服务）" -ForegroundColor DarkGray
+if ($argusOk) {
+    Write-Host "Argus 实时日志见单独的“Argus 实时日志”窗口（关闭该窗口即停止服务）" -ForegroundColor DarkGray
 }
-if ($openclawOk -and $clawguardOk -and $openguardOk) {
+if ($openclawOk -and $argusOk -and $openguardOk) {
     Write-Host "全服务就绪，浏览器访问: http://localhost:3000" -ForegroundColor Green
 }

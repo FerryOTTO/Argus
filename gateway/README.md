@@ -133,7 +133,7 @@ go build -o bin\llmgate.exe .\cmd\server\
 `GET /telemetry/v1/skills`（拉取分配给本终端的 Skill）、
 `POST /telemetry/v1/skills/applied`（回执已应用）。
 
-终端侧对应的实现在 `../terminal/clawguard/api/remote_sync.py`，默认 60 秒一轮。
+终端侧对应的实现在 `../terminal/argus/api/remote_sync.py`，默认 60 秒一轮。
 
 **管理端接口**（控制台用，前缀 `/api/admin`）：`terminals`、`providers`、`api-keys`、
 `users`、`quotas`、`audit-events`、`conversations`、`dashboard`、`extensions/*` 等，

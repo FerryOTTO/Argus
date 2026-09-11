@@ -1,16 +1,16 @@
-# Clawguard x LLMGate 对接方案（终端集控版）
-> 阅读对象：Clawguard 客户端 + 桌面端工程师；服务端由同学维护，本文只写客户端要做的事。
+# Argus x LLMGate 对接方案（终端集控版）
+> 阅读对象：Argus 客户端 + 桌面端工程师；服务端由同学维护，本文只写客户端要做的事。
 > 契约来源：E:\tiaozhanbei\MAC\LLMGate\REMOTE.md + e2e_telemetry_test.sh + configs\config.yaml。
 > 目标：个人版不上报不拉配置；企业版用邀请码激活后被 LLMGate 纳管。日期 2026-09-09。
-> 三端默认地址：LLMGate http://127.0.0.1:8080，Clawguard http://127.0.0.1:8000。
+> 三端默认地址：LLMGate http://127.0.0.1:8080，Argus http://127.0.0.1:8000。
 
 ## 1. 现状盘点
 
 | 端 | 位置 | 现状 |
 |---|---|---|
 | LLMGate 服务端+控制台 | E:\tiaozhanbei\MAC\LLMGate，Go+Gin+SQLite+Vue | 遥测6接口+OpenAI兼容网关+管理台已实现，见 REMOTE 第3/7节 |
-| Clawguard 本体 | E:\tiaozhanbei\MAC\ClawguardV2.1，Python FastAPI | 有 /v1/audit/* 和 /v1/desktop/runtime，无 LLMGate 同步逻辑 |
-| 桌面壳 | E:\tiaozhanbei\MAC\clawguard-desktop，Electron+Vue | 个人工作台读本地8000，企业版内嵌 OpenGuard，未接 LLMGate |
+| Argus 本体 | E:\tiaozhanbei\MAC\Argus，Python FastAPI | 有 /v1/audit/* 和 /v1/desktop/runtime，无 LLMGate 同步逻辑 |
+| 桌面壳 | E:\tiaozhanbei\MAC\argus-desktop，Electron+Vue | 个人工作台读本地8000，企业版内嵌 OpenGuard，未接 LLMGate |
 
 结论：缺一块企业同步器，建议放在 Python 侧（能读写审计 JSONL 和各配置文件），Electron 只展示不存 token。
 
@@ -29,7 +29,7 @@
 三种凭据不可混用：遥测 token、管理员 JWT、LLM key。时间一律 ISO8601 UTC。错误体 {error:{message,type,code}}。
 
 ### 注册
-请求 {registration_code, hostname, os_info, agent_type, agent_version, clawguard_version}，agent_type 须与建终端一致（现仅 openclaw，否则 409）。
+请求 {registration_code, hostname, os_info, agent_type, agent_version, argus_version}，agent_type 须与建终端一致（现仅 openclaw，否则 409）。
 成功返回 {terminal_id, terminal_name, agent_type, token, llm:{api_key_id, api_key, base_url, enterprise_name}}。
 base_url=系统根地址+/v1；enterprise_name 供展示；key 权限=开放模型白名单。
 
@@ -56,10 +56,10 @@ modules.tool_guard.api_key 空不覆盖、非空才覆盖。
 |---|---|
 | modules.* | configs/modules.yaml 的 modules.* 段；注意 tool_guard 有 TOOL_GUARD_LLM_* env 优先，写生效层 |
 | io_guard_policy.* | IO Guard default_policy.json 顶层一一对应（含 decision_thresholds/语义检测/附件抽取，audit.* 2 键见审计） |
-| access.* | auth_gateway 读的 CLAWGUARD_* 环境变量或等价持久源（mode/风险联动/隔离阈值） |
+| access.* | auth_gateway 读的 ARGUS_* 环境变量或等价持久源（mode/风险联动/隔离阈值） |
 | access_rules.users/resources | users.txt / resources.txt 原文整体替换，空串=不覆盖 |
 | retrieval.* | whitelist.yaml / b_injection/config.yaml / c_prompt/config.yaml（白名单数组整体替换） |
-| integration.* | OpenClaw 插件 entries.clawguard-adapter.config.*（地址/超时/fail_mode/受保护工具） |
+| integration.* | OpenClaw 插件 entries.argus-adapter.config.*（地址/超时/fail_mode/受保护工具） |
 
 分组速查：IO 开关 5 项、IO 策略约 20 项、ToolGuard 约 10 项、Retrieval 约 11 项、访问控制 13 项+2 规则文件、
 审计 4 项、沙箱 3 项、人工复核 1 项、集成 7 项。实现按 REMOTE 4.6.3 逐键白名单合并，未列出键一律忽略。
@@ -72,13 +72,13 @@ Python 新增 remote_sync 包，复用文件权限+日志+重试，能直接 tai
 建议新增：
 
 ```text
-clawguard/remote/client.py         register/heartbeat/get_config/applied/report/audit_events（10s 超时+指数退避）
-clawguard/remote/store.py          读写 config/remote.json + cursors.json（原子写+备份）
-clawguard/remote/config_apply.py   schema 校验+白名单深合并+数组替换+备份回滚+各载体落盘
-clawguard/remote/counters.py       report 窗口累计，200 才清零
-clawguard/remote/audit_tail.py     tail 审计 JSONL，按 event_id 游标分批<=500 升序发送
-clawguard/remote/scheduler.py      后台线程：heartbeat 45s / report 60s / audit 60s / config 重试 5min
-clawguard/api/remote_router.py     GET /v1/remote/status, POST /v1/remote/register|sync-config|unbind
+argus/remote/client.py         register/heartbeat/get_config/applied/report/audit_events（10s 超时+指数退避）
+argus/remote/store.py          读写 config/remote.json + cursors.json（原子写+备份）
+argus/remote/config_apply.py   schema 校验+白名单深合并+数组替换+备份回滚+各载体落盘
+argus/remote/counters.py       report 窗口累计，200 才清零
+argus/remote/audit_tail.py     tail 审计 JSONL，按 event_id 游标分批<=500 升序发送
+argus/remote/scheduler.py      后台线程：heartbeat 45s / report 60s / audit 60s / config 重试 5min
+argus/api/remote_router.py     GET /v1/remote/status, POST /v1/remote/register|sync-config|unbind
 ```
 
 本地状态 config/remote.json（权限 0600）：remote{base_url, registration_code(一次性用完即清), token, terminal_id,

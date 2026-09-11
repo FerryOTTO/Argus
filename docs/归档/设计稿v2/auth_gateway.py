@@ -1,5 +1,5 @@
 """
-Clawguard 访问控制网关 (auth_gateway.py)
+Argus 访问控制网关 (auth_gateway.py)
 ============================================================
 
 核心：一个函数，输入 4 个字段，输出 allow / block。
@@ -29,11 +29,11 @@ from pathlib import Path
 # ============================================================
 
 BASE_DIR = Path(__file__).parent
-USERS_FILE = Path(os.getenv("CLAWGUARD_USERS_FILE", BASE_DIR / "rules" / "users.txt"))
-RESOURCES_FILE = Path(os.getenv("CLAWGUARD_RESOURCES_FILE", BASE_DIR / "rules" / "resources.txt"))
+USERS_FILE = Path(os.getenv("ARGUS_USERS_FILE", BASE_DIR / "rules" / "users.txt"))
+RESOURCES_FILE = Path(os.getenv("ARGUS_RESOURCES_FILE", BASE_DIR / "rules" / "resources.txt"))
 
 # 未在 users.txt 中出现的用户：False=按默认等级放行，True=直接拦截
-BLOCK_UNKNOWN_USERS = os.getenv("CLAWGUARD_BLOCK_UNKNOWN_USERS", "false").lower() == "true"
+BLOCK_UNKNOWN_USERS = os.getenv("ARGUS_BLOCK_UNKNOWN_USERS", "false").lower() == "true"
 # 未知用户的默认等级 / 未知资源的默认所需等级
 DEFAULT_USER_LEVEL = 1
 DEFAULT_RESOURCE_LEVEL = 99   # 未匹配的资源默认拦截（零信任）

@@ -7,11 +7,11 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from clawguard.adapters.audit_adapter import AuditAdapter
-from clawguard.api.main import app
-from clawguard.common.models import ModuleResult, RequestContext, SecurityRequest
-from clawguard.core.registry import registry
-from clawguard.modules.audit.integration import emit_module_audit_event
+from argus.adapters.audit_adapter import AuditAdapter
+from argus.api.main import app
+from argus.common.models import ModuleResult, RequestContext, SecurityRequest
+from argus.core.registry import registry
+from argus.modules.audit.integration import emit_module_audit_event
 
 
 CLIENT = TestClient(app)
@@ -112,8 +112,8 @@ def content_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
             latency_ms=7.5,
         )
     )
-    monkeypatch.setenv("CLAWGUARD_AUDIT_PATH", str(destination))
-    monkeypatch.setenv("CLAWGUARD_AUDIT_RISK_THRESHOLD", "0.5")
+    monkeypatch.setenv("ARGUS_AUDIT_PATH", str(destination))
+    monkeypatch.setenv("ARGUS_AUDIT_RISK_THRESHOLD", "0.5")
     monkeypatch.setitem(registry._adapters, "retrieval_guard", retrieval)
     monkeypatch.setitem(registry._adapters, "io_guard_context", context)
     monkeypatch.setitem(registry._adapters, "audit", AuditAdapter())

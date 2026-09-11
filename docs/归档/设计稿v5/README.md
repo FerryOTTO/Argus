@@ -1,6 +1,6 @@
-# Clawguard 访问控制模块 (Access Control) 说明文档
+# Argus 访问控制模块 (Access Control) 说明文档
 
-Clawguard 访问控制模块是智能体执行安全的第一道防线，负责在**工具调用前（`tool_pre`）**对用户身份、操作目标（工具/文件路径/数据库）进行严格的权限鉴权，并与**审计风险态势**深度闭环联动，实现自适应防线动态升级与人工二次审批。
+Argus 访问控制模块是智能体执行安全的第一道防线，负责在**工具调用前（`tool_pre`）**对用户身份、操作目标（工具/文件路径/数据库）进行严格的权限鉴权，并与**审计风险态势**深度闭环联动，实现自适应防线动态升级与人工二次审批。
 
 ---
 
@@ -24,8 +24,8 @@ Clawguard 访问控制模块是智能体执行安全的第一道防线，负责�
 ### 2.1 规则文件位置
 
 ```text
-clawguard/modules/access_control/original/rules/users.txt      # 用户密级规则
-clawguard/modules/access_control/original/rules/resources.txt  # 资源与工具密级规则
+argus/modules/access_control/original/rules/users.txt      # 用户密级规则
+argus/modules/access_control/original/rules/resources.txt  # 资源与工具密级规则
 ```
 
 ### 2.2 四级安全密级定义
@@ -55,10 +55,10 @@ alice     | secret      | !/data/secret/ceo.key # 3 级但显式禁止访问 ceo
 #### 方式 2：使用 CLI 命令行工具一键修改
 ```powershell
 # 语法: py auth_gateway.py add-user <用户ID> <等级> [特例...]
-py clawguard/modules/access_control/original/auth_gateway.py add-user alice secret
+py argus/modules/access_control/original/auth_gateway.py add-user alice secret
 
 # 查看当前所有用户规则
-py clawguard/modules/access_control/original/auth_gateway.py demo
+py argus/modules/access_control/original/auth_gateway.py demo
 ```
 
 ---
@@ -114,7 +114,7 @@ else: penalty = 0
 
 ## 四、 统一服务接口与数据契约
 
-在工具调用前阶段（`stage = "tool_pre"`）由 Clawguard FastAPI 服务统一暴露：
+在工具调用前阶段（`stage = "tool_pre"`）由 Argus FastAPI 服务统一暴露：
 
 ### `POST /v1/tool/pre_check`
 
@@ -199,11 +199,11 @@ else: penalty = 0
 
 | 环境变量 | 默认值 | 可选值 / 说明 |
 | :--- | :--- | :--- |
-| `CLAWGUARD_MODE` | `rbac` | `rbac`（角色访问控制）/ `mac`（强制标签）/ `hybrid`（双重校验） |
-| `CLAWGUARD_AC_RISK_LINK` | `1` | `1`（启用审计风险联动）/ `0`（禁用联动，回退纯静态判定） |
-| `CLAWGUARD_USERS_FILE` | 默认相对路径 | 自定义 `users.txt` 文件绝对路径 |
-| `CLAWGUARD_RESOURCES_FILE`| 默认相对路径 | 自定义 `resources.txt` 文件绝对路径 |
-| `CLAWGUARD_BLOCK_UNKNOWN_USERS`| `false` | 未注册用户是否直接硬拦截（为 `false` 时默认作为 1 级处理） |
+| `ARGUS_MODE` | `rbac` | `rbac`（角色访问控制）/ `mac`（强制标签）/ `hybrid`（双重校验） |
+| `ARGUS_AC_RISK_LINK` | `1` | `1`（启用审计风险联动）/ `0`（禁用联动，回退纯静态判定） |
+| `ARGUS_USERS_FILE` | 默认相对路径 | 自定义 `users.txt` 文件绝对路径 |
+| `ARGUS_RESOURCES_FILE`| 默认相对路径 | 自定义 `resources.txt` 文件绝对路径 |
+| `ARGUS_BLOCK_UNKNOWN_USERS`| `false` | 未注册用户是否直接硬拦截（为 `false` 时默认作为 1 级处理） |
 
 ---
 
@@ -218,6 +218,6 @@ py -m pytest tests/test_access_control_risk_link.py
 # 2. 运行访问控制基础单测套件 (32 tests)
 py -m pytest tests/test_access_control.py
 
-# 3. 运行 Clawguard 全量 100 项测试
+# 3. 运行 Argus 全量 100 项测试
 py -m pytest tests/
 ```

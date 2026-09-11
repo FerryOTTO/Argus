@@ -1,7 +1,7 @@
 {
-  "name": "clawguard-desktop",
+  "name": "argus-desktop",
   "version": "1.0.0",
-  "description": "Clawguard AI Agent Security Guardian Desktop Client - MiMo Code Design System",
+  "description": "Argus AI Agent Security Guardian Desktop Client - MiMo Code Design System",
   "main": "src/main/index.js",
   "scripts": {
     "dev": "vite",
@@ -10,17 +10,17 @@
     "start": "electron .",
     "app:dev": "node scripts/dev.js",
     "package:win": "npm run build && electron-builder --win dir",
-    "start:packaged": "electron-builder --win dir && .\\release\\win-unpacked\\Clawguard.exe",
+    "start:packaged": "electron-builder --win dir && .\\release\\win-unpacked\\Argus.exe",
     "package:exe": "npm run build && electron-builder --win nsis"
   },
   "keywords": [
-    "clawguard",
+    "argus",
     "electron",
     "vue3",
     "mimo-ui",
     "ai-security"
   ],
-  "author": "Clawguard Team",
+  "author": "Argus Team",
   "license": "MIT",
   "dependencies": {
     "lucide-vue-next": "^0.468.0",
@@ -36,9 +36,9 @@
     "vite": "^5.2.8"
   },
   "build": {
-    "appId": "com.clawguard.desktop",
-    "productName": "Clawguard",
-    "artifactName": "Clawguard-${version}-${arch}.${ext}",
+    "appId": "com.argus.desktop",
+    "productName": "Argus",
+    "artifactName": "Argus-${version}-${arch}.${ext}",
     "directories": {
       "output": "release",
       "buildResources": "build"
@@ -74,7 +74,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Clawguard",
+      "shortcutName": "Argus",
     "include": "build/installer.nsh"
     },
     "extraFiles": [

@@ -6,8 +6,8 @@ Phase 6 在团队统一 FastAPI 中增加 Audit 只读 Router 和原生 HTML/CSS
 页面。数据仍以 JSONL 为事实源，经 `AuditQuery` 和 NetworkX 派生图完成查询；页面只把
 任务、事件、父子关系和溯源路径转换成文字视图，不展示整张关系图。
 
-`clawguard/api/main.py` 只增加 Audit Router 的导入和 `include_router()` 注册。查询、
-错误映射和页面入口位于 `clawguard/api/audit_routes.py`，没有把 Audit 业务逻辑写入
+`argus/api/main.py` 只增加 Audit Router 的导入和 `include_router()` 注册。查询、
+错误映射和页面入口位于 `argus/api/audit_routes.py`，没有把 Audit 业务逻辑写入
 `main.py`。
 
 ## 2. 只读接口

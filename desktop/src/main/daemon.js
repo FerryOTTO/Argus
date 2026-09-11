@@ -32,7 +32,7 @@ function firstExistingPath(candidates, fallback) {
   return existing || fallback
 }
 
-// The bundle layout used to be `ClawguardV2.1/` + `LLMGate/`. The Argus
+// The bundle layout used to be `Argus/` + `LLMGate/`. The Argus
 // monorepo renamed them to `terminal/` + `gateway/`. Both names are probed so
 // this build also works with bundles produced by the older packaging scripts.
 const BACKEND_DIR_NAMES = ['terminal', 'ClawguardV2.1']
@@ -195,7 +195,7 @@ function probeVersion(exe, args) {
 function resolvePythonExecutable(bundleRoot) {
   const candidates = []
   const push = (p) => { if (p && !candidates.includes(p)) candidates.push(p) }
-  push((process.env.ARGUS_PYTHON || process.env.CLAWGUARD_PYTHON))
+  push((process.env.ARGUS_PYTHON))
   if (bundleRoot) push(path.join(bundleRoot, 'python', 'python.exe'))
   for (const p of resolveAllOnPath(['py.exe', 'py'])) push(p)          // py 启动器会自己挑最新版
   for (const p of resolveAllOnPath(['python3.exe', 'python3'])) push(p)
@@ -217,7 +217,7 @@ function resolvePythonExecutable(bundleRoot) {
 function resolveNodeExecutable(bundleRoot) {
   const candidates = []
   const push = (p) => { if (p && !candidates.includes(p)) candidates.push(p) }
-  push((process.env.ARGUS_NODE || process.env.CLAWGUARD_NODE))
+  push((process.env.ARGUS_NODE))
   if (bundleRoot) push(path.join(bundleRoot, 'nodejs', 'node.exe'))
   for (const p of resolveAllOnPath(['node.exe', 'node'])) push(p)
 
@@ -246,10 +246,10 @@ class DaemonManager {
     // desktop folder and backend are siblings inside one portable bundle.
     this.rootDir = firstExistingPath(
       [
-        (process.env.ARGUS_BACKEND_DIR || process.env.CLAWGUARD_BACKEND_DIR),
+        (process.env.ARGUS_BACKEND_DIR),
         ...expandDirCandidates(
           [
-            process.env.ARGUS_BUNDLE_ROOT || process.env.CLAWGUARD_BUNDLE_ROOT,
+            process.env.ARGUS_BUNDLE_ROOT,
             process.execPath && path.dirname(process.execPath),
             path.resolve(__dirname, '../../..'),
             process.cwd(),
@@ -263,7 +263,7 @@ class DaemonManager {
     )
     this.bundleRoot = firstExistingPath(
       [
-        (process.env.ARGUS_BUNDLE_ROOT || process.env.CLAWGUARD_BUNDLE_ROOT),
+        (process.env.ARGUS_BUNDLE_ROOT),
         path.resolve(this.rootDir, '..'),
         path.resolve(process.cwd(), '..')
       ],
@@ -272,7 +272,7 @@ class DaemonManager {
     this.openGuardDir = path.join(this.rootDir, 'openguard', 'original')
     this.llmGateDir = firstExistingPath(
       [
-        (process.env.ARGUS_LLMGATE_DIR || process.env.CLAWGUARD_LLMGATE_DIR),
+        (process.env.ARGUS_LLMGATE_DIR),
         ...expandDirCandidates(
           [this.bundleRoot, path.resolve(this.rootDir, '..'), path.resolve(process.cwd(), '..')],
           GATEWAY_DIR_NAMES
@@ -282,7 +282,7 @@ class DaemonManager {
     )
     this.llmGateExecutable = firstExistingPath(
       [
-        (process.env.ARGUS_LLMGATE_EXECUTABLE || process.env.CLAWGUARD_LLMGATE_EXECUTABLE),
+        (process.env.ARGUS_LLMGATE_EXECUTABLE),
         path.join(this.llmGateDir, 'llmgate.exe'),
         path.join(this.llmGateDir, 'bin', 'llmgate.exe')
       ],
@@ -302,7 +302,7 @@ class DaemonManager {
     this.nodeExecutable = resolveNodeExecutable(this.bundleRoot)
     this.openClawEntry = firstExistingPath(
       [
-        (process.env.ARGUS_OPENCLAW_ENTRY || process.env.CLAWGUARD_OPENCLAW_ENTRY),
+        (process.env.ARGUS_OPENCLAW_ENTRY),
         path.join(this.bundleRoot, 'openclaw', 'openclaw.mjs'),
         process.env.APPDATA && path.join(process.env.APPDATA, 'npm', 'node_modules', 'openclaw', 'openclaw.mjs'),
         path.join(process.env.USERPROFILE || '', 'AppData', 'Roaming', 'npm', 'node_modules', 'openclaw', 'openclaw.mjs')
@@ -417,12 +417,12 @@ class DaemonManager {
   // 需要时显式设 ARGUS_CONSOLE_LOG=1 打开；非 Windows 平台始终关闭。
   consoleLogEnabled() {
     if (process.platform !== 'win32') return false
-    return String((process.env.ARGUS_CONSOLE_LOG || process.env.CLAWGUARD_CONSOLE_LOG) || '0') === '1'
+    return String((process.env.ARGUS_CONSOLE_LOG) || '0') === '1'
   }
 
   resolveLogDir() {
     const candidates = [
-      path.join(__dirname, '..', '..', 'runtime-logs'),   // 开发态：clawguard-desktop/runtime-logs
+      path.join(__dirname, '..', '..', 'runtime-logs'),   // 开发态：argus-desktop/runtime-logs
       path.join(this.bundleRoot || '', 'runtime-logs'),
       process.env.LOCALAPPDATA ? path.join(process.env.LOCALAPPDATA, 'Argus', 'runtime-logs') : null,
       path.join(os.tmpdir(), 'Argus', 'runtime-logs'),
@@ -442,7 +442,7 @@ class DaemonManager {
     if (this._consoleScript) return this._consoleScript
     const devCandidates = [
       path.join(__dirname, '..', '..', 'scripts', CONSOLE_SCRIPT_NAME),
-      path.join(this.bundleRoot || '', 'clawguard-desktop', 'scripts', CONSOLE_SCRIPT_NAME),
+      path.join(this.bundleRoot || '', 'argus-desktop', 'scripts', CONSOLE_SCRIPT_NAME),
     ]
     for (const candidate of devCandidates) {
       try { if (candidate && fs.existsSync(candidate)) { this._consoleScript = candidate; return candidate } } catch (e) {}
@@ -536,8 +536,6 @@ class DaemonManager {
           ...process.env,
           ARGUS_BUNDLE_ROOT: this.bundleRoot,
           ARGUS_BACKEND_DIR: this.rootDir,
-          CLAWGUARD_BUNDLE_ROOT: this.bundleRoot,   // 兼容旧名
-          CLAWGUARD_BACKEND_DIR: this.rootDir,
           OPENCLAW_HOME: process.env.OPENCLAW_HOME || this.openClawStateDir,
           OPENCLAW_STATE_DIR: process.env.OPENCLAW_STATE_DIR || this.openClawStateDir
         }
@@ -587,8 +585,6 @@ class DaemonManager {
           ...process.env,
           ARGUS_BUNDLE_ROOT: this.bundleRoot,
           ARGUS_BACKEND_DIR: this.rootDir,
-          CLAWGUARD_BUNDLE_ROOT: this.bundleRoot,   // 兼容旧名
-          CLAWGUARD_BACKEND_DIR: this.rootDir,
           OPENCLAW_HOME: process.env.OPENCLAW_HOME || this.openClawStateDir,
           OPENCLAW_STATE_DIR: process.env.OPENCLAW_STATE_DIR || this.openClawStateDir
         }
@@ -668,7 +664,7 @@ repairOpenClawConfig() {
   // Step 5：默认只拉新链路（:8000 + :18789）。老链路（:18080 Bridge、:3000 OpenGuard）
   // 仅在 ARGUS_LEGACY_CHAIN=1 时拉起，用于回滚过渡。
   isLegacyChain() {
-    return (process.env.ARGUS_LEGACY_CHAIN || process.env.CLAWGUARD_LEGACY_CHAIN) === '1'
+    return (process.env.ARGUS_LEGACY_CHAIN) === '1'
   }
 
   async startAll() {
@@ -882,7 +878,7 @@ repairOpenClawConfig() {
       'fastapi',
       'FastAPI',
       this.pythonExecutable,
-      ['-m', 'uvicorn', 'clawguard.api.main:app', '--host', '127.0.0.1', '--port', '8000'],
+      ['-m', 'uvicorn', 'argus.api.main:app', '--host', '127.0.0.1', '--port', '8000'],
       this.rootDir
     )
   }
@@ -998,8 +994,6 @@ repairOpenClawConfig() {
 }
 
 module.exports = DaemonManager
-
-
 
 
 

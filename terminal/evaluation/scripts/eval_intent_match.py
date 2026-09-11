@@ -19,8 +19,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
-from clawguard.modules.tool_guard.llm_config import ToolGuardLLMConfig  # noqa: E402
-from clawguard.modules.tool_guard.intent_match import IntentMatchDetector  # noqa: E402
+from argus.modules.tool_guard.llm_config import ToolGuardLLMConfig  # noqa: E402
+from argus.modules.tool_guard.intent_match import IntentMatchDetector  # noqa: E402
 
 
 def load_dotenv(path: Path) -> None:

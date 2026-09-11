@@ -2,16 +2,16 @@
 
 > 状态：计划中。做完一步勾一步。
 > 约定：个人版 = 本机单人，无登录；企业版 = 服务器身份 + 登录令牌。
-> 端口约定：`:8000`=Clawguard，`:18789`=原生 OpenClaw 网关，`:3000`=OpenGuard（待删），`:18080`=Bridge（待删），`:8080`=LLMGate 企业服务器。
+> 端口约定：`:8000`=Argus，`:18789`=原生 OpenClaw 网关，`:3000`=OpenGuard（待删），`:18080`=Bridge（待删），`:8080`=LLMGate 企业服务器。
 
 ## 0. 要干什么（一句话）
 
-个人版、企业版的聊天都搬到原生 OpenClaw 上；桌面端（`clawguard-desktop`）只留配置 / 审计 / 小窗；
+个人版、企业版的聊天都搬到原生 OpenClaw 上；桌面端（`argus-desktop`）只留配置 / 审计 / 小窗；
 删掉 OpenGuard（`:3000`）和 Bridge（`:18080`）；身份改由 LLMGate 服务器统一存发。
 
 ```
-现在：桌面聊天 → :3000(OpenGuard) → :18080(Bridge) → :18789(OpenClaw) → :8000(Clawguard)
-以后：原生聊天 → :18789(OpenClaw + clawguard-adapter插件) → :8000(Clawguard)
+现在：桌面聊天 → :3000(OpenGuard) → :18080(Bridge) → :18789(OpenClaw) → :8000(Argus)
+以后：原生聊天 → :18789(OpenClaw + argus-adapter插件) → :8000(Argus)
       桌面端只做：改配置(GET/PUT :8000/v1/local/config) + 看审计 + 小窗
 ```
 
@@ -19,16 +19,16 @@
 
 | 东西 | 在哪 | 说明 |
 |---|---|---|
-| 拦截真相 | `ClawguardV2.1/openclaw_adapter/plugins/clawguard-adapter/src/index.ts` | 7个钩子：`before_agent_run`(输入) / `before_tool_call`(工具前，真tool名+参数) / `agent_tool_result_middleware`+`after_tool_call`+`tool_result_persist`(工具结果) / `message_sending`+`reply_payload_sending`(输出)。跟用哪个聊天UI无关 |
+| 拦截真相 | `Argus/openclaw_adapter/plugins/argus-adapter/src/index.ts` | 7个钩子：`before_agent_run`(输入) / `before_tool_call`(工具前，真tool名+参数) / `agent_tool_result_middleware`+`after_tool_call`+`tool_result_persist`(工具结果) / `message_sending`+`reply_payload_sending`(输出)。跟用哪个聊天UI无关 |
 | 插件身份（现在是猜的） | `index.ts:414-438` | `isOwner/senderIsOwner + channel(webchat/control-ui)` → 内外身份；`user_id ← senderId/agentId/sessionId`；input检查带 `role_level: isOwner?3:0` |
-| 插件配置 | `openclaw.plugin.json` + `openclaw.config.example.json5` | `clawguardUrl/timeoutMs/failMode(closed)/protectedTools` 等；`failMode` 默认 `closed`（8000挂了就拦，不裸奔） |
-| 等级规则 | `clawguard/modules/access_control/original/rules/users.txt` | 格式 `用户名\|等级\|特例`；等级 `public1/internal2/secret3/top_secret4`；特例如 `*`、`!tool:write_file`、`tool:query_weather` |
+| 插件配置 | `openclaw.plugin.json` + `openclaw.config.example.json5` | `argusUrl/timeoutMs/failMode(closed)/protectedTools` 等；`failMode` 默认 `closed`（8000挂了就拦，不裸奔） |
+| 等级规则 | `argus/modules/access_control/original/rules/users.txt` | 格式 `用户名\|等级\|特例`；等级 `public1/internal2/secret3/top_secret4`；特例如 `*`、`!tool:write_file`、`tool:query_weather` |
 | 资源规则 | `.../rules/resources.txt` | 格式 `路径模式\|所需等级\|flat/inherit/override`；默认未匹配资源拦截（零信任） |
 | 判定入口 | `auth_gateway.py: check()/check_reason()/check_v4()` | `check_v4` 给统一接口用，支持 `penalty`（审计联动动态收紧） |
 | 用户同步（待删） | `openguard/original/main.py:41-70 lifespan` | 开机把 OpenGuard DB 用户写入 access_control；`RuleStore._lookup_db_user(auth_gateway.py:236)` 运行时回查 `openguard/original/data/auth.db` |
-| 个人版登录（待删） | `openguard/original/routes.py:75 /auth/desktop` | 仅本机+`X-Clawguard-Desktop` 头；`PersonalWorkspace.vue:298` 调用后存 `clawguard_token` |
+| 个人版登录（待删） | `openguard/original/routes.py:75 /auth/desktop` | 仅本机+`X-Argus-Desktop` 头；`PersonalWorkspace.vue:298` 调用后存 `argus_token` |
 | Bridge能力（待删） | `openguard/original/bridge.js` | Ed25519握手+持久WS；按session前缀防串消息；HMAC客户端认证；`PUT/DELETE /api/agents/:id/files/*` 装技能文件；`POST /api/agents` 建agent |
-| 桌面拉起（要改） | `clawguard-desktop/src/main/daemon.js:180-245` | 拉起4进程：8000/18789/18080/3000；健康检查 `checkPort` |
+| 桌面拉起（要改） | `argus-desktop/src/main/daemon.js:180-245` | 拉起4进程：8000/18789/18080/3000；健康检查 `checkPort` |
 | 小窗三探针（要改） | `EnterpriseMini.vue:27-36`、`MimoCodeLanding.vue:331-333` | 查 `8000/18789/18080` 的 `/health`，拼 `F:ok/down O: B:` |
 | 企业用户表（要加字段） | `LLMGate/migrations/001_init.sql` 的 `users` 表 | 现只有 `id/username/password_hash/email/role/is_active`，**无等级字段** |
 | 企业终端表（已有） | `LLMGate/migrations/007_terminals.sql` 的 `agent_terminals` | `bound_user_id` 已有；双计数器 `config_version/config_applied_version`；迁移用 `store/RunMigrations` 按文件名顺序执行 |
@@ -55,15 +55,15 @@ ALTER TABLE users ADD COLUMN specials TEXT NOT NULL DEFAULT '';
 ### 2.2 登录发令牌：复用 LLMGate 现有登录
 
 - LLMGate 已有 `users` + 登录/JWT（`internal/auth`）。企业用户在桌面企业登录框登录 → 服务器返回令牌，令牌载荷加 `security_level + specials`。
-- 桌面存令牌（`localStorage`，沿用现在存 `clawguard_token` 的位置）。
+- 桌面存令牌（`localStorage`，沿用现在存 `argus_token` 的位置）。
 - 校验规则：`is_active=1` 才能登录；等级由管理员在后台改，不由用户自选。
 - 个人版：跳过本步，写死 `user_id=desktop-local, level=internal`（与 `users.txt:87` 现有行一致）。
 
 ### 2.3 聊天带身份：插件只改身份来源，不改判定
 
-- 文件：`openclaw_adapter/plugins/clawguard-adapter/src/index.ts` 的 `before_agent_run` 身份段（约414-438行）。
+- 文件：`openclaw_adapter/plugins/argus-adapter/src/index.ts` 的 `before_agent_run` 身份段（约414-438行）。
 - 载体（定死，不再二选一）：**终端本地身份文件**。企业登录成功后，桌面端把 `user_id/security_level/specials` 写到本机一个只读小文件
-  （如 `clawguard/identity.json`）；插件 `before_agent_run` 每次读该文件取身份。为什么不用请求元数据/请求头：
+  （如 `argus/identity.json`）；插件 `before_agent_run` 每次读该文件取身份。为什么不用请求元数据/请求头：
   原生 UI 的消息格式不受我们控制，塞元数据可能被网关洗掉；读本地文件最稳，不依赖上游。
 - 降级规则（fail-closed，不回落猜测）：企业版下文件缺失/过期/损坏 → 按**最低等级 `public`** 处理并记审计，
   不再悄悄走老 owner/channel 猜测逻辑；个人版本地文件写死 `desktop-local/internal`。
@@ -90,12 +90,12 @@ ALTER TABLE users ADD COLUMN specials TEXT NOT NULL DEFAULT '';
 
 | # | 删/改什么 | 文件 | 改后 |
 |---|---|---|---|
-| 4.1 | 拉起 3000/18080（留开关过渡） | `clawguard-desktop/src/main/daemon.js:180-200 startAll` | 加环境开关 `CLAWGUARD_LEGACY_CHAIN=1`：默认只拉 `:8000`+`:18789`；开关开了才拉 3000/18080。个人版先切新链路，坏了一键切回老链路，不删代码只分叉 |
+| 4.1 | 拉起 3000/18080（留开关过渡） | `argus-desktop/src/main/daemon.js:180-200 startAll` | 加环境开关 `ARGUS_LEGACY_CHAIN=1`：默认只拉 `:8000`+`:18789`；开关开了才拉 3000/18080。个人版先切新链路，坏了一键切回老链路，不删代码只分叉 |
 | 4.2 | 桌面聊天区 | `PersonalWorkspace.vue` | 聊天相关（`:3000` 的 `API_BASE`、WS、`/auth/desktop`）删除；保留审计页（调 `:8000` 的 `AUDIT_API_BASE` 不动） |
 | 4.3 | 小窗 B 路 | `EnterpriseMini.vue`、`MimoCodeLanding.vue` | 健康检查只剩 F(`:8000`)+O(`:18789`)；`F:ok/down O:ok/down` |
 | 4.4 | 开机同步用户 | `openguard/original/main.py:41-70` | 整段删除（openguard 整个目录退役，此为过渡） |
 | 4.5 | DB回查 | `auth_gateway.py:236 _lookup_db_user` | 改为直接返回 `None`（不再读 `auth.db`）；函数壳保留防 import 报错 |
-| 4.6 | openguard+bridge 退役 | `ClawguardV2.1/openguard/` | 先留档不删，改名 `openguard_retired_YYYYMMDD`；确认稳定两周后再删 |
+| 4.6 | openguard+bridge 退役 | `Argus/openguard/` | 先留档不删，改名 `openguard_retired_YYYYMMDD`；确认稳定两周后再删 |
 | 4.7 | 桌面登录 `/auth/desktop` | `PersonalWorkspace.vue:298` | 个人版直接默认身份，不再请求；企业版走 LLMGate 登录（2.2） |
 
 ## 5. 技能文件接口重做（变简单，往后放）
@@ -129,8 +129,8 @@ ALTER TABLE users ADD COLUMN specials TEXT NOT NULL DEFAULT '';
 - [x] **Step 2 登录令牌带等级**：`Claims` 加 `security_level/specials`（`GenerateToken` 写入、`RefreshToken` 保留）；
   `Login` + `SSOCallback` 返回体带等级；`admin_user` 建/改用户支持等级（非法值回落 `internal`）；SSO 自建默认 `internal`。
   验：11 项静态检查全过 ✅（本机无 Go 工具链未编译，上线前补跑 `go build`）。
-- [x] **Step 3 插件读身份文件**：新建 `src/local-identity.ts`（读 `~/.openclaw/clawguard/identity.json`，
-  `CLAWGUARD_IDENTITY_FILE` / 插件 `identityFile` 可覆盖；缺失/损坏返回 null → 最低 public fail-closed）；
+- [x] **Step 3 插件读身份文件**：新建 `src/local-identity.ts`（读 `~/.openclaw/argus/identity.json`，
+  `ARGUS_IDENTITY_FILE` / 插件 `identityFile` 可覆盖；缺失/损坏返回 null → 最低 public fail-closed）；
   `index.ts before_agent_run` 改读文件（`role_level` 按 public1/internal2/secret3/top_secret4，`metadata` 带 `identity_source/security_level`；
   `identity_correlation_quality` 改 `identity_file/fallback`）；`types.ts` + `openclaw.plugin.json` 加 `identityFile` 配置项；
   `dist/` 已重编。验：`tsc` 零错，55/55 全过 ✅（含新增 `local-identity.test.mjs` 6 项；3 个旧用例改用 fixtures 身份文件）。
@@ -138,14 +138,14 @@ ALTER TABLE users ADD COLUMN specials TEXT NOT NULL DEFAULT '';
 - [x] **Step 4 会话隔离**：插件侧 `before_agent_run` 做 `sessionId ↔ user_id` 绑定——同一 session 首次使用的用户占绑定，
   换人用同一 session 直接 block（`session_owner_mismatch`，提示新建会话）；`userId` 为空的 fail-closed 回落不占绑定；
   新会话不受影响。验：`tsc` 零错，59/59 全过 ✅（新增 `session-isolation.test.mjs` 4 项：同人复用过 / 换人同会话拦 / 换人新会话过 / 回落不占位）。
-- [x] **Step 5 砍 3000/18080**（个人版先行，`CLAWGUARD_LEGACY_CHAIN=1` 一键回滚）：
+- [x] **Step 5 砍 3000/18080**（个人版先行，`ARGUS_LEGACY_CHAIN=1` 一键回滚）：
   `daemon.js` 默认只拉 8000+18789（`isLegacyChain()` 开关）；`index.js daemon-status` 加 `legacy` 字段，
   新链路下不再等 18080；`MimoCodeLanding` Bridge 检查项标 `legacyOnly` 跳过；`EnterpriseMini` 只看 F+O，
   18080 活着才显示 `B:ok(legacy)`；`PersonalWorkspace` 聊天区/会话列表/WS 整段停用（老代码已删，
   回滚用 git 恢复本文件），只留审计页 + 输入框改复制占位；`BentoCards/DaemonConsole` 去 Bridge 展示；
-  `Start-ClawguardDesktop.ps1` 同开关。验：`vite build ✓ built in 2.37s` ✅，
+  `Start-ArgusDesktop.ps1` 同开关。验：`vite build ✓ built in 2.37s` ✅，
   剩余引用全是老链路注释/日志/过渡探针，无实际调用。
-- [x] **Step 6 补技能本地写文件**：新建 `clawguard/api/skills_routes.py`（`PUT/DELETE /v1/local/skills/files` + `GET /v1/local/skills/workspace`），
+- [x] **Step 6 补技能本地写文件**：新建 `argus/api/skills_routes.py`（`PUT/DELETE /v1/local/skills/files` + `GET /v1/local/skills/workspace`），
   已挂到 `main.py`。语义与 Bridge 对齐（1MB 上限、`workspace[-agentId]` 落点、防穿越）+ 归属校验
   （`xxx-agent` 归 `xxx`；`main` 仅特例 `*` 运维可写）。验：TestClient 进程内 9/9 ✅
   （自写/落点/穿越拦/跨用户拦/main 保护/运维写/删探针/删测试/删缺失）。

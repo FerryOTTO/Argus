@@ -43,7 +43,7 @@ async def lifespan(app: FastAPI):
     print(f"  OpenGuard Auth Gateway")
     print(f"  Port:        {config.port}")
     print(f"  OpenClaw:    {config.openclaw_url}")
-    print(f"  Clawguard:   {config.clawguard_url}")
+    print(f"  Argus:   {config.argus_url}")
     print(f"  Bridge:      {config.bridge_url}")
     print(f"  Session:     {'Redis' if config.redis_url else 'JSON file'}")
     print(f"  SQLite:      {config.sqlite_path}")
@@ -316,9 +316,9 @@ import time as _time
 
 @app.get("/health")
 async def health():
-    """健康检查：自身状态 + Bridge 连通性 + Clawguard 连通性（对接方案 8.1）"""
+    """健康检查：自身状态 + Bridge 连通性 + Argus 连通性（对接方案 8.1）"""
     bridge_ok = False
-    clawguard_ok = False
+    argus_ok = False
     try:
         import websockets as _ws
         async with _ws.connect(config.bridge_url) as _:
@@ -333,8 +333,8 @@ async def health():
             timeout=3, trust_env=False,
             transport=_httpx.AsyncHTTPTransport(), mounts=_no_proxy,
         ) as c:
-            r = await c.get(f"{config.clawguard_url}/health")
-            clawguard_ok = r.status_code == 200
+            r = await c.get(f"{config.argus_url}/health")
+            argus_ok = r.status_code == 200
     except Exception:
         pass
 
@@ -343,9 +343,9 @@ async def health():
         "session": "ok",
         "proxy": "ok",
         "bridge": "ok" if bridge_ok else "error",
-        "clawguard": "ok" if clawguard_ok else "error",
+        "argus": "ok" if argus_ok else "error",
     }
-    all_ok = bridge_ok and clawguard_ok
+    all_ok = bridge_ok and argus_ok
     return {
         "status": "ok" if all_ok else "degraded",
         "service": "openguard",

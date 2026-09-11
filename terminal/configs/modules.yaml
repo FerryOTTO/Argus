@@ -1,4 +1,4 @@
-clawguard:
+argus:
   host: 127.0.0.1
   port: 8000
 modules:
@@ -33,7 +33,7 @@ modules:
     enabled: true
     mode: import
     on_error: allow
-    model_path: clawguard/modules/retrieval_guard/models/PIGuard
+    model_path: argus/modules/retrieval_guard/models/PIGuard
     guards:
       A: true
       B: true

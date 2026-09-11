@@ -23,7 +23,7 @@ type AuditLog struct {
 	CreatedAt        time.Time `db:"created_at" json:"created_at"`
 }
 
-// AgentAuditEvent 是终端 Clawguard 审计层上报的一条审计事件（agent_audit_events 行）。
+// AgentAuditEvent 是终端 Argus 审计层上报的一条审计事件（agent_audit_events 行）。
 // content/metadata 为 JSON 文本；event_time 为 UTC RFC3339 秒级定宽文本（见 AuditEventTimeLayout）。
 type AgentAuditEvent struct {
 	ID           int64     `db:"id" json:"id"`
@@ -54,7 +54,7 @@ type AgentTerminalAuditStats struct {
 	Hostname         string     `db:"hostname" json:"hostname"`
 	OSInfo           string     `db:"os_info" json:"os_info"`
 	AgentVersion     string     `db:"agent_version" json:"agent_version"`
-	ClawguardVersion string     `db:"clawguard_version" json:"clawguard_version"`
+	ArgusVersion string     `db:"argus_version" json:"argus_version"`
 	LastSeenAt       *time.Time `db:"last_seen_at" json:"last_seen_at,omitempty"`
 	// Online 由 handler 依 last_seen_at 动态计算（口径同终端管理），非库字段
 	Online        bool    `db:"-" json:"online"`

@@ -1,8 +1,8 @@
 # LLMGate 遥测/集控协议 — 客户端接入文档（REMOTE）
 
-> **读者**：Clawguard 客户端工程师（终端侧 Agent 遥测客户端实现者）。
+> **读者**：Argus 客户端工程师（终端侧 Agent 遥测客户端实现者）。
 > **背景**：LLMGate 作为遥测/集控端（中央管理），对运行在各终端机器上的
-> Agent 端点（OpenClaw + Clawguard）进行登记、监控与配置下发。本仓库已实现
+> Agent 端点（OpenClaw + Argus）进行登记、监控与配置下发。本仓库已实现
 > 服务端全部接口并预留数据模型；本文档即客户端与服务端的对接契约。
 > 接口地址约定为 `<LLMGATE_BASE_URL>`，如 `http://gate.example.com:8080`。
 
@@ -13,7 +13,7 @@
 ```
 ┌─────────────────────────┐        ┌──────────────────────────┐
 │  终端（客户端实现方）     │        │  LLMGate（服务端，已实现） │
-│  OpenClaw + Clawguard   │        │  遥测 API + 管理界面      │
+│  OpenClaw + Argus   │        │  遥测 API + 管理界面      │
 └────────────┬────────────┘        └────────────┬─────────────┘
              │  ① 管理员在控制台"添加终端"          ▲
              │     获得一次性注册码(registration_code)
@@ -24,12 +24,12 @@
              │  ③ POST /telemetry/v1/heartbeat  │ 周期性心跳（Bearer Token）
              │  ◀───────────────────────────────│ 响应含 config_pending 标志
              │                                  │
-             │  ④ GET /telemetry/v1/config      │ 拉取集控下发的 Clawguard 配置
+             │  ④ GET /telemetry/v1/config      │ 拉取集控下发的 Argus 配置
              │  ◀───────────────────────────────│ （仅在 config_pending=true 时）
              │  ⑤ 应用配置后 POST /telemetry/v1/config/applied（回执）
              │                                  │
              │  ⑥ POST /telemetry/v1/report     │ 上报 Token 消耗/安全预警增量
-             │  ⑥a audit/events 审计明细        │ 批量上传 Clawguard 审计事件（幂等去重，见 §4.7）
+             │  ⑥a audit/events 审计明细        │ 批量上传 Argus 审计事件（幂等去重，见 §4.7）
              │                                  │
              │  ⑦ 用 llm.api_key 访问平台 LLM  │ OpenAI 兼容：{llm.base_url}/models
              │  ───────────────────────────────▶│ chat/completions …
@@ -84,10 +84,10 @@ Authorization: Bearer <token>
 |------|------|------|------|
 | POST | `/telemetry/v1/register` | 注册码（body） | 换取遥测令牌 + 平台 LLM 凭据（可重复调用以轮换两者） |
 | POST | `/telemetry/v1/heartbeat` | Bearer | 周期心跳 + 运行元数据上报 |
-| GET | `/telemetry/v1/config` | Bearer | 拉取集控下发的 Clawguard 配置（幂等） |
+| GET | `/telemetry/v1/config` | Bearer | 拉取集控下发的 Argus 配置（幂等） |
 | POST | `/telemetry/v1/config/applied` | Bearer | 应用配置成功后的回执 |
 | POST | `/telemetry/v1/report` | Bearer | 上报用量/安全预警增量 |
-| POST | `/telemetry/v1/audit/events` | Bearer | 批量上传 Clawguard 审计事件（全量，幂等去重） |
+| POST | `/telemetry/v1/audit/events` | Bearer | 批量上传 Argus 审计事件（全量，幂等去重） |
 | POST | `/telemetry/v1/extensions/requests` | Bearer | 上报 skill 安装 / MCP 接入审批申请（契约见 [CLIENT.md](./CLIENT.md) §2） |
 | GET | `/telemetry/v1/extensions/requests` | Bearer | 轮询本终端的审批单与结果（建议 30s/次直至非 pending） |
 | GET | `/telemetry/v1/skills` | Bearer | 拉取分配给本终端的 Skill 包（zip base64 + 版本 + 回执状态） |
@@ -118,13 +118,13 @@ Authorization: Bearer <token>
   "os_info": "macOS 26.5.1",
   "agent_type": "openclaw",
   "agent_version": "2026.6.11",
-  "clawguard_version": "2.1.0"
+  "argus_version": "2.1.0"
 }
 ```
 
 字段说明：`agent_type` 必须与管理员创建终端时选择的类型一致（当前仅
 `openclaw`），不一致返回 409；不传则视为不声明（按登记类型）。
-`hostname/os_info/agent_version/clawguard_version` 均可选，注册后仍可经
+`hostname/os_info/agent_version/argus_version` 均可选，注册后仍可经
 心跳更新。
 
 成功响应（`200`）：
@@ -174,7 +174,7 @@ Authorization: Bearer <token>
   "os_info": "macOS 26.5.1",
   "agent_type": "openclaw",
   "agent_version": "2026.6.11",
-  "clawguard_version": "2.1.0"
+  "argus_version": "2.1.0"
 }
 ```
 
@@ -221,9 +221,9 @@ Authorization: Bearer <token>
 规则：
 
 - `config` 为空字符串 = 集控从未下发或已收回 → 客户端**维持本地配置**。
-- `config` 非空 = **Clawguard 配置包 v1**（JSON，结构见 §4.6）→ 客户端应：
+- `config` 非空 = **Argus 配置包 v1**（JSON，结构见 §4.6）→ 客户端应：
   1. 校验 `schema_version`（≠ 客户端支持的版本 → 拒绝应用并本地告警，不回执）；
-  2. 按 §4.6.2 合并规则将配置包 merge 到本地 Clawguard 配置（建议备份本地当前
+  2. 按 §4.6.2 合并规则将配置包 merge 到本地 Argus 配置（建议备份本地当前
      配置后原子替换，失败回滚）；
   3. 应用成功 → 调用 §4.4 回执该 `config_version`；
   4. 应用失败 → **不要回执**，记本地日志并告警（服务端仍显示 pending，
@@ -280,8 +280,8 @@ Authorization: Bearer <token>
 | 字段 | 必填 | 说明 |
 |------|------|------|
 | `window_started_at` | 否 | 本窗口起点（上次成功上报时间），审计参考 |
-| `token_usage_delta` | 否（默认 0） | **窗口内增量**：该终端上 LLM Token 消耗合计（prompt+completion）。统计口径建议：Clawguard 所在进程/Agent 产生的全部 LLM 调用，客户端在侧统计 |
-| `security_alerts_delta` | 否（默认 0） | **窗口内增量**：安全预警次数。预警口径建议：Clawguard 判定动作 ≠ `allow` 的次数（block / rewrite / human_review） |
+| `token_usage_delta` | 否（默认 0） | **窗口内增量**：该终端上 LLM Token 消耗合计（prompt+completion）。统计口径建议：Argus 所在进程/Agent 产生的全部 LLM 调用，客户端在侧统计 |
+| `security_alerts_delta` | 否（默认 0） | **窗口内增量**：安全预警次数。预警口径建议：Argus 判定动作 ≠ `allow` 的次数（block / rewrite / human_review） |
 | `alert_samples` | 否 | 窗口内预警样本明细（上限 100 条），仅审计留存；服务端计数以 `security_alerts_delta` 为准 |
 
 > **delta 的消费规则（重要，保证不重不漏）**：服务端只在处理成功（返回 200）
@@ -306,11 +306,11 @@ Authorization: Bearer <token>
 上报周期建议：**60 秒**，可与心跳合并为一个定时任务（先 heartbeat，间隔后
 report；两者独立接口，均可按各自节奏调用）。
 
-### 4.6 Clawguard 配置包 v1（schema 定稿）
+### 4.6 Argus 配置包 v1（schema 定稿）
 
 > 配置包 = 管理员在 LLMGate 控制台"修改配置"页面（可视化编辑器）保存后下发的
 > **partial 增量包**：只包含被修改的键，其余含义 = "保持终端本地现状"。
-> 字段默认值/说明的权威来源为 ClawguardV2.1 仓库 `CONFIGS.md`（2026-09 实测），
+> 字段默认值/说明的权威来源为 Argus 仓库 `CONFIGS.md`（2026-09 实测），
 > 本节的字段速查与其一致，仅收录**已生效**配置项（声明但未接线的项不收）。
 
 #### 4.6.1 包结构
@@ -320,7 +320,7 @@ report；两者独立接口，均可按各自节奏调用）。
   "schema_version": 1,
   "modules": { "...": "模块启停/异常兜底与参数（对应本地 modules.yaml 的 modules.* 段；控制台按模块分组展示）" },
   "io_guard_policy": { "...": "IO Guard 检测策略（对应本地 default_policy.json）" },
-  "access": { "...": "访问控制策略模型/风险联动/隔离（对应本地 CLAWGUARD_* 环境变量）" },
+  "access": { "...": "访问控制策略模型/风险联动/隔离（对应本地 ARGUS_* 环境变量）" },
   "access_rules": { "...": "规则文件原文（整体替换本地 resources.txt；users.txt 已下线，用户规则只保留在服务端）" },
   "retrieval": { "...": "Retrieval Guard 参数（白名单/注入/提示词包装）" },
   "integration": { "...": "OpenClaw 接入插件参数" }
@@ -418,7 +418,7 @@ report；两者独立接口，均可按各自节奏调用）。
 | `retrieval.prompt_wrap.self_reminder` | string | "" | 行为契约文案（空 = 不覆盖） |
 | `retrieval.prompt_wrap.post_prompting` | string | "" | 后置指令文案（空 = 不覆盖） |
 
-**⑤ 访问控制（源：modules.yaml §2.1 + CLAWGUARD_* env §4.2/4.3 + 规则文件 §4.1）**
+**⑤ 访问控制（源：modules.yaml §2.1 + ARGUS_* env §4.2/4.3 + 规则文件 §4.1）**
 
 | 键 | 类型 | 默认 | 说明 |
 |----|------|------|------|
@@ -466,8 +466,8 @@ report；两者独立接口，均可按各自节奏调用）。
 
 | 键 | 类型 | 默认 | 说明 |
 |----|------|------|------|
-| `integration.clawguard_url` | string | http://127.0.0.1:8000 | Clawguard API 地址 |
-| `integration.api_token_env` | string | CLAWGUARD_API_TOKEN | 令牌环境变量名 |
+| `integration.argus_url` | string | http://127.0.0.1:8000 | Argus API 地址 |
+| `integration.api_token_env` | string | ARGUS_API_TOKEN | 令牌环境变量名 |
 | `integration.timeout_ms` | int | 30000 | HTTP 调用超时 |
 | `integration.fail_mode` | enum | closed | closed/open |
 | `integration.enable_media_check` | bool | true | 附件送检 |
@@ -482,23 +482,23 @@ report；两者独立接口，均可按各自节奏调用）。
 |----------|------------------------------|
 | `modules.*` | 本地 `configs/modules.yaml` 的 `modules.*` 段 |
 | `io_guard_policy.*` | 本地 IO Guard `default_policy.json`（顶层键一一对应） |
-| `access.*` | 本地 `auth_gateway.py` 读取的 `CLAWGUARD_*`/`TOOL_GUARD_*` 环境变量（或等价持久配置源） |
+| `access.*` | 本地 `auth_gateway.py` 读取的 `ARGUS_*`/`TOOL_GUARD_*` 环境变量（或等价持久配置源） |
 | `access_rules.*` | 本地 `resources.txt`（整体替换；users 键已下线，终端忽略） |
 | `retrieval.*` | 本地 `whitelist.yaml` / `b_injection/config.yaml` / `c_prompt/config.yaml` |
-| `integration.*` | OpenClaw 插件配置段 `plugins.entries."clawguard-adapter".config.*` |
+| `integration.*` | OpenClaw 插件配置段 `plugins.entries."argus-adapter".config.*` |
 | `modules.tool_guard.base_url/api_key/model/...` | 本地 tool_guard 配置段及 `TOOL_GUARD_LLM_*` 环境变量（注意本地 env 优先级高于 yaml，客户端需按自身优先级写入生效层） |
 
 #### 4.6.5 设计边界（为什么没有某些配置）
 
-- 仅收录 ClawguardV2.1 `CONFIGS.md` 中**已生效**的配置；标注 ⚠️ 的"声明未接线"项
+- 仅收录 Argus `CONFIGS.md` 中**已生效**的配置；标注 ⚠️ 的"声明未接线"项
   （如 policy.yaml `stages` 拓扑、`sandbox_config.yaml` 资源、`TOOL_GUARD_AUDIT_API_URL`）
   不属于配置包，避免误导客户端实现。
-- 存储路径类（`CLAWGUARD_AUDIT_PATH` 等）属于终端本地部署参数，集控不下发。
+- 存储路径类（`ARGUS_AUDIT_PATH` 等）属于终端本地部署参数，集控不下发。
 - 包内不含密钥明文策略：`api_key` 由管理员显式填写才会下发；令牌类仍走环境变量。
 
 ### 4.7 审计事件批量上传 `POST /telemetry/v1/audit/events`
 
-> 终端把本地 Clawguard 审计层产生的 `AuditEvent` 全量（含 `allow`）周期上报，
+> 终端把本地 Argus 审计层产生的 `AuditEvent` 全量（含 `allow`）周期上报，
 > 集控端入库后在控制台"审计日志 → 终端审计"板块浏览/筛选/导出。
 > 服务端已实现（表 `agent_audit_events`）；本节为客户端上传器契约。
 
@@ -519,7 +519,7 @@ report；两者独立接口，均可按各自节奏调用）。
       "risk_score": 0.93,
       "reason": "intent_score=0.12; tool intent mismatch",
       "content": { "tool": "execute_bash", "summary": "正文已按本地 audit.content_storage 策略脱敏/截断" },
-      "metadata": { "clawguard_version": "2.1.0" }
+      "metadata": { "argus_version": "2.1.0" }
     }
   ]
 }
@@ -535,7 +535,7 @@ report；两者独立接口，均可按各自节奏调用）。
 | `risk_score` | 否（默认 0） | ∈ [0, 1] |
 | `reason` | 否 | ≤4096 字节 |
 | `content`/`metadata` | 否 | JSON 对象（缺省 `{}`）；序列化后单对象 ≤ 64KB |
-| `trace_id`/`session_id`/`user_id` | 否 | ≤128/≤128/≤64 字符；`user_id` 为 Clawguard 侧用户标识字符串（非 LLMGate 用户 ID） |
+| `trace_id`/`session_id`/`user_id` | 否 | ≤128/≤128/≤64 字符；`user_id` 为 Argus 侧用户标识字符串（非 LLMGate 用户 ID） |
 
 批次规则：
 
@@ -571,7 +571,7 @@ report；两者独立接口，均可按各自节奏调用）。
 | 绑定用户 | 管理员创建/编辑时绑定 LLMGate 用户（决定 LLM key 归属） |
 | LLM 密钥 | 注册时平台自动签发（密钥管理列表中“来源=终端下发”，所有者在终端改绑时同步） |
 | 终端计算机名 | 注册 + 心跳 `hostname`（心跳幂等更新） |
-| Clawguard 版本 / Agent 版本 | 注册 + 心跳上报 |
+| Argus 版本 / Agent 版本 | 注册 + 心跳上报 |
 | 状态（在线/离线/未注册） | 在线 = 已注册且最近心跳 ≤ 120 秒；离线 = 已注册但心跳超时；未注册 = 仅创建/被吊销 |
 | Token 消耗数 | `report.token_usage_delta` 服务端累加（`token_usage_total`） |
 | 安全预警次数 | `report.security_alerts_delta` 服务端累加（`alert_count_total`） |
@@ -683,7 +683,7 @@ curl -s -X POST http://127.0.0.1:8080/api/admin/terminals \
 #    响应 data 含 token 与 llm{api_key,base_url,enterprise_name}（均仅一次）
 curl -s -X POST http://127.0.0.1:8080/telemetry/v1/register \
   -H "Content-Type: application/json" \
-  -d '{"registration_code":"<code>","hostname":"dev-mac","agent_version":"2026.6.11","clawguard_version":"2.1.0","agent_type":"openclaw"}'
+  -d '{"registration_code":"<code>","hostname":"dev-mac","agent_version":"2026.6.11","argus_version":"2.1.0","agent_type":"openclaw"}'
 
 # 2.1) 用注册下发的 LLM 凭据查询可用模型（base_url 已含 /v1；可按需设置先行：
 #      curl -s -X PUT http://127.0.0.1:8080/api/admin/settings -H "Authorization: Bearer <admin-jwt>" ...）
@@ -693,7 +693,7 @@ curl -s http://127.0.0.1:8080/v1/models -H "Authorization: Bearer <llm.api_key>"
 curl -s -X POST http://127.0.0.1:8080/telemetry/v1/heartbeat \
   -H "Authorization: Bearer <TOKEN>" \
   -H "Content-Type: application/json" \
-  -d '{"hostname":"dev-mac","clawguard_version":"2.1.0"}'
+  -d '{"hostname":"dev-mac","argus_version":"2.1.0"}'
 
 # 4) 管理员在控制台"修改配置"保存 JSON 后，客户端拉取：
 curl -s http://127.0.0.1:8080/telemetry/v1/config \
@@ -743,7 +743,7 @@ curl -s -X POST http://127.0.0.1:8080/telemetry/v1/audit/events \
 - **配置包版本演进**：配置包顶层 `schema_version` 独立于 `config_version`（后者是
   服务端每次保存的单调递增号）。新增字段只需把 `schema_version` 升到 2 并保留
   v1 兼容读取（未知键忽略规则已保证向后兼容）；客户端实现对未知版本应拒应用。
-- **审计事件明细落库**：终端 Clawguard 审计事件经 `POST /telemetry/v1/audit/events`
+- **审计事件明细落库**：终端 Argus 审计事件经 `POST /telemetry/v1/audit/events`
   全量汇聚到 `agent_audit_events` 表（幂等去重，见 §4.7），控制台"审计日志 →
   终端审计"浏览/筛选/导出，并按保留期自动清理。`report.alert_samples` 仍是窗口
   摘要日志，与明细两套语义并存、互不计数。

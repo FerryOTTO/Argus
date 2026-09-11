@@ -135,7 +135,7 @@ func SetupRouter(
 			admin.GET("/dashboard", dashH.GetDashboard)
 		}
 
-		// 终端审计事件 routes（Clawguard 客户端上报，审计日志 · 终端审计板块）
+		// 终端审计事件 routes（Argus 客户端上报，审计日志 · 终端审计板块）
 		if agentAuditEventStore != nil {
 			agentAuditH := NewAdminAgentAuditHandler(agentAuditEventStore)
 			admin.GET("/audit-events", agentAuditH.ListAgentAuditEvents)
@@ -211,7 +211,7 @@ func SetupRouter(
 			authed.GET("/config", telemetryH.GetConfig)
 			authed.POST("/config/applied", telemetryH.ConfirmConfigApplied)
 			authed.POST("/report", telemetryH.Report)
-			// 审计事件批量上传（Clawguard 审计层周期上报，幂等去重）
+			// 审计事件批量上传（Argus 审计层周期上报，幂等去重）
 			authed.POST("/audit/events", telemetryH.UploadAuditEvents)
 			// 扩展治理：安装审批上报/轮询 + skill 分发拉取/回执（store 未启用时返回 404）
 			authed.POST("/extensions/requests", telemetryH.SubmitExtensionRequest)

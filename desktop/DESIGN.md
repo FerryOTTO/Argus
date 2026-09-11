@@ -1,6 +1,6 @@
 # MiMo Code Design System Specification (DESIGN.md)
 
-This specification defines the visual language, typography, color palettes, and interaction paradigms for Clawguard Desktop, reverse-engineered and 1:1 aligned with Xiaomi MiMo Code (`mimo.xiaomi.com/zh/mimocode`).
+This specification defines the visual language, typography, color palettes, and interaction paradigms for Argus Desktop, reverse-engineered and 1:1 aligned with Xiaomi MiMo Code (`mimo.xiaomi.com/zh/mimocode`).
 
 ---
 

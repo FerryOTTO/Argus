@@ -1,0 +1,598 @@
+Argus 版本差异清单  A = Argus（最新）  vs  B = LLMGate/terminal（落后）
+生成时间：2026-09-10    说明：已统一 CRLF/LF 后再比对，因此下面不会出现「整篇都变了」的换行噪音。
+本清单只读导出，未修改 A、B 任何文件。
+
+====================================================================================================
+一、总览（9 个真实分歧文件）
+====================================================================================================
+文件                                                       A(V2.1)              B(LLMGate)           行数变化         差异性质
+argus\modules\access_control\original\auth_gateway.p 830 行 (09-10 09:30)  741 行 (09-09 18:35)  +0 / -89     A 新增单用户绑定（self.bound / _load_bound_user），users.txt 下线
+argus\api\remote_sync.py                             961 行 (09-10 09:33)  977 行 (09-10 03:00)  +42 / -26    A 改为只写 access_local.json 的 bound_user，不再写 users.txt
+argus\api\local_config_routes.py                     228 行 (09-10 09:33)  228 行 (09-09 18:45)  +2 / -2      A 忽略服务端下发的 users 键（users.txt 已下线）
+openguard\original\main.py                               404 行 (09-10 09:37)  434 行 (09-07 21:45)  +31 / -1     A 启动不再对齐本地规则文件，改为从 auth.db 动态回查
+openguard\original\routes.py                             657 行 (09-10 09:34)  702 行 (09-08 18:19)  +90 / -45    B 仍把等级同步写入 users.txt；A 已移除该同步
+openguard\original\auth.py                               352 行 (09-10 09:33)  362 行 (09-08 18:03)  +14 / -4     B 的 _sync_user_to_ac 仍写 users.txt；A 改为动态回查
+openguard\original\templates\admin.html                  873 行 (09-10 09:34)  873 行 (08-31 22:56)  +1 / -1      界面文案：A「等级以用户库为准（users.txt 已下线）」
+configs\modules.yaml                                     50 行 (09-10 03:16)   50 行 (09-10 03:06)   +1 / -1      ★ tool_guard.block_threshold：A=0.87 / B=0.4
+configs\modules.yaml.bak                                 50 行 (09-10 03:16)   50 行 (09-10 03:06)   +1 / -1      备份文件，同上差异
+
+注：B 侧其余 256 个文件与 A 完全一致；A 侧另有 30 个文件是构建/缓存产物（.pytest_cache、runtime、*.log 等），不参与比对。
+
+====================================================================================================
+二、逐文件差异（unified diff，A 为基准 `-`，B 为对照 `+`）
+====================================================================================================
+
+####################################################################################################
+### argus\modules\access_control\original\auth_gateway.py    A 新增单用户绑定（self.bound / _load_bound_user），users.txt 下线
+####################################################################################################
+--- A/Argus/argus/modules/access_control/original/auth_gateway.py
++++ B/LLMGate/terminal/argus/modules/access_control/original/auth_gateway.py
+@@ -56,68 +56,6 @@
+     return 3
+
+ DEFAULT_USER_LEVEL=_resolve_default_user_level()
+-
+-
+-# 本地单用户绑定（users.txt 下线后，终端只认这一条 + resources.txt）
+-# 企业版由服务端下发 access_user 写入；个人版由“默认用户等级”兜底，bound_user 为空即走默认。
+-
+-def _access_local_path():
+-    try:
+-        return BASE_DIR.parent.parent.parent.parent / "configs" / "access_local.json"
+-    except Exception:
+-        return None
+-
+-
+-def _load_bound_user() -> dict:
+-    try:
+-        fp = _access_local_path()
+-        if fp is None or not fp.exists():
+-            return {}
+-        d = json.loads(fp.read_text(encoding="utf-8"))
+-        b = d.get("bound_user") if isinstance(d, dict) else None
+-        if not isinstance(b, dict):
+-            return {}
+-        name = str(b.get("username") or "").strip()
+-        if not name:
+-            return {}
+-        specials = b.get("specials") or []
+-        if isinstance(specials, str):
+-            specials = [s for s in (x.strip() for x in specials.split(",")) if s]
+-        else:
+-            specials = [str(s).strip() for s in specials if str(s).strip()]
+-        return {"username": name, "level": _normalize_level(b.get("level") or "internal"), "specials": specials}
+-    except Exception:
+-        return {}
+-
+-
+-def _save_bound_user(username: str, level_name: str, specials=None) -> bool:
+-    try:
+-        fp = _access_local_path()
+-        if fp is None:
+-            return False
+-        d = {}
+-        if fp.exists():
+-            try:
+-                d = json.loads(fp.read_text(encoding="utf-8"))
+-            except Exception:
+-                d = {}
+-        if not isinstance(d, dict):
+-            d = {}
+-        sp = specials if isinstance(specials, list) else []
+-        new = {"username": username, "level": level_name, "specials": sp}
+-        if d.get("bound_user") == new:
+-            return False
+-        d["bound_user"] = new
+-        try:
+-            if fp.exists():
+-                fp.with_suffix(".json.bak").write_text(fp.read_text(encoding="utf-8"), encoding="utf-8")
+-        except Exception:
+-            pass
+-        fp.parent.mkdir(parents=True, exist_ok=True)
+-        fp.write_text(json.dumps(d, ensure_ascii=False, indent=2), encoding="utf-8")
+-        return True
+-    except Exception:
+-        return False
+
+
+ # MAC 安全标签
+@@ -297,7 +235,6 @@
+             self._backend = _TextBackend(USERS_FILE, RESOURCES_FILE)
+
+         self.users: dict[str, dict] = {}
+-        self.bound: dict = {}
+         self.resources: list[tuple] = []
+         self.mac_labels: dict[str, SecurityLabel] = {}
+         self.resource_labels: dict[str, SecurityLabel] = {}
+@@ -317,7 +254,6 @@
+         with self._lock:
+             self.users = self._backend.load_users()
+             self.resources = self._backend.load_resources()
+-            self.bound = _load_bound_user()
+             try:
+                 global DEFAULT_USER_LEVEL
+                 DEFAULT_USER_LEVEL=_resolve_default_user_level()
+@@ -356,9 +292,6 @@
+     def get_user_level(self, user_id: str) -> int | None:
+         self._check_auto_reload()
+         with self._lock:
+-            b = self.bound or {}
+-            if user_id and b.get("username") and user_id == b["username"]:
+-                return b["level"]
+             u = self.users.get(user_id)
+             if not u:
+                 u = self._lookup_db_user(user_id)
+@@ -367,9 +300,6 @@
+     def get_user_specials(self, user_id: str) -> list[str]:
+         self._check_auto_reload()
+         with self._lock:
+-            b = self.bound or {}
+-            if user_id and b.get("username") and user_id == b["username"]:
+-                return list(b.get("specials") or [])
+             u = self.users.get(user_id)
+             if not u:
+                 u = self._lookup_db_user(user_id)
+@@ -377,15 +307,6 @@
+
+     def set_user_level(self, user_id: str, level: int) -> None:
+         with self._lock:
+-            b = self.bound or {}
+-            if user_id and b.get("username") and user_id == b["username"]:
+-                try:
+-                    lname = {1: "public", 2: "internal", 3: "secret", 4: "top_secret"}.get(int(level), "internal")
+-                except Exception:
+-                    lname = "internal"
+-                if _save_bound_user(user_id, lname, b.get("specials")):
+-                    self.bound = _load_bound_user()
+-                return
+             if user_id in self.users:
+                 self.users[user_id]["level"] = level
+             else:
+@@ -470,16 +391,6 @@
+
+ def reload_rules() -> None:
+     _store.reload()
+-
+-
+-def set_bound_user(username: str, level_name: str, specials=None) -> bool:
+-    if _save_bound_user(username, level_name, specials or []):
+-        try:
+-            _store.bound = _load_bound_user()
+-        except Exception:
+-            pass
+-        return True
+-    return False
+
+
+ def sync_external_user(user_id: str, security_level: str) -> None:
+
+####################################################################################################
+### argus\api\remote_sync.py    A 改为只写 access_local.json 的 bound_user，不再写 users.txt
+####################################################################################################
+--- A/Argus/argus/api/remote_sync.py
++++ B/LLMGate/terminal/argus/api/remote_sync.py
+@@ -197,39 +197,54 @@
+
+
+ def _apply_access_user(username, level="", specials=_UNSET):
+-    """users.txt 已下线：只写 access_local.json 的 bound_user（单用户绑定），不碰本地规则文件。"""
+     name = (username or "").strip() if isinstance(username, str) else ""
+     if not name:
+         return False
+     lv = _normalize_user_level(level)
+     if specials is _UNSET or specials is None:
+-        sp = None
++        new_specials = _UNSET
+     elif isinstance(specials, (list, tuple)):
+-        sp = [str(s).strip() for s in specials if str(s).strip()]
++        new_specials = ",".join([str(s).strip() for s in specials if str(s).strip()])
+     else:
+-        s0 = str(specials).strip()
+-        sp = [x for x in (v.strip() for v in s0.split(",")) if x] if s0 else []
+-    if not lv and sp is None:
++        new_specials = str(specials).strip()
++    if not lv and new_specials is _UNSET:
+         return False
+-    cur = _read_json_file(ACCESS_LOCAL_PATH, {})
+-    b = cur.get("bound_user") if isinstance(cur.get("bound_user"), dict) else {}
+-    keep_sp = list(b.get("specials") or []) if sp is None else sp
+-    keep_lv = lv or _normalize_user_level(b.get("level") or "") or ""
+-    if not keep_lv:
++    try:
++        with open(USERS_PATH, "r", encoding="utf-8", errors="ignore") as f:
++            old_text = f.read()
++    except Exception:
++        old_text = ""
++    lines = old_text.split("\n")
++    found = False
++    out = []
++    for raw_line in lines:
++        s = raw_line.strip()
++        if not s or s.startswith("#"):
++            out.append(raw_line)
++            continue
++        segs = raw_line.split("|")
++        if len(segs) < 2 or segs[0].strip() != name:
++            out.append(raw_line)
++            continue
++        cur_specials = "|".join(segs[2:]).strip() if len(segs) > 2 else ""
++        use_level = lv or segs[1].strip()
++        use_specials = cur_specials if new_specials is _UNSET else new_specials
++        if use_specials:
++            out.append("%s | %s | %s" % (name, use_level, use_specials))
++        else:
++            out.append("%s | %s" % (name, use_level))
++        found = True
++    if not found:
++        if not lv:
++            return False
++        if new_specials is not _UNSET and new_specials:
++            out.append("%s | %s | %s" % (name, lv, new_specials))
++        else:
++            out.append("%s | %s" % (name, lv))
++    new_text = "\n".join(out)
++    if new_text == old_text:
+         return False
+-    if b.get("username") == name and b.get("level") == keep_lv and list(b.get("specials") or []) == keep_sp:
+-        return False
+-    cur["bound_user"] = {"username": name, "level": keep_lv, "specials": keep_sp}
+-    cur["default_user_level"] = keep_lv
+-    if not _write_json_file(ACCESS_LOCAL_PATH, cur):
+-        return False
+-    try:
+-        from argus.modules.access_control.original import auth_gateway as _ag
+-        _ag.set_bound_user(name, keep_lv, keep_sp)
+-        _ag.DEFAULT_USER_LEVEL = _ag._resolve_default_user_level()
+-    except Exception as e:
+-        log.warning("bound user hot-reload failed: %s", e)
+-    return True
++    return _backup_write_text(USERS_PATH, new_text)
+
+
+ try:
+@@ -466,7 +481,8 @@
+         if isinstance(ar, dict):
+             u = ar.get("users")
+             if isinstance(u, str) and u.strip():
+-                warnings.append("access_rules.users 已下线：用户规则只保留在服务端，终端不再写入 users.txt")
++                if _backup_write_text(USERS_PATH, u):
++                    wrote.append("access_rules.users")
+             r = ar.get("resources")
+             if isinstance(r, str) and r.strip():
+                 if _backup_write_text(RESOURCES_PATH, r):
+@@ -802,7 +818,7 @@
+         tok_delta = 0
+     live = {}
+     try:
+-        live = {"users": "", "resources": _read_text_cap(RESOURCES_PATH)}
++        live = {"users": _read_text_cap(USERS_PATH), "resources": _read_text_cap(RESOURCES_PATH)}
+     except Exception:
+         live = {}
+     live_cfg = _build_live_config()
+
+####################################################################################################
+### argus\api\local_config_routes.py    A 忽略服务端下发的 users 键（users.txt 已下线）
+####################################################################################################
+--- A/Argus/argus/api/local_config_routes.py
++++ B/LLMGate/terminal/argus/api/local_config_routes.py
+@@ -108,7 +108,7 @@
+     "io_guard_policy": policy,
+     "retrieval": {"whitelist": {"trusted": (wl.get("trusted") or []), "blocked": (wl.get("blocked") or [])}, "injection": {"threshold": inj.get("threshold", 0.95), "window_size": inj.get("window_size", 400), "step": inj.get("step", 200)}, "prompt_wrap": {"random_length": prompt.get("random_length", 10), "self_reminder": prompt.get("self_reminder", ""), "post_prompting": prompt.get("post_prompting", "")}},
+     "access": access_local if access_local else {"mode": "rbac", "default_user_level": "secret", "block_unknown_users": False, "risk_link_enabled": True, "risk_window_seconds": 300, "risk_threshold": 0.6, "risk_probe_block_count": 3, "risk_escalation_threshold": 0.5, "quarantine_enabled": True, "quarantine_block_count": 8, "quarantine_risk_threshold": 0.85, "quarantine_long_window_seconds": 3600, "quarantine_long_window_count": 15},
+-    "access_rules": {"resources": _read_text(PATHS["resources"])},
++    "access_rules": {"users": _read_text(PATHS["users"]), "resources": _read_text(PATHS["resources"])},
+     "integration": integration if integration else {"argus_url": "http://127.0.0.1:8000", "api_token_env": "ARGUS_API_TOKEN", "timeout_ms": 30000, "fail_mode": "closed", "enable_media_check": True, "media_root": "", "protected_tools": ["web_fetch", "web_search"]},
+     "meta": {"paths": {k: os.path.relpath(v, ROOT) for k, v in PATHS.items()}},
+   }
+@@ -178,7 +178,7 @@
+     except Exception:
+       pass
+   if body.access_rules is not None:
+-    pass  # users.txt 已下线：用户规则只保留在服务端，忽略下发的 users 键
++    if "users" in body.access_rules and isinstance(body.access_rules["users"], str): _write_text(PATHS["users"], body.access_rules["users"]); applied.append("access_rules.users")
+     if "resources" in body.access_rules and isinstance(body.access_rules["resources"], str): _write_text(PATHS["resources"], body.access_rules["resources"]); applied.append("access_rules.resources")
+   if body.integration is not None:
+     cur = _read_json(PATHS["integration_local"], {})
+
+####################################################################################################
+### openguard\original\main.py    A 启动不再对齐本地规则文件，改为从 auth.db 动态回查
+####################################################################################################
+--- A/Argus/openguard/original/main.py
++++ B/LLMGate/terminal/openguard/original/main.py
+@@ -38,7 +38,37 @@
+     # 启动
+     await init_db()
+
+-    # users.txt 已下线：等级只存用户库，执法侧从 auth.db 动态回查，启动不再写本地规则文件。
++    # 启动时自动对齐 OpenGuard 数据库与 Access Control 规则
++    try:
++        from database import list_users
++        from argus.modules.access_control.original import auth_gateway
++        all_db_users = await list_users()
++        store = auth_gateway._store
++        synced_count = 0
++        for u in all_db_users:
++            uid = u["id"]
++            uname = u["username"]
++            lvl = u.get("security_level") or ("top_secret" if u.get("role") == "admin" else "internal")
++
++            if uid not in store.users:
++                sp = ["*"] if lvl == "top_secret" or u.get("role") == "admin" else []
++                store.add_user_rule(uid, lvl, sp)
++                synced_count += 1
++            if uname not in store.users:
++                sp = ["*"] if lvl == "top_secret" or u.get("role") == "admin" else []
++                store.add_user_rule(uname, lvl, sp)
++                synced_count += 1
++            from database import find_agent_by_user
++            agent = await find_agent_by_user(uid)
++            if agent and agent.get("agent_id") and agent["agent_id"] not in store.users:
++                sp = ["*"] if lvl == "top_secret" or u.get("role") == "admin" else []
++                store.add_user_rule(agent["agent_id"], lvl, sp)
++                synced_count += 1
++        if synced_count > 0:
++            print(f"[Auth] 启动自愈：已对齐 {synced_count} 条 OpenGuard 用户规则到 Access Control")
++    except Exception as exc:
++        print(f"[Auth] 启动对齐用户规则警告: {exc}")
++
+     print(f"\n{'='*50}")
+     print(f"  OpenGuard Auth Gateway")
+     print(f"  Port:        {config.port}")
+
+####################################################################################################
+### openguard\original\routes.py    B 仍把等级同步写入 users.txt；A 已移除该同步
+####################################################################################################
+--- A/Argus/openguard/original/routes.py
++++ B/LLMGate/terminal/openguard/original/routes.py
+@@ -385,7 +385,7 @@
+
+ @router.put("/api/admin/users/{user_id}/security_level")
+ async def admin_update_security_level(user_id: str, body: SecurityLevelUpdateRequest, request: Request):
+-    """设置用户安全权限等级（用户库为准，执法侧从 auth.db 动态回查）。"""
++    """设置用户安全权限等级，并同步到 Access Control 规则中。"""
+     await csrf_middleware(request)
+     admin = await admin_required(request)
+     target = await find_user_by_id(user_id)
+@@ -399,7 +399,20 @@
+     normalized = level_aliases.get(body.security_level.lower(), "internal")
+     await update_user_security_level(user_id, normalized)
+
+-    # users.txt 已下线：等级只存用户库，不再写本地规则文件。
++    # 同步写入 Access Control 规则表
++    try:
++        store = _get_ac_store()
++        specials = store.get_user_specials(user_id) or []
++        store.add_user_rule(user_id, normalized, specials)
++        if target["username"] in store.users or True:
++            uname_specials = store.get_user_specials(target["username"]) or []
++            store.add_user_rule(target["username"], normalized, uname_specials)
++        agent = await find_agent_by_user(user_id)
++        if agent and agent.get("agent_id"):
++            ag_specials = store.get_user_specials(agent["agent_id"]) or []
++            store.add_user_rule(agent["agent_id"], normalized, ag_specials)
++    except Exception as exc:
++        print(f"[Admin] 警告: 访问控制规则同步失败: {exc}")
+
+     print(f"[Admin] {admin.username} changed {target['username']}'s security level to {normalized}")
+     return {"success": True, "user_id": user_id, "security_level": normalized}
+@@ -419,7 +432,14 @@
+     await revoke_all_user_refresh_tokens(user_id, now_ms)
+     await delete_user_by_id(user_id)
+
+-    # users.txt 已下线：用户删除只清用户库，无本地规则文件可清。
++    # 同步清理 Access Control 规则
++    try:
++        store = _get_ac_store()
++        store.remove_user_rule(user_id)
++        if target["username"] in store.users:
++            store.remove_user_rule(target["username"])
++    except Exception as exc:
++        print(f"[Admin] 清理访问控制规则警告: {exc}")
+
+     print(f"[Admin] {admin.username} deleted user {target['username']}")
+     return {"success": True, "user_id": user_id}
+@@ -434,13 +454,7 @@
+     store = _get_ac_store()
+     q_store = _get_quarantine_store()
+
+-    # users.txt 已下线：用户规则以用户库为准
+-    _lvl_map = {"public": 1, "internal": 2, "secret": 3, "top_secret": 4}
+-    user_rules = []
+-    for _u in (await list_users()):
+-        _lv = _lvl_map.get(str(_u.get("security_level") or "").lower(), 2)
+-        _sp = ["*"] if (_lv == 4 or _u.get("role") == "admin") else []
+-        user_rules.append({"user_id": _u.get("username"), "level": _lv, "specials": _sp})
++    user_rules = store.list_user_rules()
+     resource_rules = store.list_resource_rules()
+     quarantine_items = q_store.list_active()
+
+@@ -453,47 +467,78 @@
+
+ @router.post("/api/admin/rules/users")
+ async def admin_save_user_rule(body: UserRuleSaveRequest, request: Request):
+-    """更新用户规则：只允许已存在的用户，等级写入用户库（users.txt 已下线）。"""
+-    await csrf_middleware(request)
+-    await admin_required(request)
++    """添加或更新用户规则（写入 users.txt），并双向同步到 OpenGuard 数据库与关联身份。"""
++    await csrf_middleware(request)
++    await admin_required(request)
++    store = _get_ac_store()
++    specials_list = []
++    if body.specials:
++        if isinstance(body.specials, list):
++            specials_list = [s.strip() for s in body.specials if s.strip()]
++        elif isinstance(body.specials, str):
++            specials_list = [s.strip() for s in body.specials.split(",") if s.strip()]
++
+     target_uid = body.user_id.strip()
+-    level_aliases = {
+-        "1": "public", "2": "internal", "3": "secret", "4": "top_secret",
+-        "public": "public", "internal": "internal", "secret": "secret", "top_secret": "top_secret",
+-    }
+-    normalized = level_aliases.get(str(body.level or "").lower(), "internal")
+-    target = await find_user_by_id(target_uid)
+-    if not target:
+-        target = await find_user_by_username(target_uid)
+-    if not target and target_uid.startswith("agent_"):
+-        async with get_db() as db:
+-            async with db.execute("SELECT user_id FROM user_agents WHERE agent_id = ?", [target_uid]) as cur:
+-                row = await cur.fetchone()
+-                if row:
+-                    target = await find_user_by_id(row[0])
+-    if not target:
+-        raise HTTPException(status_code=404, detail={"error": "用户不存在，请先在用户管理中创建"})
+-    await update_user_security_level(target["id"], normalized)
+-    lvl_int = {"public": 1, "internal": 2, "secret": 3, "top_secret": 4}[normalized]
+-    note = ""
+-    if body.specials:
+-        note = "（特例 specials 已忽略：用户规则只保留等级，特例仅终端绑定用户有效）"
+-    return {"success": True, "message": "用户 " + target["username"] + " 等级已更新为 " + normalized + note,
+-            "user": {"user_id": target["username"], "level": lvl_int, "specials": []}}
++    res = store.add_user_rule(target_uid, body.level, specials_list)
++
++    # 双向同步：查找是否对应 OpenGuard 用户（按 ID、用户名或 Agent ID）
++    try:
++        target = await find_user_by_id(target_uid)
++        if not target:
++            target = await find_user_by_username(target_uid)
++
++        if not target and target_uid.startswith("agent_"):
++            async with get_db() as db:
++                async with db.execute("SELECT user_id FROM user_agents WHERE agent_id = ?", [target_uid]) as cur:
++                    row = await cur.fetchone()
++                    if row:
++                        target = await find_user_by_id(row[0])
++
++        if target:
++            level_aliases = {
++                "1": "public", "2": "internal", "3": "secret", "4": "top_secret",
++                "public": "public", "internal": "internal", "secret": "secret", "top_secret": "top_secret",
++            }
++            normalized = level_aliases.get(body.level.lower(), "internal")
++            # 1. 同步更新 SQLite 数据库，确保与“用户管理”强一致
++            await update_user_security_level(target["id"], normalized)
++            # 2. 联动同步目标用户的全部标识符（ID、用户名、Agent ID）
++            store.add_user_rule(target["id"], body.level, specials_list)
++            store.add_user_rule(target["username"], body.level, specials_list)
++            agent = await find_agent_by_user(target["id"])
++            if agent and agent.get("agent_id"):
++                store.add_user_rule(agent["agent_id"], body.level, specials_list)
++    except Exception as exc:
++        print(f"[Admin] 双向同步 OpenGuard 数据库警告: {exc}")
++
++    return res
+
+
+ @router.delete("/api/admin/rules/users/{user_id}")
+ async def admin_delete_user_rule(user_id: str, request: Request):
+-    """用户规则以用户库为准：此处不删等级，仅提示到用户管理操作。"""
+-    await csrf_middleware(request)
+-    await admin_required(request)
++    """删除用户规则，并清理关联标识符规则。"""
++    await csrf_middleware(request)
++    await admin_required(request)
++    store = _get_ac_store()
+     target_uid = user_id.strip()
+-    target = await find_user_by_id(target_uid)
+-    if not target:
+-        target = await find_user_by_username(target_uid)
+-    if not target:
+-        raise HTTPException(status_code=404, detail={"error": "用户不存在"})
+-    return {"success": True, "message": "用户规则以用户库为准，如需调整等级请到用户管理中修改"}
++    res = store.remove_user_rule(target_uid)
++    if not res.get("success"):
++        raise HTTPException(status_code=404, detail=res)
++
++    try:
++        target = await find_user_by_id(target_uid) or await find_user_by_username(target_uid)
++        if target:
++            if target["id"] != target_uid and target["id"] in store.users:
++                store.remove_user_rule(target["id"])
++            if target["username"] != target_uid and target["username"] in store.users:
++                store.remove_user_rule(target["username"])
++            agent = await find_agent_by_user(target["id"])
++            if agent and agent.get("agent_id") in store.users:
++                store.remove_user_rule(agent["agent_id"])
++    except Exception as exc:
++        print(f"[Admin] 清理关联规则警告: {exc}")
++
++    return res
+
+
+ @router.post("/api/admin/rules/resources")
+
+####################################################################################################
+### openguard\original\auth.py    B 的 _sync_user_to_ac 仍写 users.txt；A 改为动态回查
+####################################################################################################
+--- A/Argus/openguard/original/auth.py
++++ B/LLMGate/terminal/openguard/original/auth.py
+@@ -127,10 +127,20 @@
+     return agent_record
+
+
+-def _sync_user_to_ac(user_id, username, security_level, specials=None, agent_id=None):
+-    """users.txt 已下线：个人版执法改为从 auth.db 动态回查，这里不再写本地规则文件。"""
+-    return None
+-
++def _sync_user_to_ac(user_id: str, username: str, security_level: str, specials: list[str] = None, agent_id: str = None):
++    """将新注册/创建的用户同步写入 Argus 访问控制规则库（users.txt）。"""
++    try:
++        from argus.modules.access_control.original import auth_gateway
++        sp = specials or ([] if security_level != "top_secret" else ["*"])
++        auth_gateway._store.add_user_rule(user_id, security_level, sp)
++        auth_gateway._store.add_user_rule(username, security_level, sp)
++        if agent_id:
++            auth_gateway._store.add_user_rule(agent_id, security_level, sp)
++    except Exception as exc:
++        print(f"[Auth] 访问控制规则同步警告: {exc}")
++
++
++# ====== 用户注册/登录 ======
+
+ async def register_user(username: str, password: str) -> dict:
+     if len(username) < 3 or len(username) > 32:
+
+####################################################################################################
+### openguard\original\templates\admin.html    界面文案：A「等级以用户库为准（users.txt 已下线）」
+####################################################################################################
+--- A/Argus/openguard/original/templates/admin.html
++++ B/LLMGate/terminal/openguard/original/templates/admin.html
+@@ -161,7 +161,7 @@
+   <div class="panel" style="padding:0;overflow:hidden;margin-bottom:var(--sp-5);">
+     <div class="panel-head">
+       <h2>用户规则 <span id="rule-user-count" style="color:var(--text-tertiary);font-weight:500;font-size:.82rem;margin-left:6px;font-family:var(--f-mono);">0</span></h2>
+-      <div class="panel-meta">等级以用户库为准（users.txt 已下线） | 等级: public/internal/secret/top_secret | 特例黑白名单逗号分隔 (如 !tool:write_file, *)</div>
++      <div class="panel-meta">users.txt | 等级: public/internal/secret/top_secret | 特例黑白名单逗号分隔 (如 !tool:write_file, *)</div>
+     </div>
+
+     <!-- 快速添加用户规则 -->
+
+####################################################################################################
+### configs\modules.yaml    ★ tool_guard.block_threshold：A=0.87 / B=0.4
+####################################################################################################
+--- A/Argus/configs/modules.yaml
++++ B/LLMGate/terminal/configs/modules.yaml
+@@ -26,7 +26,7 @@
+     base_url: https://api.deepseek.com/v1
+     api_key: ''
+     model: deepseek-v4-flash
+-    block_threshold: 0.87
++    block_threshold: 0.4
+     review_threshold: 0.7
+     timeout_seconds: 30
+   retrieval_guard:
+
+####################################################################################################
+### configs\modules.yaml.bak    备份文件，同上差异
+####################################################################################################
+--- A/Argus/configs/modules.yaml.bak
++++ B/LLMGate/terminal/configs/modules.yaml.bak
+@@ -27,7 +27,7 @@
+     api_key: ''
+     model: deepseek-v4-flash
+     block_threshold: 0.4
+-    review_threshold: 0.7
++    review_threshold: 0.72
+     timeout_seconds: 30
+   retrieval_guard:
+     enabled: true

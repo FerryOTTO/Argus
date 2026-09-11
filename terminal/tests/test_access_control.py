@@ -1,4 +1,4 @@
-"""Clawguard — 访问控制全量测试套件（基础 RBAC/MAC + 审计风险联动与防线升级）
+"""Argus — 访问控制全量测试套件（基础 RBAC/MAC + 审计风险联动与防线升级）
 
 覆盖范围：
   Part A: 核心 RBAC/MAC 判定与特例规则（13 tests）
@@ -30,8 +30,8 @@ if sys.platform.startswith("win"):
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from clawguard.modules.access_control.original import auth_gateway
-from clawguard.modules.access_control.original.auth_gateway import (
+from argus.modules.access_control.original import auth_gateway
+from argus.modules.access_control.original.auth_gateway import (
     check, check_reason, check_v4, _normalize_level, SecurityLabel,
     add_user_rule, remove_user_rule, get_user_rule, list_user_rules,
     add_resource_rule, remove_resource_rule, list_resource_rules,
@@ -42,9 +42,9 @@ from clawguard.modules.access_control.original.auth_gateway import (
     ACCESS_CONTROL_MODE, DEFAULT_RESOURCE_LEVEL,
 )
 
-from clawguard.adapters.access_control_adapter import AccessControlAdapter
-from clawguard.modules.audit.original import AuditStore
-from clawguard.modules.access_control.risk_link import (
+from argus.adapters.access_control_adapter import AccessControlAdapter
+from argus.modules.audit.original import AuditStore
+from argus.modules.access_control.risk_link import (
     AuditRiskMonitor,
     DynamicLinePolicy,
 )
@@ -59,12 +59,11 @@ def _setup_test_env():
     tmpdir = tempfile.mkdtemp()
     # 隔离 quarantine - 每个测试用独立文件，保留5min窗口，叠加永久标记需管理员解除
     try:
-        from clawguard.modules.access_control.quarantine_store import QuarantineStore
+        from argus.modules.access_control.quarantine_store import QuarantineStore
         QuarantineStore().clear_all()
     except Exception:
         pass
-    os.environ['CLAWGUARD_QUARANTINE_PATH'] = str(Path(tmpdir) / 'q.json')
-    os.environ['CLAWGUARD_QUARANTINE_PATH'] = str(Path(tmpdir) / 'q.json')
+    os.environ['ARGUS_QUARANTINE_PATH'] = str(Path(tmpdir) / 'q.json')
     users_file = Path(tmpdir) / "users.txt"
     resources_file = Path(tmpdir) / "resources.txt"
 
@@ -101,9 +100,9 @@ db:public_db            | 1 | flat
 
     old_store = auth_gateway._store
     auth_gateway._store = store
-    old_q = os.environ.get('CLAWGUARD_QUARANTINE_PATH')
+    old_q = os.environ.get('ARGUS_QUARANTINE_PATH')
     qfile = Path(tmpdir) / 'q.json'
-    os.environ['CLAWGUARD_QUARANTINE_PATH'] = str(qfile)
+    os.environ['ARGUS_QUARANTINE_PATH'] = str(qfile)
 
     return tmpdir, store, (old_store, old_q)
 
@@ -114,9 +113,9 @@ def _teardown_test_env(tmpdir, old_store):
         store_obj, old_q = old_store
         auth_gateway._store = store_obj
         if old_q is not None:
-            os.environ['CLAWGUARD_QUARANTINE_PATH'] = old_q
+            os.environ['ARGUS_QUARANTINE_PATH'] = old_q
         else:
-            os.environ.pop('CLAWGUARD_QUARANTINE_PATH', None)
+            os.environ.pop('ARGUS_QUARANTINE_PATH', None)
     else:
         auth_gateway._store = old_store
     shutil.rmtree(tmpdir)
@@ -505,7 +504,7 @@ class TestV4Adapter:
     def test_adapter_pydantic_model_input():
         tmpdir, store, old = _setup_test_env()
         try:
-            from clawguard.common.models import SecurityRequest, RequestContext
+            from argus.common.models import SecurityRequest, RequestContext
             adapter = AccessControlAdapter(risk_link_enabled=False)
 
             req = SecurityRequest(
@@ -1112,7 +1111,7 @@ class TestRiskLinkIntegration:
 
 def run_all_tests():
     print("=" * 70)
-    print("Clawguard 访问控制全量测试套件 (51 项测试)")
+    print("Argus 访问控制全量测试套件 (51 项测试)")
     print("=" * 70)
 
     test_groups = [

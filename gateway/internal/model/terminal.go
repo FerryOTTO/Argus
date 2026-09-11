@@ -2,7 +2,7 @@ package model
 
 import "time"
 
-// AgentTerminal 表示一台接入遥测/集控端的智能体终端（当前为运行 OpenClaw + Clawguard 的主机）。
+// AgentTerminal 表示一台接入遥测/集控端的智能体终端（当前为运行 OpenClaw + Argus 的主机）。
 // 敏感凭据字段（RegistrationCodeHash/TelemetryTokenHash）永不出现在 JSON 响应中。
 type AgentTerminal struct {
 	ID            int64   `db:"id" json:"id"`
@@ -16,12 +16,12 @@ type AgentTerminal struct {
 	Hostname         string     `db:"hostname" json:"hostname"`
 	OSInfo           string     `db:"os_info" json:"os_info"`
 	AgentVersion     string     `db:"agent_version" json:"agent_version"`
-	ClawguardVersion string     `db:"clawguard_version" json:"clawguard_version"`
+	ArgusVersion string     `db:"argus_version" json:"argus_version"`
 	LastSeenAt       *time.Time `db:"last_seen_at" json:"last_seen_at,omitempty"`
 	// 纯遥测上报聚合的运行指标（客户端累计增量上报，见 REMOTE.md）
 	TokenUsageTotal int64 `db:"token_usage_total" json:"token_usage_total"`
 	AlertCountTotal int64 `db:"alert_count_total" json:"alert_count_total"`
-	// 集控下发的 Clawguard 配置（不透明文本，配置内容经独立端点读写）
+	// 集控下发的 Argus 配置（不透明文本，配置内容经独立端点读写）
 	DesiredConfig        string     `db:"desired_config" json:"-"`
 	ConfigVersion        int64      `db:"config_version" json:"config_version"`
 	ConfigUpdatedAt      *time.Time `db:"config_updated_at" json:"config_updated_at,omitempty"`

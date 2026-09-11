@@ -19,10 +19,10 @@ import os
 from time import perf_counter
 from typing import Any
 
-from clawguard.adapters.base import BaseAdapter
-from clawguard.common.models import ModuleResult, SecurityRequest
-from clawguard.modules.access_control.original.auth_gateway import check_v4
-from clawguard.modules.access_control.risk_link import (
+from argus.adapters.base import BaseAdapter
+from argus.common.models import ModuleResult, SecurityRequest
+from argus.modules.access_control.original.auth_gateway import check_v4
+from argus.modules.access_control.risk_link import (
     AuditRiskMonitor,
     DynamicLinePolicy,
 )
@@ -38,11 +38,11 @@ class AccessControlAdapter(BaseAdapter):
         risk_policy: DynamicLinePolicy | None = None,
         risk_link_enabled: bool | None = None,
     ) -> None:
-        # 审计联动默认开启；可用 CLAWGUARD_AC_RISK_LINK=0 关闭
+        # 审计联动默认开启；可用 ARGUS_AC_RISK_LINK=0 关闭
         self._risk_link_enabled = (
             risk_link_enabled
             if risk_link_enabled is not None
-            else os.getenv("CLAWGUARD_AC_RISK_LINK", "1") != "0"
+            else os.getenv("ARGUS_AC_RISK_LINK", "1") != "0"
         )
         self._risk_monitor = risk_monitor or AuditRiskMonitor()
         self._risk_policy = risk_policy or DynamicLinePolicy()

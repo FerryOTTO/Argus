@@ -24,12 +24,12 @@ const (
 	maxAuditObjectBytes    = 64 << 10 // content/metadata JSON 序列化后单对象上限 64KB
 )
 
-// agentAuditActions 是 Clawguard AuditEvent.action 的合法取值（与客户端契约一致）
+// agentAuditActions 是 Argus AuditEvent.action 的合法取值（与客户端契约一致）
 var agentAuditActions = map[string]bool{
 	"allow": true, "block": true, "rewrite": true, "human_review": true,
 }
 
-// telemetryAuditEventRequest 对应 Clawguard 本地 audit-events.jsonl 的一条 AuditEvent。
+// telemetryAuditEventRequest 对应 Argus 本地 audit-events.jsonl 的一条 AuditEvent。
 // 字段名与客户端契约（REMOTE.md §4.7）一致。
 type telemetryAuditEventRequest struct {
 	EventID      string         `json:"event_id" binding:"required"`
@@ -51,7 +51,7 @@ type telemetryAuditUploadRequest struct {
 }
 
 // UploadAuditEvents handles POST /telemetry/v1/audit/events.
-// 客户端周期批量上传 Clawguard 审计事件（全量，含 allow）；服务端按
+// 客户端周期批量上传 Argus 审计事件（全量，含 allow）；服务端按
 // (terminal_id, event_id) 幂等去重，客户端以 200 为准推进本地"已上传游标"。
 // 整批全有或全无：任一条非法即 400 且整批不落库（message 携带 events[i] 索引定位），
 // 防止客户端缺陷导致事件静默丢失。

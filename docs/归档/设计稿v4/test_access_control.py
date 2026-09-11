@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 ================================================================
-Clawguard v4 — 访问控制全面测试套件
+Argus v4 — 访问控制全面测试套件
 ================================================================
 覆盖范围：
   1. v3 核心功能测试（RBAC/MAC/Hybrid、树状匹配、规则管理）
@@ -359,7 +359,7 @@ tool:read_file       | internal    | flat
         store = _make_store(uf, rf)
         old = _patch_store(store)
         try:
-            os.environ["CLAWGUARD_MODE"] = "rbac"
+            os.environ["ARGUS_MODE"] = "rbac"
             import auth_gateway
             auth_gateway.ACCESS_CONTROL_MODE = "rbac"
             ok, reason = check_reason("user_internal", "", "tool:read_file", "")
@@ -368,7 +368,7 @@ tool:read_file       | internal    | flat
             assert ok == False and "block" in reason
             store.set_mac_label("user_mac", 3, {"财务"})
             store.set_resource_mac_label("tool:write_file", 3, {"财务"})
-            os.environ["CLAWGUARD_MODE"] = "mac"
+            os.environ["ARGUS_MODE"] = "mac"
             auth_gateway.ACCESS_CONTROL_MODE = "mac"
             ok, reason = check_reason("user_mac", "", "tool:write_file", "")
             assert ok == True and "MAC" in reason
@@ -376,7 +376,7 @@ tool:read_file       | internal    | flat
         finally:
             _patch_store(old)
             shutil.rmtree(tmpdir)
-            os.environ["CLAWGUARD_MODE"] = "rbac"
+            os.environ["ARGUS_MODE"] = "rbac"
             import auth_gateway
             auth_gateway.ACCESS_CONTROL_MODE = "rbac"
 
@@ -557,7 +557,7 @@ class TestE2E:
     @staticmethod
     def test_e2e_full_request_allow():
         """C1: 完整请求链路 — 放行"""
-        # 模拟 Clawguard FastAPI 收到的完整 SecurityRequest
+        # 模拟 Argus FastAPI 收到的完整 SecurityRequest
         security_request = {
             "context": {
                 "trace_id": "trace-e2e-001",
@@ -788,7 +788,7 @@ class TestPerformance:
 def run_all_tests():
     """运行全部测试"""
     print("=" * 70)
-    print("Clawguard v4 访问控制 — 全面测试套件")
+    print("Argus v4 访问控制 — 全面测试套件")
     print("=" * 70)
 
     test_groups = [

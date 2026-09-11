@@ -1,5 +1,5 @@
 """
-Clawguard 访问控制网关 — 测试与演示脚本
+Argus 访问控制网关 — 测试与演示脚本
 ============================================================
 对核心函数 check() 做覆盖性验证：
   - 4 种用户等级放行路径
@@ -37,7 +37,7 @@ def _case(name, expect, uid, path="", tool="", database=""):
 
 def run_demo():
     print("=" * 72)
-    print("       🛡️  Clawguard 访问控制网关 — 核心函数验证")
+    print("       🛡️  Argus 访问控制网关 — 核心函数验证")
     print("=" * 72)
     print(" 函数签名： check(user_id, path, tool, database) -> bool (True=allow)")
     print(" 规则文件： rules/users.txt | rules/resources.txt\n")

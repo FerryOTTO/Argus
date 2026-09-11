@@ -1,7 +1,7 @@
 {
-  "appId": "com.clawguard.desktop",
-  "productName": "Clawguard",
-  "artifactName": "Clawguard-${version}-${arch}.${ext}",
+  "appId": "com.argus.desktop",
+  "productName": "Argus",
+  "artifactName": "Argus-${version}-${arch}.${ext}",
   "directories": {
     "output": "release-nsis",
     "buildResources": "build"
@@ -37,7 +37,7 @@
     "allowToChangeInstallationDirectory": true,
     "createDesktopShortcut": true,
     "createStartMenuShortcut": true,
-    "shortcutName": "Clawguard",
+    "shortcutName": "Argus",
     "include": "build/installer.nsh"
   },
   "extraFiles": [

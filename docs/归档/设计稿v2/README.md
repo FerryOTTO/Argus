@@ -1,4 +1,4 @@
-# Clawguard 访问控制网关 — 架构与实现报告
+# Argus 访问控制网关 — 架构与实现报告
 
 > **项目**：挑战杯 · 访问控制网关  
 > **版本**：v2（最终提交版）  
@@ -9,7 +9,7 @@
 
 ## 一、项目概述
 
-Clawguard 是一个与 AI 网关（OpenClaw）集成的访问控制模块，核心目标是为 AI Agent 的工具调用、文件读写、数据库访问等操作提供最小粒度的安全管控。
+Argus 是一个与 AI 网关（OpenClaw）集成的访问控制模块，核心目标是为 AI Agent 的工具调用、文件读写、数据库访问等操作提供最小粒度的安全管控。
 
 ### 设计原则（对接需求方 刘欣亚 的明确要求）
 
@@ -229,7 +229,7 @@ def reload_rules() -> None:
 在 [proxy.py](proxy.py) 的 `proxy_to_openclaw()` 函数中，在 JWT 验证之后、请求转发之前插入：
 
 ```python
-# -------- 🛡️ Clawguard 访问控制 --------
+# -------- 🛡️ Argus 访问控制 --------
 # 从 JWT 中的 security_level 同步到规则引擎
 sync_external_user(user.user_id, user.security_level)
 
@@ -254,10 +254,10 @@ if not allowed:
 以下是在 OpenClaw 聊天中，用户请求"访问磁盘的 Windows 文件夹"时的拦截日志：
 
 ```
-[Clawguard] BLOCK user=adminuser path=/etc/hosts → block: 用户等级 4 < 资源所需 4
+[Argus] BLOCK user=adminuser path=/etc/hosts → block: 用户等级 4 < 资源所需 4
 ```
 
-Clawguard 在网关层拦截了该请求，Agent 无法执行 Shell 命令访问文件系统。用户关闭插件后恢复正常。
+Argus 在网关层拦截了该请求，Agent 无法执行 Shell 命令访问文件系统。用户关闭插件后恢复正常。
 
 ---
 

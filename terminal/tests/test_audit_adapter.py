@@ -6,10 +6,10 @@ import json
 import pytest
 from fastapi.testclient import TestClient
 
-from clawguard.adapters.audit_adapter import AuditAdapter
-from clawguard.api.main import app
-from clawguard.common.models import RequestContext, SecurityRequest
-from clawguard.core.registry import registry
+from argus.adapters.audit_adapter import AuditAdapter
+from argus.api.main import app
+from argus.common.models import RequestContext, SecurityRequest
+from argus.core.registry import registry
 
 
 def audit_event(**overrides):
@@ -52,7 +52,7 @@ def test_valid_audit_event_is_written_and_original_values_are_preserved(
     tmp_path, monkeypatch
 ):
     destination = tmp_path / "audit.jsonl"
-    monkeypatch.setenv("CLAWGUARD_AUDIT_PATH", str(destination))
+    monkeypatch.setenv("ARGUS_AUDIT_PATH", str(destination))
 
     result = run_adapter(AuditAdapter(), audit_event())
 
@@ -77,7 +77,7 @@ def test_valid_audit_event_is_written_and_original_values_are_preserved(
 
 
 def test_audit_endpoint_no_longer_returns_mock_reason(tmp_path, monkeypatch):
-    monkeypatch.setenv("CLAWGUARD_AUDIT_PATH", str(tmp_path / "api.jsonl"))
+    monkeypatch.setenv("ARGUS_AUDIT_PATH", str(tmp_path / "api.jsonl"))
     response = TestClient(app).post("/v1/audit/event", json=audit_event())
 
     assert response.status_code == 200
@@ -92,8 +92,8 @@ def test_audit_endpoint_no_longer_returns_mock_reason(tmp_path, monkeypatch):
 def test_low_and_high_scores_only_change_direct_risk_marker(
     tmp_path, monkeypatch
 ):
-    monkeypatch.setenv("CLAWGUARD_AUDIT_PATH", str(tmp_path / "risk.jsonl"))
-    monkeypatch.setenv("CLAWGUARD_AUDIT_RISK_THRESHOLD", "0.5")
+    monkeypatch.setenv("ARGUS_AUDIT_PATH", str(tmp_path / "risk.jsonl"))
+    monkeypatch.setenv("ARGUS_AUDIT_RISK_THRESHOLD", "0.5")
     adapter = AuditAdapter()
 
     low = run_adapter(
@@ -121,7 +121,7 @@ def test_identical_event_retry_is_idempotent_and_trace_remains_queryable(
     tmp_path, monkeypatch
 ):
     destination = tmp_path / "idempotent.jsonl"
-    monkeypatch.setenv("CLAWGUARD_AUDIT_PATH", str(destination))
+    monkeypatch.setenv("ARGUS_AUDIT_PATH", str(destination))
     client = TestClient(app)
 
     first = client.post("/v1/audit/event", json=audit_event())
@@ -132,7 +132,7 @@ def test_identical_event_retry_is_idempotent_and_trace_remains_queryable(
     assert retry.json()["success"] is True
     assert len(destination.read_text(encoding="utf-8").splitlines()) == 1
 
-    from clawguard.modules.audit.original import AuditQuery, AuditStore
+    from argus.modules.audit.original import AuditQuery, AuditStore
 
     trace = AuditQuery(AuditStore(destination)).get_trace("trace-adapter")
     assert trace is not None
@@ -145,7 +145,7 @@ def test_conflicting_duplicate_event_is_rejected_without_changing_log(
     tmp_path, monkeypatch
 ):
     destination = tmp_path / "conflict.jsonl"
-    monkeypatch.setenv("CLAWGUARD_AUDIT_PATH", str(destination))
+    monkeypatch.setenv("ARGUS_AUDIT_PATH", str(destination))
     adapter = AuditAdapter()
 
     first = run_adapter(adapter, audit_event())
@@ -191,7 +191,7 @@ def test_write_failure_does_not_make_fastapi_return_unhandled_500(monkeypatch):
 
 def test_adapter_revalidates_payload_before_writing(tmp_path, monkeypatch):
     destination = tmp_path / "invalid.jsonl"
-    monkeypatch.setenv("CLAWGUARD_AUDIT_PATH", str(destination))
+    monkeypatch.setenv("ARGUS_AUDIT_PATH", str(destination))
     invalid = audit_event()
     invalid.pop("event_id")
 

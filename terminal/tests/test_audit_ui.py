@@ -6,8 +6,8 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from clawguard.api.audit_routes import router as audit_router
-from clawguard.api.main import app
+from argus.api.audit_routes import router as audit_router
+from argus.api.main import app
 
 
 CLIENT = TestClient(app)
@@ -16,8 +16,8 @@ CLIENT = TestClient(app)
 @pytest.fixture
 def empty_audit_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     path = tmp_path / "empty.jsonl"
-    monkeypatch.setenv("CLAWGUARD_AUDIT_PATH", str(path))
-    monkeypatch.delenv("CLAWGUARD_AUDIT_RISK_REVIEW_PATH", raising=False)
+    monkeypatch.setenv("ARGUS_AUDIT_PATH", str(path))
+    monkeypatch.delenv("ARGUS_AUDIT_RISK_REVIEW_PATH", raising=False)
     return path
 
 

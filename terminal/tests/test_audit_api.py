@@ -8,8 +8,8 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from clawguard.api.main import app
-from clawguard.modules.audit.original import AuditStore
+from argus.api.main import app
+from argus.modules.audit.original import AuditStore
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -24,9 +24,9 @@ def _fixture_events() -> list[dict]:
 @pytest.fixture
 def audit_path(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     path = tmp_path / "audit-events.jsonl"
-    monkeypatch.setenv("CLAWGUARD_AUDIT_PATH", str(path))
-    monkeypatch.setenv("CLAWGUARD_AUDIT_RISK_THRESHOLD", "0.5")
-    monkeypatch.delenv("CLAWGUARD_AUDIT_RISK_REVIEW_PATH", raising=False)
+    monkeypatch.setenv("ARGUS_AUDIT_PATH", str(path))
+    monkeypatch.setenv("ARGUS_AUDIT_RISK_THRESHOLD", "0.5")
+    monkeypatch.delenv("ARGUS_AUDIT_RISK_REVIEW_PATH", raising=False)
     return path
 
 

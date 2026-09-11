@@ -20,17 +20,17 @@ echo "terminal_id=$TERM_ID code=${CODE:0:8}..."
 
 echo "== 3) 客户端注册（注册码换取遥测令牌） =="
 REG=$(curl -s -X POST $BASE/telemetry/v1/register -H "Content-Type: application/json" \
-  -d "{\"registration_code\":\"$CODE\",\"hostname\":\"dev-mac\",\"os_info\":\"macOS 26.5.1\",\"agent_type\":\"openclaw\",\"agent_version\":\"2026.6.11\",\"clawguard_version\":\"2.1.0\"}")
+  -d "{\"registration_code\":\"$CODE\",\"hostname\":\"dev-mac\",\"os_info\":\"macOS 26.5.1\",\"agent_type\":\"openclaw\",\"agent_version\":\"2026.6.11\",\"argus_version\":\"2.1.0\"}")
 TOKEN=$(echo "$REG" | J "['data']['token']")
 echo "注册成功: terminal_id=$(echo "$REG" | J "['data']['terminal_id']") token=${TOKEN:0:8}..."
 
 echo "== 4) 心跳 =="
 curl -s -X POST $BASE/telemetry/v1/heartbeat \
   -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" \
-  -d '{"hostname":"dev-mac","clawguard_version":"2.1.0"}'
+  -d '{"hostname":"dev-mac","argus_version":"2.1.0"}'
 echo
 
-echo "== 5) 管理端下发 Clawguard 配置 =="
+echo "== 5) 管理端下发 Argus 配置 =="
 # 用 python 构造嵌套 JSON，避免 shell 转义问题
 CONFIG_PAYLOAD=$(python3 -c "import json; print(json.dumps({'config': json.dumps({'modules': {'io_guard': {'enabled': True, 'risk_threshold': 0.8}}})}))")
 curl -s -X PUT $BASE/api/admin/terminals/$TERM_ID/config \
@@ -66,7 +66,7 @@ echo "== 10) 管理端查看终端列表（聚合数据） =="
 curl -s "$BASE/api/admin/terminals?keyword=dev-test-01" -H "Authorization: Bearer $ADMIN_TOKEN" | python3 -c "
 import sys, json
 d = json.load(sys.stdin)['data'][0]
-keys = ['id','name','agent_type','bound_username','hostname','clawguard_version','agent_version','status','online','token_usage_total','alert_count_total','config_version','config_applied_version','last_seen_at']
+keys = ['id','name','agent_type','bound_username','hostname','argus_version','agent_version','status','online','token_usage_total','alert_count_total','config_version','config_applied_version','last_seen_at']
 for k in keys: print(f'  {k}: {d.get(k)}')
 "
 echo "== E2E PASS =="

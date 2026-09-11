@@ -1,10 +1,10 @@
-﻿# Clawguard Desktop portable launcher
+﻿# Argus Desktop portable launcher
 # Starts all local services and then launches the desktop application.
 
 $ErrorActionPreference = 'Stop'
 $projectDir = Split-Path -Parent $PSScriptRoot
 $bundleRoot = Split-Path -Parent $projectDir
-# The Argus monorepo calls the backend `terminal/`; `ClawguardV2.1/` is the
+# The Argus monorepo calls the backend `terminal/`; `Argus/` is the
 # historical name kept so older portable bundles still start.
 $backendDir = @('terminal', 'ClawguardV2.1') |
     ForEach-Object { Join-Path $bundleRoot $_ } |
@@ -13,7 +13,7 @@ $backendDir = @('terminal', 'ClawguardV2.1') |
 if (-not $backendDir) { $backendDir = Join-Path $bundleRoot 'terminal' }
 $openGuardDir = Join-Path $backendDir 'openguard\original'
 $builderCmd = Join-Path $projectDir 'node_modules\.bin\electron-builder.cmd'
-$packagedExe = Join-Path $projectDir 'release\win-unpacked\Clawguard.exe'
+$packagedExe = Join-Path $projectDir 'release\win-unpacked\Argus.exe'
 $logDir = Join-Path $projectDir 'runtime-logs'
 $bundledStateDir = Join-Path $bundleRoot 'openclaw-data'
 $userStateDir = Join-Path ($env:USERPROFILE) '.openclaw'
@@ -49,22 +49,22 @@ if (Test-Path -LiteralPath $portableNodeDir) {
 }
 
 $pythonExe = Select-ExistingPath @(
-    $env:CLAWGUARD_PYTHON,
+    $env:ARGUS_PYTHON,
     $portablePythonExe,
     (Get-Command python.exe -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty Source),
     (Get-Command py.exe -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty Source)
 )
-if (-not $pythonExe) { throw 'Python was not found. Install Python (or set CLAWGUARD_PYTHON, or put a portable copy in ..\python).' }
+if (-not $pythonExe) { throw 'Python was not found. Install Python (or set ARGUS_PYTHON, or put a portable copy in ..\python).' }
 
 $nodeExe = Select-ExistingPath @(
-    $env:CLAWGUARD_NODE,
+    $env:ARGUS_NODE,
     $portableNodeExe,
     (Get-Command node.exe -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty Source)
 )
-if (-not $nodeExe) { throw 'Node.js was not found. Put a portable Node.js copy in ..\nodejs or set CLAWGUARD_NODE.' }
+if (-not $nodeExe) { throw 'Node.js was not found. Put a portable Node.js copy in ..\nodejs or set ARGUS_NODE.' }
 
 $npmCmd = Select-ExistingPath @(
-    $env:CLAWGUARD_NPM,
+    $env:ARGUS_NPM,
     $portableNpmCmd,
     (Get-Command npm.cmd -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty Source)
 )
@@ -77,13 +77,9 @@ if (Test-Path -LiteralPath $stateDir) {
     $env:OPENCLAW_STATE_DIR = $stateDir
 }
 $env:ARGUS_BUNDLE_ROOT = $bundleRoot
-$env:CLAWGUARD_BUNDLE_ROOT = $bundleRoot
 $env:ARGUS_BACKEND_DIR = $backendDir
-$env:CLAWGUARD_BACKEND_DIR = $backendDir
 $env:ARGUS_PYTHON = $pythonExe
-$env:CLAWGUARD_PYTHON = $pythonExe
 $env:ARGUS_NODE = $nodeExe
-$env:CLAWGUARD_NODE = $nodeExe
 
 function Repair-PortableOpenClawConfig {
     $configPath = Join-Path $stateDir 'openclaw.json'
@@ -121,14 +117,14 @@ function Repair-PortableOpenClawConfig {
     catch { Write-Host "OpenClaw config was not valid after path migration: $configPath" -ForegroundColor Yellow }
 }
 
-function Sync-ClawguardAdapterPlugin {
-    $pluginSource = Join-Path $backendDir 'openclaw_adapter\plugins\clawguard-adapter'
+function Sync-ArgusAdapterPlugin {
+    $pluginSource = Join-Path $backendDir 'openclaw_adapter\plugins\argus-adapter'
     $sourceDist = Join-Path $pluginSource 'dist'
     if (-not (Test-Path -LiteralPath $sourceDist)) {
-        Write-Host "Clawguard adapter plugin was not found: $sourceDist" -ForegroundColor Yellow
+        Write-Host "Argus adapter plugin was not found: $sourceDist" -ForegroundColor Yellow
         return
     }
-    $pluginTarget = Join-Path $stateDir 'extensions\clawguard-adapter'
+    $pluginTarget = Join-Path $stateDir 'extensions\argus-adapter'
     $targetDist = Join-Path $pluginTarget 'dist'
     New-Item -ItemType Directory -Force -Path $targetDist | Out-Null
     Get-ChildItem -LiteralPath $sourceDist -Force | Copy-Item -Destination $targetDist -Recurse -Force
@@ -138,11 +134,11 @@ function Sync-ClawguardAdapterPlugin {
             Copy-Item -LiteralPath $sourceFile -Destination $pluginTarget -Force
         }
     }
-    Write-Host "Clawguard adapter plugin synced to $pluginTarget" -ForegroundColor DarkGray
+    Write-Host "Argus adapter plugin synced to $pluginTarget" -ForegroundColor DarkGray
 }
 
 Repair-PortableOpenClawConfig
-Sync-ClawguardAdapterPlugin
+Sync-ArgusAdapterPlugin
 function Test-LocalPort {
     param([int]$Port)
     $client = New-Object System.Net.Sockets.TcpClient
@@ -190,14 +186,14 @@ function Start-BackendService {
 
     # 默认用隐藏模式拉起服务（不弹窗），日志落 $stdoutPath/$stderrPath。
     # 需要可见的「日志终端」窗口时，显式设 ARGUS_CONSOLE_LOG=1。
-    $useConsoleWindow = (("$env:ARGUS_CONSOLE_LOG" -eq '1') -or ("$env:CLAWGUARD_CONSOLE_LOG" -eq '1'))
+    $useConsoleWindow = (("$env:ARGUS_CONSOLE_LOG" -eq '1'))
     if ($useConsoleWindow) {
-        $consoleScript = Join-Path $projectDir 'scripts\ClawguardServiceConsole.ps1'
+        $consoleScript = Join-Path $projectDir 'scripts\ArgusServiceConsole.ps1'
         if (Test-Path -LiteralPath $consoleScript) {
             $argsB64 = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes((ConvertTo-Json -InputObject @($ArgumentList) -Compress)))
             Start-Process powershell -ArgumentList @(
                 '-NoLogo', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $consoleScript,
-                '-Title', "Clawguard · $Name 日志",
+                '-Title', "Argus · $Name 日志",
                 '-Name', $Name,
                 '-Executable', $FilePath,
                 '-ArgumentsB64', $argsB64,
@@ -236,7 +232,7 @@ if (-not (Test-Path -LiteralPath $builderCmd)) {
 if (-not (Test-Path -LiteralPath $backendDir)) { throw "Backend project was not found: $backendDir" }
 
 Write-Host ''
-Write-Host 'Building, starting all services, and launching Clawguard Desktop...' -ForegroundColor Cyan
+Write-Host 'Building, starting all services, and launching Argus Desktop...' -ForegroundColor Cyan
 
 Push-Location -LiteralPath $projectDir
 try {
@@ -244,7 +240,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Frontend build failed. Exit code: $LASTEXITCODE" }
 
     $devElectronExe = Join-Path $projectDir 'node_modules\electron\dist\electron.exe'
-    $oldProcesses = Get-CimInstance -ClassName Win32_Process -Filter "Name = 'Clawguard.exe' OR Name = 'electron.exe'" |
+    $oldProcesses = Get-CimInstance -ClassName Win32_Process -Filter "Name = 'Argus.exe' OR Name = 'electron.exe'" |
         Where-Object {
             ($_.ExecutablePath -and $_.ExecutablePath -ieq $packagedExe) -or
             ($_.ExecutablePath -and $_.ExecutablePath -ieq $devElectronExe)
@@ -253,20 +249,19 @@ try {
 
     & $builderCmd --win dir --x64 --publish never
     if ($LASTEXITCODE -ne 0) { throw "Windows packaging failed. Exit code: $LASTEXITCODE" }
-    if (-not (Test-Path -LiteralPath $packagedExe)) { throw "Packaged Clawguard executable was not created: $packagedExe" }
+    if (-not (Test-Path -LiteralPath $packagedExe)) { throw "Packaged Argus executable was not created: $packagedExe" }
 
-    $fastApiArgs = @('-m', 'uvicorn', 'clawguard.api.main:app', '--host', '127.0.0.1', '--port', '8000')
+    $fastApiArgs = @('-m', 'uvicorn', 'argus.api.main:app', '--host', '127.0.0.1', '--port', '8000')
     $null = Start-BackendService -Name 'FastAPI' -Port 8000 -FilePath $pythonExe -ArgumentList $fastApiArgs -WorkingDirectory $backendDir
 
     $openClawEntry = Select-ExistingPath @(
-        $env:CLAWGUARD_OPENCLAW_ENTRY,
+        $env:ARGUS_OPENCLAW_ENTRY,
         (Join-Path $bundleRoot 'openclaw\openclaw.mjs'),
         (Join-Path $env:APPDATA 'npm\node_modules\openclaw\openclaw.mjs'),
         (Join-Path $env:USERPROFILE 'AppData\Roaming\npm\node_modules\openclaw\openclaw.mjs')
     )
     if ($openClawEntry) {
         $env:ARGUS_OPENCLAW_ENTRY = $openClawEntry
-$env:CLAWGUARD_OPENCLAW_ENTRY = $openClawEntry
         $openClawArgs = @($openClawEntry, 'gateway', 'run', '--allow-unconfigured', '--port', '18789', '--bind', 'loopback')
         $null = Start-BackendService -Name 'OpenClaw' -Port 18789 -FilePath $nodeExe -ArgumentList $openClawArgs -WorkingDirectory $bundleRoot
     } else { Write-Host 'OpenClaw skipped: openclaw.mjs was not found.' -ForegroundColor Yellow }
@@ -275,11 +270,9 @@ $env:CLAWGUARD_OPENCLAW_ENTRY = $openClawEntry
     # FastAPI and OpenClaw, matching the three-part status ring in the renderer.
 
     Start-Process -FilePath $packagedExe -WorkingDirectory $projectDir
-    Write-Host 'All services and Clawguard Desktop started.' -ForegroundColor Green
+    Write-Host 'All services and Argus Desktop started.' -ForegroundColor Green
 }
 finally { Pop-Location }
-
-
 
 
 

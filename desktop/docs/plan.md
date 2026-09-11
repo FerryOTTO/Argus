@@ -1,14 +1,14 @@
-# Clawguard Desktop (Electron + Vue 3 + MiMo Code UI) 实施方案
+# Argus Desktop (Electron + Vue 3 + MiMo Code UI) 实施方案
 
-本方案旨在响应用户指示，在独立目录 `e:/tiaozhanbei/MAC/clawguard-desktop` 下完整构建基于 **Electron + Vite + Vue 3 + Tailwind CSS + Lucide 图标** 的 Clawguard 桌面客户端。同时深入参考 CSDN 教程《小米MiMoCode官网颜值高？Codex：拿来吧，您嘞！1:1完美复刻～》，实现 MiMo Code（`mimo.xiaomi.com/zh/mimocode`）的 1:1 高保真设计语言，包含**鼠标擦除露图背景特效**、**打字机动效**、**Bento 卡片栅格系统**及**守护进程静默管理**。
+本方案旨在响应用户指示，在独立目录 `e:/tiaozhanbei/MAC/argus-desktop` 下完整构建基于 **Electron + Vite + Vue 3 + Tailwind CSS + Lucide 图标** 的 Argus 桌面客户端。同时深入参考 CSDN 教程《小米MiMoCode官网颜值高？Codex：拿来吧，您嘞！1:1完美复刻～》，实现 MiMo Code（`mimo.xiaomi.com/zh/mimocode`）的 1:1 高保真设计语言，包含**鼠标擦除露图背景特效**、**打字机动效**、**Bento 卡片栅格系统**及**守护进程静默管理**。
 
 ---
 
 ## 1. 核心架构与目录规划
 
-为保持根目录整洁，所有桌面端代码、配置文件与辅助脚本均收拢在 `clawguard-desktop/` 目录中：
+为保持根目录整洁，所有桌面端代码、配置文件与辅助脚本均收拢在 `argus-desktop/` 目录中：
 
-e:/tiaozhanbei/MAC/clawguard-desktop/
+e:/tiaozhanbei/MAC/argus-desktop/
 
 ├── DESIGN.md                     # 参考 Google Labs 规范的 MiMo Code 设计系统文档
 
@@ -91,7 +91,7 @@ e:/tiaozhanbei/MAC/clawguard-desktop/
 ## 4. 实施阶段计划
 
 - **第一阶段：独立目录创建与设计系统建立**
-  - 创建 `e:/tiaozhanbei/MAC/clawguard-desktop`。
+  - 创建 `e:/tiaozhanbei/MAC/argus-desktop`。
   - 编写 `DESIGN.md`，定义 MiMo Code 调色板、圆角、阴影、光晕与动画 Token。
 - **第二阶段：工程脚手架配置**
   - 安装并配置 `package.json`、`vite.config.js`、`tailwind.config.js`、`postcss.config.js`。
@@ -109,7 +109,7 @@ e:/tiaozhanbei/MAC/clawguard-desktop/
 ## 5. 验证计划
 
 1. **构建与启动验证**：
-   - 在 `clawguard-desktop` 目录下运行 `npm install` 与 `npm run build` / `npm run dev`，确保无报错。
+   - 在 `argus-desktop` 目录下运行 `npm install` 与 `npm run build` / `npm run dev`，确保无报错。
 2. **视觉保真验证**：
    - 验证无边框窗口渲染、MiMo Code 小米橙色调、打字机动效、鼠标移动擦除露图特效及 Bento 卡片 hover 光晕。
 3. **功能验证**：

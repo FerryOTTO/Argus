@@ -1,7 +1,7 @@
 // ============================================================================
 // 访问控制规则文件（users.txt / resources.txt）文本 ↔ 可视化表格行互转
 //
-// 文本格式（Clawguard auth_gateway 解析规则，CONFIGS.md §4.1）：
+// 文本格式（Argus auth_gateway 解析规则，CONFIGS.md §4.1）：
 //   users.txt:     用户名或ID | 默认等级 | 特例(逗号分隔,可选)
 //   resources.txt: 路径模式 | 所需等级 | 继承模式(flat/inherit/override)
 // 解析行为与后端一致：整行以 '#' 开头或空行跳过；'|' 切列并剥行内注释；
@@ -38,10 +38,10 @@ function stripInlineComment(s: string): string {
   return s.replace(/\s+#.*$/, '')
 }
 
-/** 文件头注释（按字段 key 定位目标文件；风格与 Clawguard 后端保存一致） */
+/** 文件头注释（按字段 key 定位目标文件；风格与 Argus 后端保存一致） */
 const FILE_HEADERS: Record<string, string[]> = {
-  users: ['# Clawguard 用户规则', '# 格式: 用户名或ID | 默认等级 | 特例(逗号分隔,可选)'],
-  resources: ['# Clawguard 资源规则', '# 格式: 路径模式 | 所需等级 | 继承模式(flat/inherit/override)'],
+  users: ['# Argus 用户规则', '# 格式: 用户名或ID | 默认等级 | 特例(逗号分隔,可选)'],
+  resources: ['# Argus 资源规则', '# 格式: 路径模式 | 所需等级 | 继承模式(flat/inherit/override)'],
 }
 
 /** 解析规则文件文本为表格行（过滤空行/注释行，等级别名归一） */

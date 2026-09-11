@@ -18,14 +18,14 @@ import os
 from datetime import datetime, timedelta, timezone
 from typing import Any, Callable
 
-from clawguard.modules.audit.original import AuditStore
-from clawguard.modules.audit.original.storage import parse_timestamp
+from argus.modules.audit.original import AuditStore
+from argus.modules.audit.original.storage import parse_timestamp
 
 # 默认配置（可用环境变量覆盖）
-DEFAULT_WINDOW_SECONDS = int(os.getenv("CLAWGUARD_RISK_WINDOW_SECONDS", "300"))
-DEFAULT_RISK_THRESHOLD = float(os.getenv("CLAWGUARD_RISK_THRESHOLD", "0.6"))
-DEFAULT_PROBE_BLOCK_COUNT = int(os.getenv("CLAWGUARD_RISK_PROBE_BLOCK_COUNT", "3"))
-DEFAULT_ESCALATION_THRESHOLD = float(os.getenv("CLAWGUARD_RISK_ESCALATION_THRESHOLD", "0.5"))
+DEFAULT_WINDOW_SECONDS = int(os.getenv("ARGUS_RISK_WINDOW_SECONDS", "300"))
+DEFAULT_RISK_THRESHOLD = float(os.getenv("ARGUS_RISK_THRESHOLD", "0.6"))
+DEFAULT_PROBE_BLOCK_COUNT = int(os.getenv("ARGUS_RISK_PROBE_BLOCK_COUNT", "3"))
+DEFAULT_ESCALATION_THRESHOLD = float(os.getenv("ARGUS_RISK_ESCALATION_THRESHOLD", "0.5"))
 
 
 class AuditRiskMonitor:

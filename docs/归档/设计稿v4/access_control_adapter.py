@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Clawguard v4 — 访问控制适配器
+"""Argus v4 — 访问控制适配器
 
 职责：将统一 SecurityRequest 转换为 v3 check() 参数，
       并将 bool 结果转换为统一 ModuleResult。

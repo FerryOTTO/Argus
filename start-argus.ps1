@@ -136,7 +136,7 @@ if ($runTerminal) {
     } else {
         Start-InWindow -Title 'Argus · 终端运行时 :8000' `
             -WorkingDirectory (Join-Path $root 'terminal') `
-            -Command "& '$py' -m uvicorn clawguard.api.main:app --host 0.0.0.0 --port 8000"
+            -Command "& '$py' -m uvicorn argus.api.main:app --host 0.0.0.0 --port 8000"
         Write-Host '  已在新窗口启动。' -ForegroundColor Green
     }
 }

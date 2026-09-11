@@ -1,4 +1,4 @@
-# Clawguard 资源规则
+# Argus 资源规则
 # 格式: 路径模式 | 所需等级 | 继承模式(flat/inherit/override)
 
 tool:* | internal | flat

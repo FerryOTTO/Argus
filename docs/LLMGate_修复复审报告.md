@@ -1,4 +1,4 @@
-# LLMGate × Clawguard 修复复审报告（第二轮）
+# LLMGate × Argus 修复复审报告（第二轮）
 
 - **复审时间**：2026-09-09 10:00 – 10:40
 - **复审方式**：从当前源码重新编译 `llmgate.exe`（09:59 构建）→ 8080 端口重启 → 36 项回归用例（`.tools\verify_fixed.py`）+ 3 个精确定位脚本（`verify2.py` / `verify3_fk.py`）+ 服务端日志取证
@@ -60,14 +60,14 @@ BUG-04 / BUG-05：README 第 109 行起已明确——
 
 ## 三、部分修复（1 项）：BUG-06 客户端同步器
 
-**已完成**：`ClawguardV2.1/clawguard/api/remote_routes.py`（新增）提供 `GET /v1/remote/status`、`POST /v1/remote/bind`、`DELETE /v1/remote/unbind`，桌面端 `EnterpriseMini.vue` 依赖的 status 接口不再 404。
+**已完成**：`Argus/argus/api/remote_routes.py`（新增）提供 `GET /v1/remote/status`、`POST /v1/remote/bind`、`DELETE /v1/remote/unbind`，桌面端 `EnterpriseMini.vue` 依赖的 status 接口不再 404。
 
 **仍缺失（这是当前唯一挡住"管理台看到真实终端在线"的问题）**：
 1. 没有**按注册码注册**的接口（只有手工 bind token），与 LLMGate 的 `POST /telemetry/v1/register` 流程未打通；
 2. 没有**心跳 / 配置拉取 / 回执 / report / audit events** 的任何调度器实现（对接方案 P1/P2 阶段内容）；
-3. `clawguard/remote/` 包（client / counters / audit_tail / scheduler）仍不存在，`runtime/remote/cursors.json` 不存在。
+3. `argus/remote/` 包（client / counters / audit_tail / scheduler）仍不存在，`runtime/remote/cursors.json` 不存在。
 
-**实证**：管理台出现了一台真实终端 `clawguard-home-01`（hostname=home-desktop，clawguard_version=2.1），10:14:15 完成注册（status=active）——说明注册动作已经跑通过一次；但 `last_seen_at` 停在 10:14:15，30 分钟后 `online=false`，`token_usage_total=0`、`config_version=0`、终端审计事件为空。**注册了、然后没有心跳** —— 客户端缺的正是那个循环。
+**实证**：管理台出现了一台真实终端 `argus-home-01`（hostname=home-desktop，argus_version=2.1），10:14:15 完成注册（status=active）——说明注册动作已经跑通过一次；但 `last_seen_at` 停在 10:14:15，30 分钟后 `online=false`，`token_usage_total=0`、`config_version=0`、终端审计事件为空。**注册了、然后没有心跳** —— 客户端缺的正是那个循环。
 
 ---
 
@@ -129,7 +129,7 @@ ERROR failed to create api key ... SQLITE_BUSY
 | 项 | 现状 |
 |---|---|
 | 8080 端口 | ✅ 冲突已消失（原 CEF 调试进程不在了），LLMGate 已按默认配置跑在 8080 |
-| 启动脚本 | ❌ `Start-ClawguardDesktop.ps1` 与 `src/main/daemon.js` 仍不启动 LLMGate |
+| 启动脚本 | ❌ `Start-ArgusDesktop.ps1` 与 `src/main/daemon.js` 仍不启动 LLMGate |
 | `bin/llmgate` | ❌ 仍是 macOS Mach-O（`cf fa ed fe`），Windows 不可用 |
 | 安全配置 | ❌ `jwt_secret: change-me-in-production`、`encrypt_key: ""`（provider key 明文入库，启动日志仍 WARN）、CORS `*` |
 
@@ -150,13 +150,13 @@ ERROR failed to create api key ... SQLITE_BUSY
 
 - `users` 表残留测试账号：`tester_*`（4 个）、`probe_u`、`pwtest`、`rgu_*`（4 个）——清理时遇到 NEW-2 的 BUSY 500，**重试即可删除**；
 - `api_keys` 表残留约 20 个"终端 LLM 凭据 - xxx"测试 Key；
-- `clawguard-home-01`、`dev-test-01`、`e2e-audit-t1` 是真实/原有终端，未动。
+- `argus-home-01`、`dev-test-01`、`e2e-audit-t1` 是真实/原有终端，未动。
 
 ## 九、建议的下一步（按优先级）
 
 1. **NEW-2（SQLITE_BUSY）**：一行 `SetMaxOpenConns(1)` + DSN PRAGMA，性价比最高，同时消除批量操作 500 和审计日志丢失；
 2. **NEW-1（usage_records FK）**：`Delete()` 加一句解绑；
-3. **BUG-06 收尾**：把 `remote_routes.py` 从"本地文件记录"升级为真同步器——register(注册码) → 心跳循环(45s) → 配置拉取/回执 → report/audit 上报（对接方案 P1/P2）；否则 `clawguard-home-01` 永远离线；
+3. **BUG-06 收尾**：把 `remote_routes.py` 从"本地文件记录"升级为真同步器——register(注册码) → 心跳循环(45s) → 配置拉取/回执 → report/audit 上报（对接方案 P1/P2）；否则 `argus-home-01` 永远离线；
 4. **BUG-07**：注册码一次性作废；
 5. 部署三件套：启动脚本纳入 LLMGate、换 `bin/llmgate` 为 Windows 构建、改默认密钥。
 
@@ -177,8 +177,8 @@ ERROR failed to create api key ... SQLITE_BUSY
 
 **仍待落实的两点**：
 
-1. **无心跳循环 → 终端仍会离线**。`remote_routes.py` 里没有 heartbeat / report / audit events / 配置拉取的任何实现。你新加的 register 能把终端注册成 active，但管理台判定在线依赖 120s 内的心跳，没有循环就一定会掉线（上一轮 `clawguard-home-01` 已验证过这个现象）。
-2. **`agent_type` 默认值不匹配（待验证）**。`RegisterBody.agent_type` 默认是 `"clawguard"`，而 LLMGate 建终端时是 `"openclaw"`，两者不一致会触发 `409 agent_type mismatch`。如果调用方不显式传 `agent_type=openclaw`，注册会失败。**本项尚未实测**（见下）。
+1. **无心跳循环 → 终端仍会离线**。`remote_routes.py` 里没有 heartbeat / report / audit events / 配置拉取的任何实现。你新加的 register 能把终端注册成 active，但管理台判定在线依赖 120s 内的心跳，没有循环就一定会掉线（上一轮 `argus-home-01` 已验证过这个现象）。
+2. **`agent_type` 默认值不匹配（待验证）**。`RegisterBody.agent_type` 默认是 `"argus"`，而 LLMGate 建终端时是 `"openclaw"`，两者不一致会触发 `409 agent_type mismatch`。如果调用方不显式传 `agent_type=openclaw`，注册会失败。**本项尚未实测**（见下）。
 
 **一个阻塞项**：复跑到 10:45 之后，`admin / admin123` 登录开始返回 401（同一次运行中前几分钟还正常），推测你刚改了管理员密码或轮换 `jwt_secret`（对应 BUG-13 安全加固）。最后的 register 端到端脚本因此没能跑完。请告知新的管理员凭据，或确认是否已改密——我把 register 链路（含 agent_type 那项）补测完。
 
