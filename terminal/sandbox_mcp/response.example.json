@@ -1,0 +1,18 @@
+{
+  "stdout": "",
+  "stderr": "",
+  "exit_code": 0,
+  "timed_out": false,
+  "execution_time_ms": 128,
+  "blocked": false,
+  "block_reason": "",
+  "success": true,
+  "harm_report": {
+    "is_safe": true,
+    "blocked": false,
+    "severity": "safe",
+    "match_count": 0,
+    "matches": [],
+    "summary": "未命中危害规则"
+  }
+}

@@ -2,8 +2,8 @@
   <div class="space-y-6 select-none">
     <!-- Top Bar: Four Security Levels Overview -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div 
-        v-for="level in levels" 
+      <div
+        v-for="level in levels"
         :key="level.id"
         class="coder-card p-5 flex flex-col justify-between"
       >
@@ -32,7 +32,7 @@
           <p class="text-xs text-zinc-500">对智能体（Agent）所调用的工具指令、文件路径及网络请求进行强约束</p>
         </div>
         <div class="flex items-center gap-3">
-          <input 
+          <input
             v-model="searchQuery"
             placeholder="搜索规则、路径、动作..."
             class="px-3 py-1.5 rounded-xl bg-zinc-50 border border-zinc-200 text-xs text-zinc-900 placeholder-zinc-400 focus:outline-none focus:border-[#FF6900]"
@@ -157,9 +157,9 @@ const newRule = ref({
 const filteredRules = computed(() => {
   if (!searchQuery.value) return rules.value
   const q = searchQuery.value.toLowerCase()
-  return rules.value.filter(r => 
-    r.name.toLowerCase().includes(q) || 
-    r.pattern.toLowerCase().includes(q) || 
+  return rules.value.filter(r =>
+    r.name.toLowerCase().includes(q) ||
+    r.pattern.toLowerCase().includes(q) ||
     r.level.toLowerCase().includes(q)
   )
 })

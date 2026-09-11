@@ -135,7 +135,7 @@ class Config:
 
     # ===== 模型管理配置 =====
     default_model: str = os.getenv("DEFAULT_MODEL", "deepseek/deepseek-v4-flash")
-    
+
     available_models: list = [
         # --- 深度求索 DeepSeek（V4 代） ---
         {"id": "deepseek/deepseek-v4-pro",   "name": "DeepSeek V4 Pro",   "description": "旗舰推理模型，1M 上下文"},

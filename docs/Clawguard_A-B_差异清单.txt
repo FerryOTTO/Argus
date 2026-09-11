@@ -29,7 +29,7 @@ configs\modules.yaml.bak                                 50 行 (09-10 03:16)   
 +++ B/LLMGate/terminal/clawguard/modules/access_control/original/auth_gateway.py
 @@ -56,68 +56,6 @@
      return 3
- 
+
  DEFAULT_USER_LEVEL=_resolve_default_user_level()
 -
 -
@@ -93,12 +93,12 @@ configs\modules.yaml.bak                                 50 行 (09-10 03:16)   
 -        return True
 -    except Exception:
 -        return False
- 
- 
+
+
  # MAC 安全标签
 @@ -297,7 +235,6 @@
              self._backend = _TextBackend(USERS_FILE, RESOURCES_FILE)
- 
+
          self.users: dict[str, dict] = {}
 -        self.bound: dict = {}
          self.resources: list[tuple] = []
@@ -133,7 +133,7 @@ configs\modules.yaml.bak                                 50 行 (09-10 03:16)   
              if not u:
                  u = self._lookup_db_user(user_id)
 @@ -377,15 +307,6 @@
- 
+
      def set_user_level(self, user_id: str, level: int) -> None:
          with self._lock:
 -            b = self.bound or {}
@@ -149,7 +149,7 @@ configs\modules.yaml.bak                                 50 行 (09-10 03:16)   
                  self.users[user_id]["level"] = level
              else:
 @@ -470,16 +391,6 @@
- 
+
  def reload_rules() -> None:
      _store.reload()
 -
@@ -162,8 +162,8 @@ configs\modules.yaml.bak                                 50 行 (09-10 03:16)   
 -            pass
 -        return True
 -    return False
- 
- 
+
+
  def sync_external_user(user_id: str, security_level: str) -> None:
 
 ####################################################################################################
@@ -172,8 +172,8 @@ configs\modules.yaml.bak                                 50 行 (09-10 03:16)   
 --- A/ClawguardV2.1/clawguard/api/remote_sync.py
 +++ B/LLMGate/terminal/clawguard/api/remote_sync.py
 @@ -197,39 +197,54 @@
- 
- 
+
+
  def _apply_access_user(username, level="", specials=_UNSET):
 -    """users.txt 已下线：只写 access_local.json 的 bound_user（单用户绑定），不碰本地规则文件。"""
      name = (username or "").strip() if isinstance(username, str) else ""
@@ -247,8 +247,8 @@ configs\modules.yaml.bak                                 50 行 (09-10 03:16)   
 -        log.warning("bound user hot-reload failed: %s", e)
 -    return True
 +    return _backup_write_text(USERS_PATH, new_text)
- 
- 
+
+
  try:
 @@ -466,7 +481,8 @@
          if isinstance(ar, dict):
@@ -302,7 +302,7 @@ configs\modules.yaml.bak                                 50 行 (09-10 03:16)   
 @@ -38,7 +38,37 @@
      # 启动
      await init_db()
- 
+
 -    # users.txt 已下线：等级只存用户库，执法侧从 auth.db 动态回查，启动不再写本地规则文件。
 +    # 启动时自动对齐 OpenGuard 数据库与 Access Control 规则
 +    try:
@@ -315,7 +315,7 @@ configs\modules.yaml.bak                                 50 行 (09-10 03:16)   
 +            uid = u["id"]
 +            uname = u["username"]
 +            lvl = u.get("security_level") or ("top_secret" if u.get("role") == "admin" else "internal")
-+            
++
 +            if uid not in store.users:
 +                sp = ["*"] if lvl == "top_secret" or u.get("role") == "admin" else []
 +                store.add_user_rule(uid, lvl, sp)
@@ -345,7 +345,7 @@ configs\modules.yaml.bak                                 50 行 (09-10 03:16)   
 --- A/ClawguardV2.1/openguard/original/routes.py
 +++ B/LLMGate/terminal/openguard/original/routes.py
 @@ -385,7 +385,7 @@
- 
+
  @router.put("/api/admin/users/{user_id}/security_level")
  async def admin_update_security_level(user_id: str, body: SecurityLevelUpdateRequest, request: Request):
 -    """设置用户安全权限等级（用户库为准，执法侧从 auth.db 动态回查）。"""
@@ -356,7 +356,7 @@ configs\modules.yaml.bak                                 50 行 (09-10 03:16)   
 @@ -399,7 +399,20 @@
      normalized = level_aliases.get(body.security_level.lower(), "internal")
      await update_user_security_level(user_id, normalized)
- 
+
 -    # users.txt 已下线：等级只存用户库，不再写本地规则文件。
 +    # 同步写入 Access Control 规则表
 +    try:
@@ -372,13 +372,13 @@ configs\modules.yaml.bak                                 50 行 (09-10 03:16)   
 +            store.add_user_rule(agent["agent_id"], normalized, ag_specials)
 +    except Exception as exc:
 +        print(f"[Admin] 警告: 访问控制规则同步失败: {exc}")
- 
+
      print(f"[Admin] {admin.username} changed {target['username']}'s security level to {normalized}")
      return {"success": True, "user_id": user_id, "security_level": normalized}
 @@ -419,7 +432,14 @@
      await revoke_all_user_refresh_tokens(user_id, now_ms)
      await delete_user_by_id(user_id)
- 
+
 -    # users.txt 已下线：用户删除只清用户库，无本地规则文件可清。
 +    # 同步清理 Access Control 规则
 +    try:
@@ -388,13 +388,13 @@ configs\modules.yaml.bak                                 50 行 (09-10 03:16)   
 +            store.remove_user_rule(target["username"])
 +    except Exception as exc:
 +        print(f"[Admin] 清理访问控制规则警告: {exc}")
- 
+
      print(f"[Admin] {admin.username} deleted user {target['username']}")
      return {"success": True, "user_id": user_id}
 @@ -434,13 +454,7 @@
      store = _get_ac_store()
      q_store = _get_quarantine_store()
- 
+
 -    # users.txt 已下线：用户规则以用户库为准
 -    _lvl_map = {"public": 1, "internal": 2, "secret": 3, "top_secret": 4}
 -    user_rules = []
@@ -405,9 +405,9 @@ configs\modules.yaml.bak                                 50 行 (09-10 03:16)   
 +    user_rules = store.list_user_rules()
      resource_rules = store.list_resource_rules()
      quarantine_items = q_store.list_active()
- 
+
 @@ -453,47 +467,78 @@
- 
+
  @router.post("/api/admin/rules/users")
  async def admin_save_user_rule(body: UserRuleSaveRequest, request: Request):
 -    """更新用户规则：只允许已存在的用户，等级写入用户库（users.txt 已下线）。"""
@@ -481,8 +481,8 @@ configs\modules.yaml.bak                                 50 行 (09-10 03:16)   
 +        print(f"[Admin] 双向同步 OpenGuard 数据库警告: {exc}")
 +
 +    return res
- 
- 
+
+
  @router.delete("/api/admin/rules/users/{user_id}")
  async def admin_delete_user_rule(user_id: str, request: Request):
 -    """用户规则以用户库为准：此处不删等级，仅提示到用户管理操作。"""
@@ -517,8 +517,8 @@ configs\modules.yaml.bak                                 50 行 (09-10 03:16)   
 +        print(f"[Admin] 清理关联规则警告: {exc}")
 +
 +    return res
- 
- 
+
+
  @router.post("/api/admin/rules/resources")
 
 ####################################################################################################
@@ -528,8 +528,8 @@ configs\modules.yaml.bak                                 50 行 (09-10 03:16)   
 +++ B/LLMGate/terminal/openguard/original/auth.py
 @@ -127,10 +127,20 @@
      return agent_record
- 
- 
+
+
 -def _sync_user_to_ac(user_id, username, security_level, specials=None, agent_id=None):
 -    """users.txt 已下线：个人版执法改为从 auth.db 动态回查，这里不再写本地规则文件。"""
 -    return None
@@ -548,7 +548,7 @@ configs\modules.yaml.bak                                 50 行 (09-10 03:16)   
 +
 +
 +# ====== 用户注册/登录 ======
- 
+
  async def register_user(username: str, password: str) -> dict:
      if len(username) < 3 or len(username) > 32:
 
@@ -564,7 +564,7 @@ configs\modules.yaml.bak                                 50 行 (09-10 03:16)   
 -      <div class="panel-meta">等级以用户库为准（users.txt 已下线） | 等级: public/internal/secret/top_secret | 特例黑白名单逗号分隔 (如 !tool:write_file, *)</div>
 +      <div class="panel-meta">users.txt | 等级: public/internal/secret/top_secret | 特例黑白名单逗号分隔 (如 !tool:write_file, *)</div>
      </div>
-     
+
      <!-- 快速添加用户规则 -->
 
 ####################################################################################################

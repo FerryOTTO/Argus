@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="640" viewBox="0 0 1200 640" fill="none">
   <!-- Sandstone Stone Relief Base -->
   <rect width="1200" height="640" fill="#F4EFEA"/>
-  
+
   <defs>
     <linearGradient id="stone_grad" x1="0" y1="0" x2="1200" y2="640" gradientUnits="userSpaceOnUse">
       <stop stop-color="#F7F4F0"/>
@@ -43,11 +43,11 @@
   <!-- Majestic Stone Dragon Relief Silhouette & Contours -->
   <g filter="url(#emboss)">
     <!-- Dragon Serpentine Body Swirls -->
-    <path d="M 220 380 C 260 260, 380 220, 480 280 C 580 340, 680 210, 780 260 C 860 300, 940 240, 1000 180" 
+    <path d="M 220 380 C 260 260, 380 220, 480 280 C 580 340, 680 210, 780 260 C 860 300, 940 240, 1000 180"
           stroke="url(#dragon_gold)" stroke-width="48" stroke-linecap="round" fill="none" opacity="0.85"/>
-    <path d="M 220 380 C 260 260, 380 220, 480 280 C 580 340, 680 210, 780 260 C 860 300, 940 240, 1000 180" 
+    <path d="M 220 380 C 260 260, 380 220, 480 280 C 580 340, 680 210, 780 260 C 860 300, 940 240, 1000 180"
           stroke="#C5B9AA" stroke-width="40" stroke-linecap="round" fill="none" opacity="0.9"/>
-    <path d="M 220 380 C 260 260, 380 220, 480 280 C 580 340, 680 210, 780 260 C 860 300, 940 240, 1000 180" 
+    <path d="M 220 380 C 260 260, 380 220, 480 280 C 580 340, 680 210, 780 260 C 860 300, 940 240, 1000 180"
           stroke="#FAF7F2" stroke-width="32" stroke-linecap="round" fill="none" opacity="0.95"/>
 
     <!-- Tail Fin Relief -->
@@ -92,29 +92,29 @@
     <!-- Magnificent Dragon Head (Carved Face, Horns, Whiskers) -->
     <g transform="translate(980, 120)">
       <!-- Main Jaw & Snout -->
-      <path d="M 20 60 C 50 30, 90 40, 110 65 C 130 90, 80 120, 50 115 C 20 110, -10 90, 20 60 Z" 
+      <path d="M 20 60 C 50 30, 90 40, 110 65 C 130 90, 80 120, 50 115 C 20 110, -10 90, 20 60 Z"
             fill="#FAF6F0" stroke="#B0A290" stroke-width="2.5"/>
       <!-- Nose / Muzzle Crest -->
-      <path d="M 90 55 C 105 45, 120 60, 110 75 C 95 90, 85 75, 90 55 Z" 
+      <path d="M 90 55 C 105 45, 120 60, 110 75 C 95 90, 85 75, 90 55 Z"
             fill="#EFE7DD" stroke="#B0A290" stroke-width="2"/>
       <!-- Majestic Horns (Branching Coral Horn) -->
-      <path d="M 15 45 C 5 15, -25 0, -45 -15 C -25 -5, -10 10, -5 30" 
+      <path d="M 15 45 C 5 15, -25 0, -45 -15 C -25 -5, -10 10, -5 30"
             stroke="#D4A373" stroke-width="6" stroke-linecap="round" fill="none"/>
-      <path d="M 0 35 C -15 20, -35 25, -50 20" 
+      <path d="M 0 35 C -15 20, -35 25, -50 20"
             stroke="#C0B2A0" stroke-width="4" stroke-linecap="round" fill="none"/>
       <!-- Dragon Eye (Inlaid with subtle amber glow) -->
       <circle cx="55" cy="65" r="7" fill="#FF8533" filter="url(#soft_glow)"/>
       <circle cx="55" cy="65" r="5" fill="#4A3E31"/>
       <circle cx="57" cy="63" r="1.5" fill="#FFFFFF"/>
       <!-- Flowing Dragon Whiskers -->
-      <path d="M 85 85 C 120 100, 160 85, 190 120 C 160 115, 120 125, 90 95" 
+      <path d="M 85 85 C 120 100, 160 85, 190 120 C 160 115, 120 125, 90 95"
             stroke="#D97706" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.75"/>
-      <path d="M 80 95 C 100 130, 140 150, 170 175" 
+      <path d="M 80 95 C 100 130, 140 150, 170 175"
             stroke="#B5A795" stroke-width="2.5" stroke-linecap="round" fill="none" opacity="0.8"/>
       <!-- Flowing Mane -->
-      <path d="M -10 65 C -40 70, -70 50, -95 60 C -70 75, -45 85, -20 80" 
+      <path d="M -10 65 C -40 70, -70 50, -95 60 C -70 75, -45 85, -20 80"
             fill="#EAE2D7" stroke="#BAAC9B" stroke-width="2"/>
-      <path d="M -5 80 C -35 95, -60 85, -85 105 C -55 110, -30 105, -10 95" 
+      <path d="M -5 80 C -35 95, -60 85, -85 105 C -55 110, -30 105, -10 95"
             fill="#EAE2D7" stroke="#BAAC9B" stroke-width="2"/>
     </g>
 

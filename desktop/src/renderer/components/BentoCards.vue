@@ -14,18 +14,18 @@
             </div>
           </div>
           <!-- MiMo Orange Switch Toggle -->
-          <button 
-            @click="toggleMaster" 
+          <button
+            @click="toggleMaster"
             :class="[
               'relative inline-flex h-7 w-14 items-center rounded-full transition-colors duration-300 focus:outline-none cursor-pointer',
               masterEnabled ? 'bg-[#FF6900] shadow-[0_0_16px_rgba(255,105,0,0.4)]' : 'bg-zinc-200'
             ]"
           >
-            <span 
+            <span
               :class="[
                 'inline-block h-5 w-5 transform rounded-full bg-white transition duration-300 shadow-md',
                 masterEnabled ? 'translate-x-8' : 'translate-x-1'
-              ]" 
+              ]"
             />
           </button>
         </div>
@@ -82,16 +82,16 @@
 
         <!-- Checkbox Options -->
         <div class="space-y-2.5 mt-2">
-          <label 
-            v-for="(item, idx) in privacyOptions" 
+          <label
+            v-for="(item, idx) in privacyOptions"
             :key="idx"
             class="flex items-center justify-between p-2.5 rounded-xl bg-zinc-50/80 hover:bg-zinc-100 border border-zinc-200/60 cursor-pointer transition-all"
           >
             <div class="flex items-center gap-2.5">
-              <input 
-                type="checkbox" 
-                v-model="item.checked" 
-                class="w-4 h-4 accent-[#FF6900] rounded cursor-pointer" 
+              <input
+                type="checkbox"
+                v-model="item.checked"
+                class="w-4 h-4 accent-[#FF6900] rounded cursor-pointer"
               />
               <span class="text-xs font-medium text-zinc-800">{{ item.label }}</span>
             </div>
@@ -102,7 +102,7 @@
 
       <div class="mt-4 text-[11px] text-zinc-500 flex items-center justify-between">
         <span>自动应用到网关</span>
-        <button 
+        <button
           @click="savePrivacySettings"
           class="text-xs px-3 py-1 rounded-lg bg-[#FF6900]/10 hover:bg-[#FF6900]/20 text-[#FF6900] border border-[#FF6900]/25 transition-all font-medium cursor-pointer"
         >
@@ -125,8 +125,8 @@
         </div>
 
         <div class="space-y-2.5">
-          <div 
-            v-for="svc in services" 
+          <div
+            v-for="svc in services"
             :key="svc.name"
             class="flex items-center justify-between p-2.5 rounded-xl bg-zinc-50 border border-zinc-200/60"
           >
@@ -145,7 +145,7 @@
       </div>
 
       <div class="mt-4 pt-3 border-t border-zinc-100 flex items-center justify-between">
-        <button 
+        <button
           @click="restartAllServices"
           class="text-xs text-zinc-600 hover:text-zinc-900 flex items-center gap-1.5 cursor-pointer font-medium"
         >
@@ -173,8 +173,8 @@
         </div>
 
         <div class="space-y-2">
-          <div 
-            v-for="(evt, idx) in auditEvents" 
+          <div
+            v-for="(evt, idx) in auditEvents"
             :key="idx"
             class="flex items-center justify-between p-2.5 rounded-xl bg-zinc-50 border border-zinc-200/60 text-xs font-mono"
           >
@@ -205,14 +205,14 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import { 
-  ShieldAlert, 
-  Lock, 
-  Server, 
-  Activity, 
-  ChevronRight, 
-  RefreshCw, 
-  Download 
+import {
+  ShieldAlert,
+  Lock,
+  Server,
+  Activity,
+  ChevronRight,
+  RefreshCw,
+  Download
 } from 'lucide-vue-next'
 
 const masterEnabled = ref(true)

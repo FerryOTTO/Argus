@@ -1,15 +1,15 @@
 <template>
   <div class="relative w-full h-64 overflow-hidden rounded-2xl border border-white/10 bg-[#0B0E14] select-none my-4 shadow-2xl">
     <!-- Underneath Layer: Glowing Cyber Matrix & Circuits (Revealed by Mouse Scratch) -->
-    <div 
+    <div
       class="absolute inset-0 bg-cover bg-center pointer-events-none"
       :style="{ backgroundImage: `url(${cyberBgUrl})` }"
     ></div>
 
     <!-- Middle Layer: Interactive Scratch Canvas (Erased by mouse moves) -->
-    <canvas 
-      ref="canvasRef" 
-      @mousemove="handleScratch" 
+    <canvas
+      ref="canvasRef"
+      @mousemove="handleScratch"
       @mouseleave="handleMouseLeave"
       class="absolute inset-0 w-full h-full cursor-crosshair z-10"
     ></canvas>
@@ -106,7 +106,7 @@ function initCanvas() {
   const canvas = canvasRef.value
   if (!canvas) return
   ctx = canvas.getContext('2d')
-  
+
   const dpr = window.devicePixelRatio || 1
   canvas.width = canvas.offsetWidth * dpr
   canvas.height = canvas.offsetHeight * dpr
@@ -152,7 +152,7 @@ function handleScratch(e) {
 
   ctx.save()
   ctx.globalCompositeOperation = 'destination-out'
-  
+
   // Create soft radial eraser brush
   const radius = 65
   const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius)

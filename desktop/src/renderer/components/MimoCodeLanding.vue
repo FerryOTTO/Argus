@@ -79,7 +79,7 @@
             <div v-if="configEditor.loading" class="claw-provider-empty"><LoaderCircle :size="21" class="is-spinning" /><strong>正在读取本地配置…</strong></div>
             <div v-else-if="configEditor.error" class="claw-provider-empty"><strong>读取失败</strong><span>{{ configEditor.error }}</span><button type="button" @click="loadOpenclawConfig(true)">重试</button></div>
             <template v-else>
-              
+
               <div class="claw-chart-section"><div class="claw-chart-section__header"><div><strong>openclaw.json 全文</strong><span>models / agents 段可改，网关段只读 · 保存前自动校验 JSON</span></div><div class="claw-chart-legend"><span class="claw-provider-status" v-if="configEditor.status">{{ configEditor.status }}</span><span class="claw-provider-path" v-if="configEditor.path">{{ configEditor.path }}</span></div></div><div class="claw-provider-editor"><textarea v-model="configEditor.text" rows="22" spellcheck="false" class="cfg-rules"></textarea></div>
               <div class="claw-provider-footer"><span class="claw-field-hint">非法 JSON 拒绝落盘 · 保存自动备份 .bak</span><div class="claw-provider-footer__actions"><button type="button" class="claw-provider-cancel" :disabled="configEditor.saving" @click="loadOpenclawConfig(true)">放弃修改</button><button type="button" class="claw-provider-save" :disabled="configEditor.saving" @click="saveOpenclawConfig"><Save :size="15" />{{ configEditor.saving ? '保存中' : '保存到本地' }}</button></div></div></div>
             </template>

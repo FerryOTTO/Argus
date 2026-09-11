@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ============================================
 # OpenCode 沙箱包装器
-# 
+#
 # 拦截 OpenCode 的工具调用，将其路由到 Docker 沙箱中执行。
 # 用法：
 #   opencode_sandbox.sh [opencode 参数...]
@@ -31,7 +31,7 @@ err()  { echo -e "${RED}[SANDBOX ERROR]${NC} $*"; }
 sandbox_exec() {
     local cmd="$1"
     log "Executing in sandbox-exec container: ${cmd:0:80}..."
-    
+
     python3 "$SANDBOX_DIR/sandbox_exec.py" --command "$cmd" 2>&1
 }
 
@@ -41,7 +41,7 @@ sandbox_exec() {
 sandbox_read() {
     local filepath="$1"
     log "Reading in sandbox-file container: $filepath"
-    
+
     python3 "$SANDBOX_DIR/sandbox_file.py" --read "$filepath" 2>&1
 }
 

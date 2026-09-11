@@ -1,0 +1,42 @@
+# https://editorconfig.org
+# 统一 Argus 仓库的基础排版规则；更细的换行符策略见 .gitattributes
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[*.md]
+# Markdown 行尾两个空格表示硬换行，不能自动裁剪
+trim_trailing_whitespace = false
+
+[*.{go,mod,sum}]
+indent_style = tab
+indent_size = 4
+
+[*.py]
+indent_size = 4
+max_line_length = 100
+
+[*.{yaml,yml}]
+indent_size = 2
+
+[*.{bat,cmd}]
+end_of_line = crlf
+
+[*.{ps1,psm1}]
+end_of_line = crlf
+
+[Makefile]
+indent_style = tab
+
+[*.{json,json5,jsonc}]
+indent_size = 2
+
+[{package.json,package-lock.json}]
+indent_size = 2

@@ -40,12 +40,12 @@
     <div class="flex items-center gap-2 no-drag">
       <!-- Edition Toggle Indicator -->
       <div class="flex items-center bg-[#121824] border border-white/10 rounded-lg p-0.5 text-xs text-slate-400">
-        <button 
+        <button
           @click="$emit('update:edition', 'personal')"
           :class="['px-2.5 py-1 rounded-md transition-all', edition === 'personal' ? 'bg-white/10 text-white font-medium' : 'hover:text-slate-200']">
           个人版
         </button>
-        <button 
+        <button
           @click="$emit('update:edition', 'enterprise')"
           :class="['px-2.5 py-1 rounded-md transition-all', edition === 'enterprise' ? 'bg-[#FF6900]/20 text-[#FF6900] border border-[#FF6900]/30 font-medium' : 'hover:text-slate-200']">
           企业版
@@ -81,15 +81,15 @@
 </template>
 
 <script setup>
-import { 
-  ShieldAlert, 
-  ShieldCheck, 
-  KeyRound, 
-  Activity, 
-  Terminal, 
-  Minus, 
-  Square, 
-  X 
+import {
+  ShieldAlert,
+  ShieldCheck,
+  KeyRound,
+  Activity,
+  Terminal,
+  Minus,
+  Square,
+  X
 } from 'lucide-vue-next'
 
 const props = defineProps({

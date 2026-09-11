@@ -15,7 +15,7 @@
             <p class="text-xs text-zinc-500">将 Argus 拦截日志、调用耗时及模型安全决策遥测数据无缝对接云端监控大盘</p>
           </div>
         </div>
-        <button 
+        <button
           @click="saveTelemetry"
           class="mimo-btn-primary text-xs cursor-pointer"
         >
@@ -27,24 +27,24 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
         <div class="space-y-1.5">
           <label class="text-xs text-zinc-700 font-medium">OTLP Collector 终结点 (gRPC / HTTP)</label>
-          <input 
-            v-model="telemetry.otlpEndpoint" 
-            class="w-full px-3 py-2 rounded-xl bg-zinc-50 border border-zinc-200 text-xs text-zinc-900 font-mono focus:border-[#FF6900] focus:outline-none" 
-            placeholder="http://otel-collector.corp.internal:4318/v1/traces" 
+          <input
+            v-model="telemetry.otlpEndpoint"
+            class="w-full px-3 py-2 rounded-xl bg-zinc-50 border border-zinc-200 text-xs text-zinc-900 font-mono focus:border-[#FF6900] focus:outline-none"
+            placeholder="http://otel-collector.corp.internal:4318/v1/traces"
           />
         </div>
         <div class="space-y-1.5">
           <label class="text-xs text-zinc-700 font-medium">Prometheus 指标拉取路径</label>
-          <input 
-            v-model="telemetry.promPath" 
-            class="w-full px-3 py-2 rounded-xl bg-zinc-50 border border-zinc-200 text-xs text-zinc-900 font-mono focus:border-[#FF6900] focus:outline-none" 
-            placeholder="/metrics" 
+          <input
+            v-model="telemetry.promPath"
+            class="w-full px-3 py-2 rounded-xl bg-zinc-50 border border-zinc-200 text-xs text-zinc-900 font-mono focus:border-[#FF6900] focus:outline-none"
+            placeholder="/metrics"
           />
         </div>
         <div class="space-y-1.5">
           <label class="text-xs text-zinc-700 font-medium">行为采样率 (Sampling Rate)</label>
-          <select 
-            v-model="telemetry.sampleRate" 
+          <select
+            v-model="telemetry.sampleRate"
             class="w-full px-3 py-2 rounded-xl bg-zinc-50 border border-zinc-200 text-xs text-zinc-900 focus:border-[#FF6900] focus:outline-none"
           >
             <option value="1.0">100% 全量审计采样 (推荐金融/国防涉密)</option>
@@ -96,14 +96,14 @@
               </td>
               <td class="p-3 text-zinc-500">{{ item.timestamp }}</td>
               <td class="p-3 text-right space-x-2 font-sans">
-                <button 
-                  @click="approveRelease(item)" 
+                <button
+                  @click="approveRelease(item)"
                   class="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-medium transition-all cursor-pointer"
                 >
                   工单审批解封
                 </button>
-                <button 
-                  @click="permanentPurge(item)" 
+                <button
+                  @click="permanentPurge(item)"
                   class="px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-medium transition-all cursor-pointer"
                 >
                   永久粉碎

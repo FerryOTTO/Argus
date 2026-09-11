@@ -1062,7 +1062,7 @@
           display: none;
         }
       }
-    
+
 
 /* Argus landing module rail */
 .landing-layout {
@@ -1600,7 +1600,7 @@
 .claw-dark-mode .claw-enterprise-dialog input:not([type=checkbox]),.claw-dark-mode .claw-enterprise-dialog form>footer button { color:#f2efeb; background:#302e2b; border-color:#49443f; }
 .claw-dark-mode .claw-enterprise-warning { color:#f1b18d; background:#3a2921; border-color:#704630; }
 
-@media(max-width:780px){.claw-settings-grid{grid-template-columns:1fr}.claw-settings-page__header{align-items:flex-start;flex-direction:column}.claw-settings-card--account{grid-column:auto}} 
+@media(max-width:780px){.claw-settings-grid{grid-template-columns:1fr}.claw-settings-page__header{align-items:flex-start;flex-direction:column}.claw-settings-card--account{grid-column:auto}}
 
 /* Full dark theme for the runtime dashboard.  Keep every surface, divider and text layer on the same dark scale. */
 .claw-dark-mode .mimo-code-page,

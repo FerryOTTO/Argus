@@ -3,8 +3,8 @@
     <div v-if="standalone" class="rounded-2xl border border-orange-200 bg-orange-50 p-4 text-xs leading-relaxed text-zinc-700">独立调试控制台：安装和后台服务的实时输出都会进下面这个黑窗口。哪一项爆红，就点右上角“复制全部日志”，把日志发回来，直接就能定位问题。关掉这个窗口不影响安装继续跑。</div>
     <!-- Action Bar & Service Cards -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-      <div 
-        v-for="proc in processes" 
+      <div
+        v-for="proc in processes"
         :key="proc.id"
         class="coder-card p-5 flex items-center justify-between"
       >
@@ -21,7 +21,7 @@
           </div>
         </div>
 
-        <button 
+        <button
           @click="toggleProcess(proc)"
           :class="['text-xs px-3 py-1.5 rounded-xl border font-medium transition-all cursor-pointer', proc.running ? 'bg-red-50 hover:bg-red-100 text-red-700 border-red-200' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200']"
         >
@@ -47,13 +47,13 @@
       </div>
 
       <!-- High-tech Dark Embedded Terminal Screen -->
-      <div 
+      <div
         ref="termBoxRef"
         class="w-full h-80 bg-[#12141A] rounded-2xl border border-zinc-800 p-4 font-mono text-xs overflow-y-auto space-y-1.5 select-text shadow-inner"
       >
-        <div 
-          v-for="(line, idx) in logs" 
-          :key="idx" 
+        <div
+          v-for="(line, idx) in logs"
+          :key="idx"
           :class="['flex items-start gap-2', getLineClass(line)]"
         >
           <span class="text-zinc-500 select-none">[{{ line.time }}]</span>

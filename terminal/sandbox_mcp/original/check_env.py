@@ -132,28 +132,28 @@ def print_report(results):
     print(f"{Colors.BOLD}{Colors.CYAN}║     WSL2 & Docker 环境检测报告             ║{Colors.END}")
     print(f"{Colors.BOLD}{Colors.CYAN}╚══════════════════════════════════════════════╝{Colors.END}")
     print()
-    
+
     # WSL2
     if results["wsl2"]:
         print(ok(f"WSL2: 已安装"))
     else:
         print(fail(f"WSL2: 未安装"))
         print(f"      {Colors.YELLOW}建议: wsl --install{Colors.END}")
-    
+
     # WSL Distro
     if results["wsl_distro"]:
         print(ok(f"WSL 发行版 ({WSL_DISTRO}): 已安装"))
     else:
         print(fail(f"WSL 发行版 ({WSL_DISTRO}): 未安装"))
         print(f"      {Colors.YELLOW}建议: wsl --install -d {WSL_DISTRO}{Colors.END}")
-    
+
     # Docker
     if results["docker"]:
         print(ok(f"Docker (Windows): 已安装"))
     else:
         print(fail(f"Docker (Windows): 未安装"))
         print(f"      {Colors.YELLOW}建议: winget install Docker.DockerDesktop{Colors.END}")
-    
+
     # Docker in WSL
     if results["docker_wsl"]:
         print(ok(f"Docker (WSL): 可用"))
@@ -161,18 +161,18 @@ def print_report(results):
         print(fail(f"Docker (WSL): 不可用"))
         if results["docker"]:
             print(f"      {Colors.YELLOW}建议: 在 WSL 内安装 Docker (sudo apt install docker.io){Colors.END}")
-    
+
     # Docker Image
     if results["docker_image"]:
         print(ok(f"沙箱镜像 ({DOCKER_IMAGE}): 已构建"))
     else:
         print(fail(f"沙箱镜像 ({DOCKER_IMAGE}): 未构建"))
         print(f"      {Colors.YELLOW}建议: cd docker && build_images.sh{Colors.END}")
-    
+
     # Summary
     print()
     print(f"{Colors.BOLD}{'─' * 48}{Colors.END}")
-    
+
     if results["ready"]:
         print(f"{Colors.GREEN}{Colors.BOLD}状态: 环境就绪，可以开始使用沙箱！{Colors.END}")
     else:
@@ -191,7 +191,7 @@ def print_report(results):
             print(f"  1. 构建沙箱镜像: cd docker && ./build_images.sh")
         print(f"  2. 重启系统")
         print(f"  3. 重新运行此脚本验证")
-    
+
     print(f"{Colors.BOLD}{'═' * 48}{Colors.END}")
     print()
 
@@ -201,7 +201,7 @@ def main():
     parser.add_argument("--json", action="store_true", help="输出 JSON 格式")
     parser.add_argument("--fix", action="store_true", help="尝试自动修复")
     args = parser.parse_args()
-    
+
     # 执行检测
     results = {
         "wsl2": check_wsl2(),
@@ -210,25 +210,25 @@ def main():
         "docker_wsl": check_docker_wsl(),
         "docker_image": check_docker_image(),
     }
-    
+
     # 判断是否就绪
     results["ready"] = all(results.values())
-    
+
     # 自动修复
     if args.fix and not results["ready"]:
         if not results["wsl2"]:
             enable_wsl2()
         print("[fix] 请重启系统后重新运行此脚本。")
         return 1
-    
+
     # JSON 输出
     if args.json:
         print(json.dumps(results, indent=2, ensure_ascii=False))
         return 0 if results["ready"] else 1
-    
+
     # 标准报告
     print_report(results)
-    
+
     return 0 if results["ready"] else 1
 
 if __name__ == "__main__":
