@@ -22,7 +22,7 @@
 
 ### 1. 独立复现(同一套数据、不同仓库)
 
-用 `test/eval_dataset.py`,被测仓库换成 `E:\tiaozhanbei\MAC\Argus`,得到:
+用 `test/eval_dataset.py`,被测仓库换成 `Argus`,得到:
 
 | 模块 | 报告命中 | 我复现命中 | 是否一致 |
 |---|---|---|---|

@@ -61,7 +61,7 @@ def test_formal_page_contains_no_mock_or_prototype_data(empty_audit_path: Path):
     assert "const traces =" not in html
     assert "tr-9a71f0c2" not in html
     assert "evt-001" not in html
-    assert "AUDIT API" in html
+    assert "Audit API" in html
     assert "LIVE DATA" in html
 
 
@@ -74,8 +74,10 @@ def test_page_uses_real_api_flow_and_explicit_adapters(empty_audit_path: Path):
         "adaptEdge",
     ):
         assert f"function {function_name}" in html
-    assert 'requestJson("/v1/audit/overview")' in html
-    assert 'requestJson("/v1/audit/traces?limit=200&offset=0")' in html
+    assert "requestJson(overviewUrl)" in html
+    assert "/v1/audit/overview" in html
+    assert "requestJson(tracesUrl)" in html
+    assert "/v1/audit/traces?limit=200&offset=0" in html
     assert "/v1/audit/traces/${encodeURIComponent(traceId)}" in html
     assert "/v1/audit/events/${encodeURIComponent(eventId)}" in html
     assert "/${direction}?${PATH_QUERY}" in html

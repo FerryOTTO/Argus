@@ -1,7 +1,7 @@
 # Argus 测试集 · 评测指南与实测基线
 
 > 数据:`C:\Users\admin\Downloads\test`(10 个数据集 / 577 条,每条自带标准答案)
-> 实测代码:`E:\tiaozhanbei\MAC\Argus`
+> 实测代码:`Argus`
 > 实测日期:2026-09-10 首测 / **2026-09-11 全量复测** · 数据只读,未做任何修改
 
 ---
@@ -53,8 +53,8 @@
 `eval_dataset.py` 只硬编码了两个探测路径(`D:/下载/...`、`C:/Users/dell/Desktop/...`),本机都不存在,所以**必须显式指定**:
 
 ```powershell
-$env:ARGUS_REPO = "E:\tiaozhanbei\MAC\Argus"
-# 或命令行:--repo E:\tiaozhanbei\MAC\Argus
+$env:ARGUS_REPO = "Argus"
+# 或命令行:--repo Argus
 ```
 本机有三个候选仓库都含 `argus/`:`Argus`(推荐,桌面端后端源)、`LLMGate\terminal`、`Argus-main`。
 
@@ -64,7 +64,7 @@ $env:ARGUS_REPO = "E:\tiaozhanbei\MAC\Argus"
 
 ```powershell
 # 做法 A(推荐,不动仓库):临时用户表 + 环境变量
-$env:ARGUS_USERS_FILE = "E:\tiaozhanbei\MAC\_evaltmp\users.txt"
+$env:ARGUS_USERS_FILE = "_evaltmp\users.txt"
 # 文件内容:
 #   u_public   | public     |
 #   u_internal | internal   |
@@ -78,8 +78,8 @@ $env:ARGUS_USERS_FILE = "E:\tiaozhanbei\MAC\_evaltmp\users.txt"
 ```powershell
 $py = "C:\Users\admin\.workbuddy\binaries\python\envs\default\Scripts\python.exe"
 $env:PYTHONIOENCODING="utf-8"; $env:PYTHONUTF8="1"
-Set-Location "E:\tiaozhanbei\MAC"
-& $py "C:\Users\admin\Downloads\test\eval_dataset.py" --dataset sandbox_harm_detector --repo "E:\tiaozhanbei\MAC\Argus"
+Set-Location "."
+& $py "C:\Users\admin\Downloads\test\eval_dataset.py" --dataset sandbox_harm_detector --repo "Argus"
 # 全量: --all    只跑前 N 条: --limit 20
 ```
 
@@ -110,7 +110,7 @@ Set-Location "E:\tiaozhanbei\MAC"
 **10 个模块全部跑通,合计 445/577 = 77.1%**(其中 media 的 39 条结果不可信;
 retrieval_guard 的 14 条属"环境缺件未覆盖",不计判定失败)。
 
-复现:`python eval_dataset.py --all --repo E:\tiaozhanbei\MAC\Argus`;
+复现:`python eval_dataset.py --all --repo Argus`;
 认证数据集另跑 `python eval_openguard_auth.py --repo ... --dump _auth_result.json`。
 
 ---
@@ -241,7 +241,7 @@ retrieval_guard 的 14 条属"环境缺件未覆盖",不计判定失败)。
 
 ## 7.5 对外交接用的精选子集
 
-`E:\tiaozhanbei\MAC\Argus精选测试集_v1`(已打包 `Argus精选测试集_v1.zip`,约 33 KB)
+`Argus精选测试集_v1`(已打包 `Argus精选测试集_v1.zip`,约 33 KB)
 
 - 从 577 条里精选 **122 条 / 9 个模块**,全部为「在本机稳定命中」的样本,本机实测 **122/122**;
 - 自带 runner、依赖说明、用户表、逐条清单,对方只需要一个能 import Argus 的 Python 环境;

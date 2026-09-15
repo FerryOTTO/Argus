@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(0, 'E:\\tiaozhanbei\\MAC\\v1\\auth-gateway-extracted')
+sys.path.insert(0, 'v1\\auth-gateway-extracted')
 
 from auth_gateway import _resource_required_level_tree, _match_pattern, _store
 

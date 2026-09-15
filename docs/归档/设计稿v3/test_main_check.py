@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(0, 'E:\\tiaozhanbei\\MAC\\v1\\auth-gateway-extracted')
+sys.path.insert(0, 'v1\\auth-gateway-extracted')
 from auth_gateway import check, check_reason, sync_external_user, _store
 
 # 模拟 main.py 的调用

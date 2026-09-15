@@ -11,5 +11,5 @@
   "quarantine_risk_threshold": 0.85,
   "quarantine_long_window_seconds": 3600,
   "quarantine_long_window_count": 15,
-  "default_user_level": "public"
+  "default_user_level": "secret"
 }

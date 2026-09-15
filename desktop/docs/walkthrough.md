@@ -1,6 +1,6 @@
 # Argus Desktop 桌面客户端实施与验证记录
 
-依据您的要求，所有桌面端代码与辅助脚本均收拢在全新的独立目录 `e:/tiaozhanbei/MAC/argus-desktop` 中，未在父工作区根目录中遗留任何杂乱脚本。同时，深入汲取 CSDN 教程《小米MiMoCode官网颜值高？Codex：拿来吧，您嘞！1:1完美复刻～》的设计精髓，完成了小米 **MiMo Code**（`mimo.xiaomi.com/zh/mimocode`）1:1 高保真设计与守护体系的工程构建。
+依据您的要求，所有桌面端代码与辅助脚本均收拢在全新的独立目录 `desktop` 中，未在父工作区根目录中遗留任何杂乱脚本。同时，深入汲取 CSDN 教程《小米MiMoCode官网颜值高？Codex：拿来吧，您嘞！1:1完美复刻～》的设计精髓，完成了小米 **MiMo Code**（`mimo.xiaomi.com/zh/mimocode`）1:1 高保真设计与守护体系的工程构建。
 
 ---
 
@@ -50,7 +50,7 @@
 
 ## 3. 运行与验证指令
 
-在 `e:/tiaozhanbei/MAC/argus-desktop` 目录下：
+在 `desktop` 目录下：
 
 bash
 

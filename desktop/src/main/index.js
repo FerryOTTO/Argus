@@ -75,7 +75,7 @@ function createWindow() {
     })
   })
 
-  // External links such as GitHub must open in the system browser.
+  // External links must open in the system browser.
   // The enterprise page is embedded by the renderer instead of using this path.
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     if (/^https?:\/\//i.test(url)) {

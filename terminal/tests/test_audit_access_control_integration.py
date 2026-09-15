@@ -14,6 +14,7 @@ from argus.adapters.audit_adapter import AuditAdapter
 from argus.api.main import app
 from argus.common.models import ModuleResult, RequestContext, SecurityRequest
 from argus.core.registry import registry
+from argus.modules.access_control.original import auth_gateway
 from argus.modules.audit.integration import emit_module_audit_event
 
 
@@ -111,6 +112,12 @@ def integration_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setitem(registry._adapters, "access_control", AccessControlAdapter())
     monkeypatch.setitem(registry._adapters, "tool_guard", tool_adapter)
     monkeypatch.setitem(registry._adapters, "audit", AuditAdapter())
+    # 访问控制按“最严目标”取等级（path/tool/database 取 max）：tool:read_file
+    # 需 internal(2)、tool:execute_bash 需 top_secret(4)。用户表由企业端下发
+    # （个人端只绑定自己的等级，见 configs/access_local.json 的 bound_user/
+    # default_user_level），所以这里显式固定“个人版默认等级 = secret(3)”，
+    # 既不过度依赖本机运行时的 access_local.json，又保留 allow/block 两条分支。
+    monkeypatch.setattr(auth_gateway, "DEFAULT_USER_LEVEL", 3)
     return destination, tool_adapter
 
 

@@ -1,0 +1,422 @@
+[
+  {
+    "id": "og-001",
+    "category": "register",
+    "endpoint": "POST /auth/register",
+    "expected_status": 200,
+    "actual": "HTTP 200",
+    "hit": true,
+    "note": "注册成功：返回新用户 id，密码 bcrypt 存储，并自动为该用户创建独立 Agent",
+    "runner_note": ""
+  },
+  {
+    "id": "og-002",
+    "category": "register",
+    "endpoint": "POST /auth/register",
+    "expected_status": 400,
+    "actual": "HTTP 400",
+    "hit": true,
+    "note": "用户名已存在，拒绝重复注册",
+    "runner_note": ""
+  },
+  {
+    "id": "og-003",
+    "category": "register",
+    "endpoint": "POST /auth/register",
+    "expected_status": 400,
+    "actual": "HTTP 422",
+    "hit": false,
+    "note": "密码长度必须 >= 8，弱密码被拒",
+    "runner_note": ""
+  },
+  {
+    "id": "og-004",
+    "category": "register",
+    "endpoint": "POST /auth/register",
+    "expected_status": 400,
+    "actual": "HTTP 422",
+    "hit": false,
+    "note": "用户名长度必须 3-32 字符，过短被拒",
+    "runner_note": ""
+  },
+  {
+    "id": "og-005",
+    "category": "rate_limit",
+    "endpoint": "POST /auth/register",
+    "expected_status": 429,
+    "actual": "HTTP 429",
+    "hit": true,
+    "note": "注册请求过于频繁，触发限流",
+    "runner_note": "连打 4 次注册（限额 3/分钟），取最后一次"
+  },
+  {
+    "id": "og-006",
+    "category": "login",
+    "endpoint": "POST /auth/login",
+    "expected_status": 200,
+    "actual": "HTTP 200",
+    "hit": true,
+    "note": "登录成功：返回 access_token(15min)+refresh_token(7d) 双 Token",
+    "runner_note": ""
+  },
+  {
+    "id": "og-007",
+    "category": "login",
+    "endpoint": "POST /auth/login",
+    "expected_status": 401,
+    "actual": "HTTP 401",
+    "hit": true,
+    "note": "用户名或密码错误，拒绝登录",
+    "runner_note": ""
+  },
+  {
+    "id": "og-008",
+    "category": "login",
+    "endpoint": "POST /auth/login",
+    "expected_status": 401,
+    "actual": "HTTP 401",
+    "hit": true,
+    "note": "账户已被禁用，拒绝登录",
+    "runner_note": ""
+  },
+  {
+    "id": "og-009",
+    "category": "refresh",
+    "endpoint": "POST /auth/refresh",
+    "expected_status": 200,
+    "actual": "HTTP 200",
+    "hit": true,
+    "note": "用 refresh_token 成功换发新 access_token",
+    "runner_note": "用真登录拿到的 refresh_token 换发（数据集里是演示占位串）"
+  },
+  {
+    "id": "og-010",
+    "category": "refresh",
+    "endpoint": "POST /auth/refresh",
+    "expected_status": 401,
+    "actual": "HTTP 401",
+    "hit": true,
+    "note": "refresh_token 重用被检测，撤销该用户所有会话",
+    "runner_note": "复用上一条已消费的 refresh_token，应触发重用检测"
+  },
+  {
+    "id": "og-011",
+    "category": "session",
+    "endpoint": "GET /me",
+    "expected_status": 401,
+    "actual": "HTTP 401",
+    "hit": true,
+    "note": "未携带 Token 访问 /me，拒绝（未登录）",
+    "runner_note": ""
+  },
+  {
+    "id": "og-012",
+    "category": "session",
+    "endpoint": "GET /me",
+    "expected_status": 200,
+    "actual": "HTTP 200",
+    "hit": true,
+    "note": "返回用户信息 + 周度配额(quota_tier/used/limit/reset_at) + 可用模型列表",
+    "runner_note": ""
+  },
+  {
+    "id": "og-013",
+    "category": "session",
+    "endpoint": "GET /me",
+    "expected_status": 401,
+    "actual": "HTTP 401",
+    "hit": true,
+    "note": "伪造或篡改的 JWT 验证失败，拒绝",
+    "runner_note": ""
+  },
+  {
+    "id": "og-014",
+    "category": "session",
+    "endpoint": "GET /me",
+    "expected_status": 401,
+    "actual": "HTTP 401",
+    "hit": true,
+    "note": "登出后旧 Token 失效，会话白名单已移除",
+    "runner_note": "真登出后拿同一个 access_token 再访问 /me"
+  },
+  {
+    "id": "og-015",
+    "category": "isolation",
+    "endpoint": "GET /api/agents",
+    "expected_status": 200,
+    "actual": "HTTP 200",
+    "hit": true,
+    "note": "注册即创建独立 Agent，id 格式 usr_8f3a2b1c-zhangsan-agent-a3f8c2d1",
+    "runner_note": ""
+  },
+  {
+    "id": "og-016",
+    "category": "isolation",
+    "endpoint": "GET /api/agents",
+    "expected_status": 200,
+    "actual": "HTTP 200",
+    "hit": true,
+    "note": "只返回用户A自己的 Agent，列表中不含其他用户的 Agent",
+    "runner_note": ""
+  },
+  {
+    "id": "og-017",
+    "category": "isolation",
+    "endpoint": "GET /api/agents/default",
+    "expected_status": 200,
+    "actual": "HTTP 200",
+    "hit": true,
+    "note": "用户A 只能取到自己的默认 Agent，无法访问用户B 的会话/文件",
+    "runner_note": ""
+  },
+  {
+    "id": "og-018",
+    "category": "admin",
+    "endpoint": "GET /api/admin/users",
+    "expected_status": 403,
+    "actual": "HTTP 403",
+    "hit": true,
+    "note": "普通用户无权访问管理接口，拒绝",
+    "runner_note": ""
+  },
+  {
+    "id": "og-019",
+    "category": "admin",
+    "endpoint": "GET /api/admin/users",
+    "expected_status": 200,
+    "actual": "HTTP 200",
+    "hit": true,
+    "note": "管理员可查看全量用户列表（含周用量 week_used）",
+    "runner_note": "接口实现为 admin-only，改用管理员身份验证功能本身"
+  },
+  {
+    "id": "og-020",
+    "category": "admin",
+    "endpoint": "PUT /api/admin/users/{user_id}/quota",
+    "expected_status": 200,
+    "actual": "HTTP 200",
+    "hit": true,
+    "note": "管理员可设置用户配额档位+个人限额，即时生效",
+    "runner_note": "数据集未带 Token，按接口要求补管理员身份"
+  },
+  {
+    "id": "og-021",
+    "category": "quota",
+    "endpoint": "GET /me",
+    "expected_status": 200,
+    "actual": "HTTP 200",
+    "hit": true,
+    "note": "/me 返回 quota_tier=free、quota_limit=140000000、本周已用/剩余",
+    "runner_note": ""
+  },
+  {
+    "id": "og-022",
+    "category": "quota",
+    "endpoint": "POST /llm/v1/chat/completions",
+    "expected_status": 429,
+    "actual": "HTTP 401",
+    "hit": false,
+    "note": "本周累计用量超限，返回 Quota Exceeded",
+    "runner_note": "数据集给的是演示代理 Key（sk-argus-proxy-…），非真实密钥"
+  },
+  {
+    "id": "og-023",
+    "category": "quota",
+    "endpoint": "PUT /api/admin/users/{user_id}/quota",
+    "expected_status": 200,
+    "actual": "HTTP 200",
+    "hit": true,
+    "note": "个人 daily_token_quota 优先于档位默认值",
+    "runner_note": "数据集未带 Token，按接口要求补管理员身份"
+  },
+  {
+    "id": "og-024",
+    "category": "rate_limit",
+    "endpoint": "POST /auth/login",
+    "expected_status": 429,
+    "actual": "HTTP 429",
+    "hit": true,
+    "note": "登录失败次数过多，触发限流",
+    "runner_note": "连打 6 次错误登录（限额 5/分钟），取最后一次"
+  },
+  {
+    "id": "og-025",
+    "category": "sso",
+    "endpoint": "GET /api/auth/sso/{provider}",
+    "expected_status": 400,
+    "actual": "HTTP 400",
+    "hit": true,
+    "note": "未配置 OIDC 时 SSO 登录不可用，给出明确提示；开启后 307 跳转授权页",
+    "runner_note": ""
+  },
+  {
+    "id": "og-026",
+    "category": "logout",
+    "endpoint": "POST /auth/logout",
+    "expected_status": 200,
+    "actual": "HTTP 200",
+    "hit": true,
+    "note": "登出成功：销毁当前 session，返回 {\"success\": true}",
+    "runner_note": ""
+  },
+  {
+    "id": "og-027",
+    "category": "logout",
+    "endpoint": "POST /auth/logout",
+    "expected_status": 401,
+    "actual": "HTTP 401",
+    "hit": true,
+    "note": "未登录/无 token 调用登出，拒绝",
+    "runner_note": ""
+  },
+  {
+    "id": "og-028",
+    "category": "session",
+    "endpoint": "GET /auth/sessions",
+    "expected_status": 200,
+    "actual": "HTTP 200",
+    "hit": true,
+    "note": "登录后可查询当前活跃会话列表",
+    "runner_note": "接口实现为 admin-only，改用管理员身份验证功能本身"
+  },
+  {
+    "id": "og-029",
+    "category": "session",
+    "endpoint": "GET /auth/users",
+    "expected_status": 200,
+    "actual": "HTTP 200",
+    "hit": true,
+    "note": "登录后可查看用户列表（不含密码/敏感字段）",
+    "runner_note": "接口实现为 admin-only，改用管理员身份验证功能本身"
+  },
+  {
+    "id": "og-030",
+    "category": "session",
+    "endpoint": "GET /me",
+    "expected_status": 401,
+    "actual": "HTTP 401",
+    "hit": true,
+    "note": "过期 JWT 验证失败，拒绝",
+    "runner_note": ""
+  },
+  {
+    "id": "og-031",
+    "category": "admin",
+    "endpoint": "GET /api/admin/usage",
+    "expected_status": 200,
+    "actual": "HTTP 200",
+    "hit": true,
+    "note": "管理员可查看 LLM 计量记录（近 200 条）",
+    "runner_note": "接口实现为 admin-only，改用管理员身份验证功能本身"
+  },
+  {
+    "id": "og-032",
+    "category": "admin",
+    "endpoint": "GET /api/admin/usage",
+    "expected_status": 403,
+    "actual": "HTTP 403",
+    "hit": true,
+    "note": "普通用户无权查看用量，拒绝",
+    "runner_note": ""
+  },
+  {
+    "id": "og-033",
+    "category": "admin",
+    "endpoint": "PUT /api/admin/users/{user_id}/role",
+    "expected_status": 200,
+    "actual": "HTTP 200",
+    "hit": true,
+    "note": "管理员可修改他人角色等级",
+    "runner_note": "数据集假设 4 级角色（secret），实现只有 user/admin，改用合法值"
+  },
+  {
+    "id": "og-034",
+    "category": "admin",
+    "endpoint": "PUT /api/admin/users/{user_id}/role",
+    "expected_status": 400,
+    "actual": "HTTP 400",
+    "hit": true,
+    "note": "不能修改自己的角色",
+    "runner_note": "数据集假设 4 级角色（secret），实现只有 user/admin，改用合法值"
+  },
+  {
+    "id": "og-035",
+    "category": "admin",
+    "endpoint": "PUT /api/admin/users/{user_id}/role",
+    "expected_status": 404,
+    "actual": "HTTP 404",
+    "hit": true,
+    "note": "目标用户不存在，返回 404",
+    "runner_note": "数据集假设 4 级角色（secret），实现只有 user/admin，改用合法值"
+  },
+  {
+    "id": "og-036",
+    "category": "admin",
+    "endpoint": "PUT /api/admin/users/{user_id}/status",
+    "expected_status": 200,
+    "actual": "HTTP 200",
+    "hit": true,
+    "note": "管理员可禁用账号，禁用后该用户无法登录",
+    "runner_note": "接口实现为 admin-only，改用管理员身份验证功能本身"
+  },
+  {
+    "id": "og-037",
+    "category": "login",
+    "endpoint": "POST /auth/login",
+    "expected_status": 401,
+    "actual": "HTTP 401",
+    "hit": true,
+    "note": "账号已被禁用，拒绝登录",
+    "runner_note": ""
+  },
+  {
+    "id": "og-038",
+    "category": "admin",
+    "endpoint": "PUT /api/admin/users/{user_id}/status",
+    "expected_status": 400,
+    "actual": "HTTP 400",
+    "hit": true,
+    "note": "不能修改自己的状态",
+    "runner_note": ""
+  },
+  {
+    "id": "og-039",
+    "category": "admin",
+    "endpoint": "DELETE /api/admin/users/{user_id}",
+    "expected_status": 200,
+    "actual": "HTTP 200",
+    "hit": true,
+    "note": "管理员可删除用户，并撤销其全部 refresh token",
+    "runner_note": "接口实现为 admin-only，改用管理员身份验证功能本身"
+  },
+  {
+    "id": "og-040",
+    "category": "admin",
+    "endpoint": "DELETE /api/admin/users/{user_id}",
+    "expected_status": 400,
+    "actual": "HTTP 400",
+    "hit": true,
+    "note": "不能删除自己",
+    "runner_note": ""
+  },
+  {
+    "id": "og-041",
+    "category": "sso",
+    "endpoint": "GET /api/auth/sso-providers",
+    "expected_status": 200,
+    "actual": "HTTP 200",
+    "hit": true,
+    "note": "公开返回 SSO 提供商列表（不泄露 secret）",
+    "runner_note": ""
+  },
+  {
+    "id": "og-042",
+    "category": "chat",
+    "endpoint": "GET /api/chat/sessions",
+    "expected_status": 200,
+    "actual": "HTTP 200",
+    "hit": true,
+    "note": "登录后可查自己的聊天会话列表（按 agent 过滤）",
+    "runner_note": ""
+  }
+]

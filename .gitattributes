@@ -26,6 +26,6 @@
 package-lock.json  -diff linguist-generated
 go.sum             -diff
 
-# 明确标注生成物，GitHub 语言统计不会被前端构建产物带偏
+# 明确标注生成物，代码托管平台的语言统计不会被前端构建产物带偏
 gateway/web/dist/**  linguist-generated
 terminal/openclaw_adapter/plugins/argus-adapter/dist/**  linguist-generated

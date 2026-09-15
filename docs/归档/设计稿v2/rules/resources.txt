@@ -32,7 +32,7 @@ C:\Users\admin\AppData\*       | secret
 C:\Users\admin\.gitconfig      | secret
 C:\Program Files\*              | secret
 C:\Program Files (x86)\*        | secret
-E:\tiaozhanbei\MAC\*           | secret
+.\*          | secret
 E:\AI\*                         | secret
 E:\cyber\*                      | secret
 tool:write_file                | secret

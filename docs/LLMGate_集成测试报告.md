@@ -3,7 +3,7 @@
 - **测试时间**：2026-09-09 03:00 – 03:45
 - **被测范围**：LLMGate 服务端（Go/Gin，本次运行于 `http://127.0.0.1:8081`）+ Argus Python 后端（`http://127.0.0.1:8000`）+ argus-desktop Electron 桌面端
 - **测试方法**：脚本化接口全量测试（含 mock 上游大模型服务、进程重启验证、边界/异常注入）+ 数据库直查取证 + 前端与构建产物校验
-- **测试脚本**：`E:\tiaozhanbei\MAC\.tools\test_llmgate.py`（`setup` / `run` 两阶段）、`.tools\retest.py`（失败项复测）、结果明细 `.tools\test_results.json`
+- **测试脚本**：`.tools\test_llmgate.py`（`setup` / `run` 两阶段）、`.tools\retest.py`（失败项复测）、结果明细 `.tools\test_results.json`
 - **用例统计**：接口级用例 **76 项，通过 66，失败 10**；另有阶段一 2 项、边界/异常场景 12 项。
 - **失败 10 项定性（经复测）**：
 
@@ -364,7 +364,7 @@ security:
 
 ## 附录：复现与环境
 
-- 启动 LLMGate（本测试）：`cd E:\tiaozhanbei\MAC\LLMGate && llmgate.exe -config <config>`（必须用仓库根目录为工作目录，`migrations/` 与 `web/dist` 为相对路径）
+- 启动 LLMGate（本测试）：`cd LLMGate && llmgate.exe -config <config>`（必须用仓库根目录为工作目录，`migrations/` 与 `web/dist` 为相对路径）
 - 默认管理员：`admin` / `admin123`
 - 测试脚本：`.tools\test_llmgate.py`（`setup` 阶段建数据 → 重启服务 → `run` 阶段跑全量）、`.tools\retest.py`（单项复测）
 - 明细结果：`.tools\test_results.json`（含每个用例的方法、URL、状态码、响应片段）

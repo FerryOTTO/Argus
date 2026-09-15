@@ -1,0 +1,26 @@
+# Argus 用户规则
+# 格式: 用户名或ID | 默认等级 | 特例(逗号分隔,可选)
+
+u_public | public | 
+u_internal | internal | 
+u_secret | secret | 
+u_admin | top_secret | *
+usr_ePpDcZQ4vHXS9tEp | top_secret | *
+admin | top_secret | *
+usr_eppdczq4vhxs9tep-admin-bd414fc5 | top_secret | *
+usr_5BaN9wPdyWJXZhph | internal | 
+lisi | internal | 
+usr_5ban9wpdywjxzhph-lisi-501fab04 | internal | 
+usr_bvgjXvLMWPB9WNvZ | internal | 
+alice | internal | 
+usr_bvgjxvlmwpb9wnvz-alice-9cd5d86e | internal | 
+usr_xutbqkwzqaujbuxl-victim-user-e7f24560 | internal | 
+usr_w41OlURPd97CVriT | internal | 
+disabled_user | internal | 
+usr_w41olurpd97cvrit-disabled-user-31bc8de8 | internal | 
+usr_movNowWz2AIUQxwZ | internal | 
+zhangsan | internal | 
+usr_movnowwz2aiuqxwz-zhangsan-a9a0119e | internal | 
+usr_rG5fxT4GdmocJtFU | internal | 
+wangwu | internal | 
+usr_rg5fxt4gdmocjtfu-wangwu-3a5ce159 | internal | 

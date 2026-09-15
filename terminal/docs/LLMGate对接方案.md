@@ -1,6 +1,6 @@
 # Argus x LLMGate 对接方案（终端集控版）
 > 阅读对象：Argus 客户端 + 桌面端工程师；服务端由同学维护，本文只写客户端要做的事。
-> 契约来源：E:\tiaozhanbei\MAC\LLMGate\REMOTE.md + e2e_telemetry_test.sh + configs\config.yaml。
+> 契约来源：LLMGate\REMOTE.md + e2e_telemetry_test.sh + configs\config.yaml。
 > 目标：个人版不上报不拉配置；企业版用邀请码激活后被 LLMGate 纳管。日期 2026-09-09。
 > 三端默认地址：LLMGate http://127.0.0.1:8080，Argus http://127.0.0.1:8000。
 
@@ -8,9 +8,9 @@
 
 | 端 | 位置 | 现状 |
 |---|---|---|
-| LLMGate 服务端+控制台 | E:\tiaozhanbei\MAC\LLMGate，Go+Gin+SQLite+Vue | 遥测6接口+OpenAI兼容网关+管理台已实现，见 REMOTE 第3/7节 |
-| Argus 本体 | E:\tiaozhanbei\MAC\Argus，Python FastAPI | 有 /v1/audit/* 和 /v1/desktop/runtime，无 LLMGate 同步逻辑 |
-| 桌面壳 | E:\tiaozhanbei\MAC\argus-desktop，Electron+Vue | 个人工作台读本地8000，企业版内嵌 OpenGuard，未接 LLMGate |
+| LLMGate 服务端+控制台 | LLMGate，Go+Gin+SQLite+Vue | 遥测6接口+OpenAI兼容网关+管理台已实现，见 REMOTE 第3/7节 |
+| Argus 本体 | Argus，Python FastAPI | 有 /v1/audit/* 和 /v1/desktop/runtime，无 LLMGate 同步逻辑 |
+| 桌面壳 | argus-desktop，Electron+Vue | 个人工作台读本地8000，企业版内嵌 OpenGuard，未接 LLMGate |
 
 结论：缺一块企业同步器，建议放在 Python 侧（能读写审计 JSONL 和各配置文件），Electron 只展示不存 token。
 

@@ -6,7 +6,7 @@ Sandbox MCP Server — 为 OpenCode 提供沙箱化的工具调用
 实现所有命令执行和文件读取都在 Docker 沙箱容器中隔离运行。
 
 OpenCode 配置方法:
-  opencode mcp add sandbox --command "python3 C:/Users/18451/Desktop/__WORK/GG/sandbox/sandbox_mcp_server.py"
+  opencode mcp add sandbox --command "python3 ./sandbox_mcp/sandbox_mcp_server.py"
 """
 
 import sys

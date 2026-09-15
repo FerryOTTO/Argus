@@ -1,0 +1,4 @@
+u_public   | public     |
+u_internal | internal   |
+u_secret   | secret     |
+u_admin    | top_secret | *

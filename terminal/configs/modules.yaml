@@ -22,13 +22,26 @@ modules:
   tool_guard:
     enabled: true
     mode: import
+    # 意图裁判 LLM 未配置时按 on_error=block 处理（fail-closed），
+    # 会导致良性工具调用（如 read_file）也被拦成 llm_unconfigured。
+    # 默认指向本机 Ollama 的 OpenAI 兼容端点：离线可用、无需 api_key
+    # （configured() 对 localhost/127.0.0.1 不要求 key）。
+    # 也可改用云端：填 base_url + api_key，或用环境变量覆盖
+    # TOOL_GUARD_LLM_BASE_URL / TOOL_GUARD_LLM_API_KEY / TOOL_GUARD_LLM_MODEL。
     on_error: block
-    base_url: https://api.deepseek.com/v1
+    base_url: http://127.0.0.1:11434/v1
     api_key: ''
-    model: deepseek-v4-flash
-    block_threshold: 0.87
+    model: dolphin3:8b
+    # 语义：score 是“合规度”(越像用户真实意图越高)
+    #   score < block_threshold  -> block
+    #   block_threshold <= score < review_threshold -> human_review
+    #   score >= review_threshold -> allow
+    # 因此必须 block_threshold < review_threshold；
+    # 之前写 0.87(>0.7) 会让 human_review 分支永远不可达，
+    # 并把 0.4~0.87 的合法调用全部误判为 block。
+    block_threshold: 0.4
     review_threshold: 0.7
-    timeout_seconds: 30
+    timeout_seconds: 60
   retrieval_guard:
     enabled: true
     mode: import
@@ -36,7 +49,10 @@ modules:
     model_path: argus/modules/retrieval_guard/models/PIGuard
     guards:
       A: true
-      B: true
+      # B 层=PIGuard(torch 模型，约 738MB，见模块 README)。
+      # 权重/torch 未部署时必须关掉：B 层 import 失败会抛异常，
+      # 被 on_error=allow 兜成 module_error，并导致 C 层提示词包装也被跳过。
+      B: false
       C: true
   audit:
     enabled: true

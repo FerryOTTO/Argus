@@ -202,7 +202,7 @@ ALTER TABLE users ADD COLUMN specials TEXT NOT NULL DEFAULT '';
   我只动了上面那几行，不要误 revert。
  
 Step 8 restart plus strict re-verify, 2026-09-09 evening:
-- Go: machine had none, MSI quiet install stuck on elevation, used portable zip Go 1.27.0 at E:/tiaozhanbei/MAC/.tools/go-tmp/go, kept for future builds.
+- Go: machine had none, MSI quiet install stuck on elevation, used portable zip Go 1.27.0 at .tools/go-tmp/go, kept for future builds.
 - db.go: ExecWithRetry missed database/sql and time imports, added, go build ok to llmgate-new.exe 41MB, replaced llmgate.exe, old kept as llmgate-old.exe.
 - 8080 new process applied 011_identity.sql, users has security_level and specials, 11 migrations recorded.
 - B2 login JWT carries level, pass. B6 code one time reuse 401, pass. B8 key with usage deleted 200, pass. G online 5 of 5, pass. input allow plus exec block, pass.

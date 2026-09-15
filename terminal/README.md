@@ -315,14 +315,13 @@ Python 应显示 `3.11.x`。团队统一安装目标为 `3.11.9`。
 
 ## 5. 安装步骤
 
-### 5.1 克隆仓库
+### 5.1 准备代码
 
 ```powershell
-git clone https://github.com/WT-ever/Argus.git
 cd Argus
 ```
 
-仓库是私有仓库，需要先获得负责人邀请并登录有权限的 GitHub 账号。
+将 Argus 源码目录放到本地，然后在下面的命令中进入项目根目录。
 
 ### 5.2 创建虚拟环境
 
@@ -443,7 +442,7 @@ block > human_review > rewrite > allow
 
 - 不要在代码中写成员电脑的绝对路径；
 - 优先使用相对于项目根目录的路径；
-- 大模型权重不要提交 GitHub；
+- 大模型权重不要提交到代码仓库；
 - 在模块 README 中写清模型名称、下载方式和目标目录；
 - 访问控制规则放入 `argus/modules/access_control/rules/`。
 
@@ -634,7 +633,7 @@ git push -u origin module/io-guard
 - 日志和本地数据库；
 - 成员电脑的绝对路径。
 
-推送后在 GitHub 创建 Pull Request，请另一名成员或整合负责人检查后再合并到 `main`。
+推送后创建 Pull Request（合并请求），请另一名成员或整合负责人检查后再合并到 `main`。
 
 ### 8.5 合并前自检
 

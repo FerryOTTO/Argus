@@ -76,7 +76,7 @@ SHA-256 一致。
 
 - 分支：`module/audit-ui`
 - 实现提交：`9b9148151823baa65acaca7d1586aba400b71f1c`
-- PR：`https://github.com/WT-ever/Argus/pull/10`（Draft）
+- PR：#10（Draft）
 - 不合并 PR，不修改旧 PR #5。
 
 ## 7. 当前限制

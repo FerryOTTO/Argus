@@ -128,9 +128,9 @@ const telemetry = ref({
 })
 
 const quarantineItems = ref([
-  { ticket: 'TICK-9082', filename: 'e:/tiaozhanbei/MAC/.env.production', agent: 'OpenClaw-Worker', level: 'L4 绝密', timestamp: '2026-09-07 23:12:05' },
-  { ticket: 'TICK-9083', filename: 'e:/tiaozhanbei/MAC/config/jwt_rsa.key', agent: 'Auto-Builder', level: 'L4 绝密', timestamp: '2026-09-07 23:25:40' },
-  { ticket: 'TICK-9084', filename: 'e:/tiaozhanbei/MAC/scripts/reverse_shell.sh', agent: 'Unknown-Plugin', level: 'L4 绝密', timestamp: '2026-09-07 23:38:12' }
+  { ticket: 'TICK-9082', filename: './.env.production', agent: 'OpenClaw-Worker', level: 'L4 绝密', timestamp: '2026-09-07 23:12:05' },
+  { ticket: 'TICK-9083', filename: './config/jwt_rsa.key', agent: 'Auto-Builder', level: 'L4 绝密', timestamp: '2026-09-07 23:25:40' },
+  { ticket: 'TICK-9084', filename: './scripts/reverse_shell.sh', agent: 'Unknown-Plugin', level: 'L4 绝密', timestamp: '2026-09-07 23:38:12' }
 ])
 
 function saveTelemetry() {

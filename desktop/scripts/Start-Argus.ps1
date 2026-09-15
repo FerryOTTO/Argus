@@ -48,7 +48,7 @@ if (Test-Path -LiteralPath $portableNodeDir) {
     $env:Path = "$portableNodeDir;$env:Path"
 }
 
-# Windows 上 PATH 里第一个 python.exe 很可能是 Python 2.7（本机实测：F:\PYTHON2.7.18\python.exe），
+# Windows 上 PATH 里第一个 python.exe 很可能是 Python 2.7，
 # 所以不能"取第一个命中的"，必须逐个跑 --version 校验，只接受真正的 Python 3.10+。
 function Test-PythonExe {
     param([string]$Path)
@@ -149,31 +149,24 @@ function Repair-PortableOpenClawConfig {
     if (-not (Test-Path -LiteralPath $configPath)) { return }
     $raw = Get-Content -LiteralPath $configPath -Raw -Encoding UTF8
     $portableSecurityShield = Select-ExistingPath @(
-        (Join-Path $bundleRoot 'security-shield'),
-        'E:\tiaozhanbei\7\security-shield'
+        (Join-Path $bundleRoot 'security-shield')
     )
-    $replacements = @{
-        'E:/tiaozhanbei/7/security-shield' = if ($portableSecurityShield) { ($portableSecurityShield -replace '\\','/') } else { '' }
-        'E:\tiaozhanbei\7\security-shield' = if ($portableSecurityShield) { $portableSecurityShield } else { '' }
-        'E:/tiaozhanbei/MAC/security-shield' = if ($portableSecurityShield) { ($portableSecurityShield -replace '\\','/') } else { '' }
-        'E:\tiaozhanbei\MAC\security-shield' = if ($portableSecurityShield) { $portableSecurityShield } else { '' }
-        'G:/claw/security-shield' = if ($portableSecurityShield) { ($portableSecurityShield -replace '\\','/') } else { '' }
-        'G:\claw\security-shield' = if ($portableSecurityShield) { $portableSecurityShield } else { '' }
-        'C:/Users/admin/.openclaw' = ($stateDir -replace '\\','/')
-        'C:\Users\admin\.openclaw' = $stateDir
-        'G:/claw/openclaw-data' = ($stateDir -replace '\\','/')
-        'G:\claw\openclaw-data' = $stateDir
-    }
-    foreach ($oldPath in $replacements.Keys) { $raw = $raw.Replace($oldPath, $replacements[$oldPath]) }
     try {
         $config = $raw | ConvertFrom-Json
         # OpenClaw validates every configured plugin path even when that plugin
         # is disabled. Keep only paths that exist on this machine so an old
-        # developer-machine path cannot prevent the gateway from starting.
+        # developer-machine path cannot prevent the gateway from starting, and
+        # point the plugin back at this bundle's own copy when it is present.
         if ($config.plugins -and $config.plugins.load -and $null -ne $config.plugins.load.paths) {
-            $config.plugins.load.paths = @($config.plugins.load.paths | Where-Object {
+            $paths = @($config.plugins.load.paths | Where-Object {
                 $_ -and (Test-Path -LiteralPath ([string]$_))
             })
+            if ($portableSecurityShield) {
+                # 便携目录里有同名插件时，用它替换其它位置的副本，避免同时加载两份。
+                $paths = @($paths | Where-Object { [System.IO.Path]::GetFileName([string]$_) -ne 'security-shield' })
+                $paths += $portableSecurityShield
+            }
+            $config.plugins.load.paths = @($paths | Select-Object -Unique)
         }
         $config | ConvertTo-Json -Depth 100 | Set-Content -LiteralPath $configPath -Encoding UTF8
     }

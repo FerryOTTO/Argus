@@ -12,6 +12,8 @@ argus/modules/retrieval_guard/models/*
 !argus/modules/retrieval_guard/models/.gitkeep
 argus/modules/io_guard/original/models/
 argus/modules/io_guard/original/model_heads/*/
+# \u9636\u6bb5\u611f\u77e5\u5b57\u7b26\u5206\u7c7b\u5668\u6743\u91cd\uff08io_guard README \u58f0\u660e\u5df2\u968f\u4ed3\u5e93\u63d0\u4ea4\uff09
+!argus/modules/io_guard/original/model_heads/io-guard-stage-char-v3/
 argus/modules/io_guard/original/runtime/
 argus/modules/io_guard/original/work/
 

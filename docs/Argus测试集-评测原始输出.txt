@@ -1,5 +1,5 @@
 Argus 测试集 实测原始输出（2026-09-10）
-仓库: E:\tiaozhanbei\MAC\Argus
+仓库: Argus
 脚本: C:\Users\admin\Downloads\test\eval_dataset.py
 Python: C:\Users\admin\.workbuddy\binaries\python\envs\default\Scripts\python.exe
 
@@ -95,7 +95,7 @@ Python: C:\Users\admin\.workbuddy\binaries\python\envs\default\Scripts\python.ex
 
 [retrieval_guard] 运行失败：ModuleNotFoundError: No module named 'torch'
 Traceback (most recent call last):
-  File "E:\tiaozhanbei\MAC\_run_eval.py", line 46, in <module>
+  File "_run_eval.py", line 46, in <module>
     outcomes = E.RUNNERS[name](rows)
   File "C:\Users\admin\Downloads\test\eval_dataset.py", line 156, in run_retrieval_guard
     res = asyncio.run(adapter.run(req))
@@ -108,11 +108,11 @@ Traceback (most recent call last):
   File "C:\Users\admin\.workbuddy\binaries\python\versions\3.13.12\Lib\asyncio\base_events.py", line 725, in run_until_complete
     return future.result()
            ~~~~~~~~~~~~~^^
-  File "E:\tiaozhanbei\MAC\Argus\argus\adapters\retrieval_guard_adapter.py", line 84, in run
+  File "Argus\argus\adapters\retrieval_guard_adapter.py", line 84, in run
     from argus.modules.retrieval_guard.original.b_injection import InjectionGuard
-  File "E:\tiaozhanbei\MAC\Argus\argus\modules\retrieval_guard\original\b_injection\__init__.py", line 7, in <module>
+  File "Argus\argus\modules\retrieval_guard\original\b_injection\__init__.py", line 7, in <module>
     from .model import PIGuardModel
-  File "E:\tiaozhanbei\MAC\Argus\argus\modules\retrieval_guard\original\b_injection\model.py", line 6, in <module>
+  File "Argus\argus\modules\retrieval_guard\original\b_injection\model.py", line 6, in <module>
     import torch
 ModuleNotFoundError: No module named 'torch'
 

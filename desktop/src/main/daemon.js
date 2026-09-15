@@ -155,7 +155,7 @@ function resolvePowerShellExe() {
 }
 
 // Windows 上并非每台机器都装有 py.exe，也可能没有随包 Python；更要命的是
-// **PATH 上第一个 python.exe 有可能是 Python 2.7**（本机实测：F:\PYTHON2.7.18\python.exe）。
+// **PATH 上第一个 python.exe 有可能是 Python 2.7**，必须逐个校验版本后再使用。
 // 所以不能"取第一个命中的"，必须逐个探测版本，只接受真正可用的解释器。
 function resolveAllOnPath(names) {
   const out = []

@@ -1175,7 +1175,7 @@
   max-width: none;
 }
 
-/* The former horizontal product/GitHub bar is now the left module rail. */
+/* The former horizontal product bar is now the left module rail. */
 .landing-main .hero__bar {
   display: none;
 }

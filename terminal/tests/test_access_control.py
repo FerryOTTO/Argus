@@ -484,10 +484,16 @@ class TestV4Adapter:
 
     @staticmethod
     def test_adapter_unknown_user_default_level():
+        from argus.modules.access_control.original import auth_gateway as ag
         tmpdir, store, old = _setup_test_env()
+        saved_level = ag.DEFAULT_USER_LEVEL
         try:
+            # 个人版默认等级为 secret(3)（见 configs/access_local.json 的
+            # default_user_level）。这里显式固定该值，避免依赖本机运行时的
+            # access_local.json（企业端下发会覆写它）。
+            ag.DEFAULT_USER_LEVEL = 3
             adapter = AccessControlAdapter(risk_link_enabled=False)
-            # 未知用户默认 1 级
+            # 未知用户取默认等级：public(1)/internal(2) 放行，top_secret(4) 拦截
             req = {
                 "context": {"user_id": "anonymous_user", "stage": "tool_pre"},
                 "payload": {"tool_name": "query_weather"}
@@ -495,9 +501,13 @@ class TestV4Adapter:
             assert adapter.run_sync(req)["action"] == "allow"
 
             req["payload"]["tool_name"] = "read_file"
+            assert adapter.run_sync(req)["action"] == "allow"
+
+            req["payload"]["tool_name"] = "execute_bash"
             assert adapter.run_sync(req)["action"] == "block"
-            print("  ✓ 2.6 未知用户默认等级处理")
+            print("  ✓ 2.6 未知用户默认等级处理(secret)")
         finally:
+            ag.DEFAULT_USER_LEVEL = saved_level
             _teardown_test_env(tmpdir, old)
 
     @staticmethod
