@@ -121,7 +121,7 @@ $goCandidates += @(
     (Join-Path (Split-Path -Parent $root) '.tools\go-tmp\go\bin\go.exe')
 )
 $goCandidates += @('go')
-$go = Resolve-Tool $goCandidates '请先安装 Go 1.21+：https://go.dev/dl/，或设置 ARGUS_GO 指向 go.exe。'
+$go = Resolve-Tool $goCandidates '请先安装 Go 1.25+：https://go.dev/dl/，或设置 ARGUS_GO 指向 go.exe。'
 $py = Resolve-PythonTool
 $npm = Resolve-Tool @('npm.cmd', 'npm') '请先安装 Node.js 18+：https://nodejs.org/'
 
