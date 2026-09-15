@@ -150,7 +150,17 @@ def test_output_endpoint_rewrites_phone_disclosure() -> None:
     assert body["data"] == {"text": "你的电话是 [PHONE]"}
 
 
-def test_content_endpoint_runs_retrieval_then_io_guard() -> None:
+def test_content_endpoint_runs_retrieval_then_io_guard(monkeypatch) -> None:
+    # 本用例只验证「content 检查先跑 retrieval_guard、再跑 io_guard_context」这条链路。
+    # 若环境里部署了 PIGuard 权重，B 层会把该注入直接拦下并短路（该行为由
+    # test_retrieval_block_stops_before_io_guard_context 覆盖），故这里临时关掉 B 层，
+    # 让链路能完整走完 —— 使本用例与「是否部署 PIGuard」解耦。
+    from argus.core.registry import registry
+
+    retrieval = registry.get("retrieval_guard")
+    if retrieval is not None:
+        monkeypatch.setattr(retrieval, "_guard_b", False)
+
     response = CLIENT.post(
         "/v1/content/check",
         json=envelope(

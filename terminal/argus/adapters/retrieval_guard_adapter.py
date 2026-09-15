@@ -31,6 +31,7 @@ class RetrievalGuardAdapter(BaseAdapter):
         self._model_path = model_path
         self._url_guard = URLWhitelist()
         self._injection_guard = None            # 懒加载：第一次 run() 且 B 开启时创建
+        self._b_skip_reason = ''                # B 层降级原因（缺 torch/权重）
         self._load_lock = threading.Lock()      # 双检锁：防并发首次加载重复实例化
         self._wrapper = PromptWrapper()
         if self._guard_b:
@@ -43,8 +44,10 @@ class RetrievalGuardAdapter(BaseAdapter):
                 if self._injection_guard is None:
                     from argus.modules.retrieval_guard.original.b_injection import InjectionGuard
                     self._injection_guard = InjectionGuard(model_path=self._model_path)
-        except Exception:
-            pass  # 预热失败（无 torch/无模型）时，run() 的懒加载兜底会再次尝试并交给 on_error
+        except Exception as exc:
+            # 未见 torch / 未见 PIGuard 权重：降级为只跑 A+C，避免每次调用重试。
+            self._guard_b = False
+            self._b_skip_reason = str(exc)[:200]
 
     async def run(self, request: SecurityRequest) -> ModuleResult:
         payload = request.payload
@@ -81,17 +84,27 @@ class RetrievalGuardAdapter(BaseAdapter):
             if self._injection_guard is None:
                 with self._load_lock:
                     if self._injection_guard is None:
-                        from argus.modules.retrieval_guard.original.b_injection import InjectionGuard
-                        self._injection_guard = InjectionGuard(model_path=self._model_path)
-            result = await run_in_threadpool(self._injection_guard.check, check_text)
-            if not result["safe"]:
-                logger.warning("[retrieval_guard] B block score=%s", result["score"])
-                return ModuleResult(
-                    module=self.name, action="block",
-                    risk_score=result["score"],
-                    reason=f"prompt_injection score={result['score']}",
-                    details={"guard": "B", "hit_window": result.get("hit_window")},
-                )
+                        try:
+                            from argus.modules.retrieval_guard.original.b_injection import InjectionGuard
+                            self._injection_guard = InjectionGuard(model_path=self._model_path)
+                        except Exception as exc:
+                            # B 层不可用（缺 torch 或 PIGuard 权重）时降级为 A+C 继续，
+                            # 而不是抛异常被 on_error 兜成 module_error（那会连带跳过 C 层包装）。
+                            logger.warning(
+                                "[retrieval_guard] B guard unavailable, fallback to A+C: %s", exc
+                            )
+                            self._guard_b = False
+                            self._b_skip_reason = str(exc)[:200]
+            if self._guard_b:
+                result = await run_in_threadpool(self._injection_guard.check, check_text)
+                if not result["safe"]:
+                    logger.warning("[retrieval_guard] B block score=%s", result["score"])
+                    return ModuleResult(
+                        module=self.name, action="block",
+                        risk_score=result["score"],
+                        reason=f"prompt_injection score={result['score']}",
+                        details={"guard": "B", "hit_window": result.get("hit_window")},
+                    )
 
         # ── 适配器 C：提示词包装（原 POST /wrap，guards.C=false 则原样放行）──
         if not self._guard_c:

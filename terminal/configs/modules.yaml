@@ -50,9 +50,10 @@ modules:
     guards:
       A: true
       # B 层=PIGuard(torch 模型，约 738MB，见模块 README)。
-      # 权重/torch 未部署时必须关掉：B 层 import 失败会抛异常，
+      # 权重/torch 缺失时必须关掉：B 层 import/加载失败会抛异常，
       # 被 on_error=allow 兜成 module_error，并导致 C 层提示词包装也被跳过。
-      B: false
+      # 本机已放好权重、且解释器含 torch，故开启。
+      B: true
       C: true
   audit:
     enabled: true

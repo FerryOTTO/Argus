@@ -79,7 +79,12 @@ powershell -ExecutionPolicy Bypass -File .\start-argus.ps1
 
 | 项 | 不装的影响 | 安装方式 |
 |---|---|---|
-| **PIGuard 权重 + torch** | `retrieval_guard` 的 B 层（语义注入检测）不生效：随包已配 `guards.B: false`；评测集中依赖 B 层的 14 条会记为「未覆盖」而非判定失败 | `pip install -r terminal/argus/modules/retrieval_guard/requirements.txt`（torch/transformers），再从 HuggingFace `leolee99/PIGuard` 拉到 `terminal/argus/modules/retrieval_guard/models/PIGuard`，最后把 `modules.yaml` 的 `guards.B` 改回 `true` |
+| **PIGuard 权重（约 738MB）** | `retrieval_guard` 的 B 层（语义注入检测）不生效 → **自动降级为 A+C**（不报错、C 层包装照常）。评测集里依赖 B 层的 14 条会记为「未覆盖」，检索安全命中率约 63% | 从 `https://hf-mirror.com/leolee99/PIGuard` 拉到 `terminal/argus/modules/retrieval_guard/models/PIGuard`（**不提交 Git**）。仓库里 `modules.yaml` 已配 `guards.B: true`，权重到位即生效；本机实测开启后检索安全 **63.3% → 71.4%** |
+| torch / transformers | 同上（B 层依赖） | `pip install -r terminal/argus/modules/retrieval_guard/requirements.txt` |
+
+> **B 层是可插拔的**：`retrieval_guard_adapter` 在「缺 torch 或缺权重」时会打一条 warn 日志并自动降级为 A(URL 白名单)+C(提示词包装)，**不会**让整个 content 检查失败。因此有/无权重两种环境都能跑，只是检测强度不同。
+>
+> **完整交付包** `Argus-完整包-含PIGuard-<日期>.zip` 已内置该权重；轻量包 `Argus-交付包-<日期>.zip` 不含。
 | 网关管理台前端产物 | 已随仓库提交（`gateway/web/dist`，`go:embed` 需要），**无需额外构建** | — |
 
 ### 运行期自动生成（无需准备，首次启动自动创建）
