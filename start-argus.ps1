@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Argus 一键启动脚本（Windows PowerShell）。
 
@@ -42,10 +42,44 @@ function Write-Step {
 function Resolve-Tool {
     param([string[]]$Names, [string]$Hint)
     foreach ($name in $Names) {
+        if (-not $name) { continue }
+        # 允许直接传可执行文件的路径（例如随仓库分发的便携版 Go）。
+        if ($name -match '[\\/]') {
+            if (Test-Path -LiteralPath $name) { return (Resolve-Path -LiteralPath $name).Path }
+            continue
+        }
         $cmd = Get-Command $name -ErrorAction SilentlyContinue | Select-Object -First 1
         if ($cmd) { return $cmd.Source }
     }
     throw "找不到 $($Names -join ' / ')。$Hint"
+}
+
+# 只接受真正的 Python 3.10+：本机 PATH 里第一个 python.exe 很可能是 Python 2.7。
+function Test-Python310 {
+    param([string]$Exe)
+    if (-not $Exe) { return $false }
+    try {
+        $raw = (& $Exe --version) 2>&1 | Select-Object -First 1
+        if ([string]$raw -notmatch 'Python\s+(\d+)\.(\d+)') { return $false }
+        $major = [int]$Matches[1]
+        $minor = [int]$Matches[2]
+        return (($major -gt 3) -or (($major -eq 3) -and ($minor -ge 10)))
+    } catch { return $false }
+}
+
+function Resolve-PythonTool {
+    foreach ($cand in @($env:ARGUS_PYTHON, 'py', 'python', 'python3')) {
+        if (-not $cand) { continue }
+        $exe = $null
+        if ($cand -match '[\\/]') {
+            if (Test-Path -LiteralPath $cand) { $exe = (Resolve-Path -LiteralPath $cand).Path }
+        } else {
+            $cmd = Get-Command $cand -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($cmd) { $exe = $cmd.Source }
+        }
+        if ($exe -and (Test-Python310 $exe)) { return $exe }
+    }
+    throw '找不到 Python 3.10+。请安装 Python 3（https://www.python.org/downloads/），或设置 ARGUS_PYTHON 指向 python.exe。'
 }
 
 function Test-LocalPort {
@@ -79,8 +113,16 @@ $Command
 }
 
 # ─────────────────────────────── 前置检查 ───────────────────────────────
-$go = Resolve-Tool @('go')            '请先安装 Go 1.21+：https://go.dev/dl/'
-$py = Resolve-Tool @('py', 'python')  '请先安装 Python 3.10+：https://www.python.org/downloads/'
+# Go：优先随仓库分发的便携版（本机实测系统 PATH 里没有 go），再回退到 PATH。
+$goCandidates = @($env:ARGUS_GO)
+$goCandidates += @(
+    (Join-Path $root 'tools\go\bin\go.exe'),
+    (Join-Path $root '.tools\go-tmp\go\bin\go.exe'),
+    (Join-Path (Split-Path -Parent $root) '.tools\go-tmp\go\bin\go.exe')
+)
+$goCandidates += @('go')
+$go = Resolve-Tool $goCandidates '请先安装 Go 1.21+：https://go.dev/dl/，或设置 ARGUS_GO 指向 go.exe。'
+$py = Resolve-PythonTool
 $npm = Resolve-Tool @('npm.cmd', 'npm') '请先安装 Node.js 18+：https://nodejs.org/'
 
 Write-Host ''

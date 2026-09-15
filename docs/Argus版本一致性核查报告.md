@@ -22,7 +22,7 @@
 
 | 载体 | 身份 | 文件数 | 快照时间 | 判定 |
 |---|---|---|---|---|
-| `Argus` | git 仓(remote `WT-ever/ClawguardV2.1`),HEAD `5c022e1` | 290 | 09-10 **09:30–09:37** | **A = 最新** ⭐ |
+| `Argus` | git 仓(remote `WT-ever/Argus`),HEAD `5c022e1` | 290 | 09-10 **09:30–09:37** | **A = 最新** ⭐ |
 | `release/v1.0test/enterprise/terminal` | 我们的发布包 | 263 | 09-10 12:50 | **C = 与 A 一致** ✅ |
 | `release/v1.0test/enterprise/desktop/Argus` | 我们的发布包(桌面) | 246 | 09-10 12:50 | 与 A 一致 ✅ |
 | `LLMGate/terminal` | git 仓(`jingwenMC/LLMGate`)的子目录 | 273 | 09-07 ~ 09-10 03:06 | **B = 落后** ⚠️ |

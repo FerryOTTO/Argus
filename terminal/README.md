@@ -318,7 +318,7 @@ Python 应显示 `3.11.x`。团队统一安装目标为 `3.11.9`。
 ### 5.1 克隆仓库
 
 ```powershell
-git clone https://github.com/WT-ever/ClawguardV2.1.git
+git clone https://github.com/WT-ever/Argus.git
 cd Argus
 ```
 

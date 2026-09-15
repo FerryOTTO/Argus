@@ -35,7 +35,7 @@ function firstExistingPath(candidates, fallback) {
 // The bundle layout used to be `Argus/` + `LLMGate/`. The Argus
 // monorepo renamed them to `terminal/` + `gateway/`. Both names are probed so
 // this build also works with bundles produced by the older packaging scripts.
-const BACKEND_DIR_NAMES = ['terminal', 'ClawguardV2.1']
+const BACKEND_DIR_NAMES = ['terminal', 'Argus']
 const GATEWAY_DIR_NAMES = ['gateway', 'LLMGate']
 
 function expandDirCandidates(bases, names) {

@@ -1,6 +1,6 @@
 # Argus V2.1 工作交接总结（已整理 NextAI 版）
 
-> 仓库：E:/tiaozhanbei/MAC/Argus（git 真仓库） 远端 https://github.com/WT-ever/ClawguardV2.1.git
+> 仓库：E:/tiaozhanbei/MAC/Argus（git 真仓库） 远端 https://github.com/WT-ever/Argus.git
 > 分支：main 长期，module/xxx 短期，当前 main=origin/main 5417039，48 提交，241 测试通过
 > 拉取：git fetch origin && git merge origin/main --ff-only
 
@@ -62,7 +62,7 @@
 ## 原文（UTF-8 已校验）
 `
 以下是我这一路工作全过程的交接总结，纯文字，直接复制给下一个 AI。
-仓库位置：E:\tiaozhanbei\MAC\Argus（这是真正的 git 仓库，根目录有 .git） 注意：E:\tiaozhanbei\MAC\Argus-main 是旧解压目录，不要用。 远程仓库：[https://github.com/WT-ever/ClawguardV2.1.git](https://github.com/WT-ever/ClawguardV2.1.git) 分支规范：main 为长期分支，各成员用 module/xxx 短期分支，合入后删除。 当前 main 已同步到 origin/main 最新（提交 5417039 fix: preserve audit and media plugin initialization），48 个提交已合并，全量测试 241 个全部通过。 拉取命令：git fetch origin，然后 git merge origin/main --ff-only。 我之前的 module/access-control 分支上 20 个提交已经全部进入 origin/main，该分支相对 origin/main 已无独有内容。
+仓库位置：E:\tiaozhanbei\MAC\Argus（这是真正的 git 仓库，根目录有 .git） 注意：E:\tiaozhanbei\MAC\Argus-main 是旧解压目录，不要用。 远程仓库：[https://github.com/WT-ever/Argus.git](https://github.com/WT-ever/Argus.git) 分支规范：main 为长期分支，各成员用 module/xxx 短期分支，合入后删除。 当前 main 已同步到 origin/main 最新（提交 5417039 fix: preserve audit and media plugin initialization），48 个提交已合并，全量测试 241 个全部通过。 拉取命令：git fetch origin，然后 git merge origin/main --ff-only。 我之前的 module/access-control 分支上 20 个提交已经全部进入 origin/main，该分支相对 origin/main 已无独有内容。
 用户 → OpenGuard(:3000) → Bridge(:18080) → OpenClaw(:18789) → Argus(:8000)
 - OpenGuard：用户认证 + Web 聊天页面，在 openguard/original/ 目录，FastAPI + JWT。
 - Bridge：node bridge.js，用 Ed25519 设备认证连 OpenClaw WebSocket。

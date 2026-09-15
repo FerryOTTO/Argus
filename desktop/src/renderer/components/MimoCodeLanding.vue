@@ -319,6 +319,14 @@ function appendStartupDaemonLog(entry) {
  ])
  const checkingServices = ref(false)
 const checkingIndex = ref(-1)
+// 服务状态重试/轮询参数（OpenClaw 启动较慢，首轮探测常扑空）
+const SERVICE_RECHECK_INTERVAL_MS = 2000
+const SERVICE_RECHECK_MAX = 20
+const SERVICE_POLL_INTERVAL_MS = 5000
+let serviceRecheckTimer = null
+let serviceRecheckCount = 0
+let servicePollTimer = null
+let serviceVisibilityHandler = null
 const readyServices = computed(() => serviceStatuses.value.filter(service => service.ready).length)
 const arrowStyle = computed(() => ({ transform: 'rotate(' + (checkingIndex.value * 120 - 60) + 'deg)' }))
 const statusRingStyle = computed(() => {
@@ -335,24 +343,70 @@ async function probeService(service) {
     return false
   }
 }
+// 首轮检测带一次动画；此后全部静默，避免观测本身打扰界面。
+async function probeAllServices(animate) {
+  let daemonStatus = null
+  try { daemonStatus = await window.electronAPI?.getDaemonStatus?.() } catch { daemonStatus = null }
+  const statusKeys = ['build', 'fastapi', 'openclaw']
+  let allReady = true
+  for (let index = 0; index < serviceStatuses.value.length; index += 1) {
+    const service = serviceStatuses.value[index]
+    if (animate) { checkingIndex.value = index; service.state = 'checking' }
+    const detected = daemonStatus ? Boolean(daemonStatus[statusKeys[index]]) : await probeService(service)
+    const ready = animate
+      ? await new Promise(resolve => setTimeout(() => resolve(detected), index === 0 ? 650 : 780))
+      : detected
+    service.ready = ready
+    service.state = ready ? 'ready' : 'failed'
+    if (!ready) allReady = false
+  }
+  if (animate) checkingIndex.value = -1
+  return allReady
+}
+
 async function startServiceChecks() {
   if (checkingServices.value) return
   checkingServices.value = true
   serviceStatuses.value.forEach(service => { service.ready = false; service.state = 'checking' })
-  let daemonStatus = null
-  try { daemonStatus = await window.electronAPI?.getDaemonStatus?.() } catch { daemonStatus = null }
-  const statusKeys = ['build', 'fastapi', 'openclaw']
-  for (let index = 0; index < serviceStatuses.value.length; index += 1) {
-    checkingIndex.value = index
-    const service = serviceStatuses.value[index]
-    const detected = daemonStatus ? Boolean(daemonStatus[statusKeys[index]]) : await probeService(service)
-    const ready = await new Promise(resolve => setTimeout(() => resolve(detected), index === 0 ? 650 : 780))
-    service.ready = ready
-    service.state = ready ? 'ready' : 'failed'
-  }
+  const allReady = await probeAllServices(true)
   await new Promise(resolve => setTimeout(resolve, 300))
   checkingIndex.value = -1
   checkingServices.value = false
+  serviceRecheckCount = 0
+  scheduleServiceRecheck(allReady)
+  startServicePolling()
+}
+
+// OpenClaw 由守护进程在应用启动后异步拉起（实测比 Electron 主进程晚 3s 以上），
+// 首轮探测经常扑空。这里在未全部就绪时静默重试，直到就绪或超过上限。
+function scheduleServiceRecheck(allReady) {
+  if (serviceRecheckTimer) { window.clearTimeout(serviceRecheckTimer); serviceRecheckTimer = null }
+  if (allReady || serviceRecheckCount >= SERVICE_RECHECK_MAX) return
+  serviceRecheckCount += 1
+  serviceRecheckTimer = window.setTimeout(async () => {
+    serviceRecheckTimer = null
+    let ok = false
+    try { ok = await probeAllServices(false) } catch { ok = false }
+    scheduleServiceRecheck(ok)
+  }, SERVICE_RECHECK_INTERVAL_MS)
+}
+
+// 后台静默轮询：服务中途退出/恢复时，面板也能反映真实状态。
+function startServicePolling() {
+  if (servicePollTimer) return
+  servicePollTimer = window.setInterval(async () => {
+    if (checkingServices.value) return
+    try { await probeAllServices(false) } catch { /* 忽略瞬时探测失败 */ }
+  }, SERVICE_POLL_INTERVAL_MS)
+  // 窗口被遮挡/最小化时，Chromium（Electron 默认 backgroundThrottling）
+  // 会节流定时器，导致状态面板更新迟滞。回到前台时立即补一次检测。
+  serviceVisibilityHandler = () => {
+    if (document.visibilityState !== 'visible') return
+    if (checkingServices.value) return
+    probeAllServices(false).catch(() => {})
+  }
+  document.addEventListener('visibilitychange', serviceVisibilityHandler)
+  window.addEventListener('focus', serviceVisibilityHandler)
 }
 const providerStorageKey = 'argus.providers.v1'
 // 个人版真相源：本机 OpenClaw 配置文件（~/.openclaw/openclaw.json）的 models.providers。
@@ -886,6 +940,12 @@ onUnmounted(() => {
   cancelAnimationFrame(animationFrame)
   daemonLogCleanup?.()
   clearTimeout(copyTimer)
+  if (serviceRecheckTimer) window.clearTimeout(serviceRecheckTimer)
+  if (servicePollTimer) window.clearInterval(servicePollTimer)
+  if (serviceVisibilityHandler) {
+    document.removeEventListener('visibilitychange', serviceVisibilityHandler)
+    window.removeEventListener('focus', serviceVisibilityHandler)
+  }
   typingTimers.forEach((timer) => clearTimeout(timer))
   typingTimers = []
   titleObserver?.disconnect()

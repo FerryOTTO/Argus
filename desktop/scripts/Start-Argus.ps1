@@ -6,7 +6,7 @@ $projectDir = Split-Path -Parent $PSScriptRoot
 $bundleRoot = Split-Path -Parent $projectDir
 # The Argus monorepo calls the backend `terminal/`; `Argus/` is the
 # historical name kept so older portable bundles still start.
-$backendDir = @('terminal', 'ClawguardV2.1') |
+$backendDir = @('terminal', 'Argus') |
     ForEach-Object { Join-Path $bundleRoot $_ } |
     Where-Object { Test-Path -LiteralPath $_ } |
     Select-Object -First 1
@@ -48,13 +48,76 @@ if (Test-Path -LiteralPath $portableNodeDir) {
     $env:Path = "$portableNodeDir;$env:Path"
 }
 
-$pythonExe = Select-ExistingPath @(
-    $env:ARGUS_PYTHON,
-    $portablePythonExe,
-    (Get-Command python.exe -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty Source),
-    (Get-Command py.exe -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty Source)
-)
-if (-not $pythonExe) { throw 'Python was not found. Install Python (or set ARGUS_PYTHON, or put a portable copy in ..\python).' }
+# Windows 上 PATH 里第一个 python.exe 很可能是 Python 2.7（本机实测：F:\PYTHON2.7.18\python.exe），
+# 所以不能"取第一个命中的"，必须逐个跑 --version 校验，只接受真正的 Python 3.10+。
+function Test-PythonExe {
+    param([string]$Path)
+    if (-not $Path -or -not (Test-Path -LiteralPath $Path)) { return $false }
+    try {
+        $raw = (& $Path --version) 2>&1 | Select-Object -First 1
+        $match = [regex]::Match([string]$raw, 'Python\s+(\d+)\.(\d+)')
+        if (-not $match.Success) { return $false }
+        $major = [int]$match.Groups[1].Value
+        $minor = [int]$match.Groups[2].Value
+        return (($major -gt 3) -or (($major -eq 3) -and ($minor -ge 10)))
+    }
+    catch { return $false }
+}
+
+function Test-BackendDeps {
+    param([string]$Path)
+    if (-not $Path) { return $false }
+    try {
+        $probe = 'import fastapi, uvicorn, pydantic, yaml, httpx, networkx, aiosqlite, apscheduler, bcrypt, jwt, websockets, numpy, docx, fitz, openpyxl, PIL, joblib, sklearn, dotenv, jinja2, aiofiles, faker'
+        & $Path -c $probe 2>$null | Out-Null
+        return ($LASTEXITCODE -eq 0)
+    }
+    catch { return $false }
+}
+
+function Resolve-PythonExe {
+    $candidates = New-Object System.Collections.Generic.List[string]
+    foreach ($p in @($env:ARGUS_PYTHON, $portablePythonExe)) {
+        if ($p) {
+            $p = ([string]$p).Trim()
+            if ($p -and -not $candidates.Contains($p)) { $candidates.Add($p) }
+        }
+    }
+    foreach ($name in @('python3.exe', 'python3', 'python.exe', 'python')) {
+        foreach ($cmd in @(Get-Command $name -All -ErrorAction SilentlyContinue)) {
+            $src = [string]$cmd.Source
+            if ($src -and -not $candidates.Contains($src)) { $candidates.Add($src) }
+        }
+    }
+    # 第一轮：优先挑「版本合格 + 后端依赖齐全」的解释器。否则本机会误选到
+    # 其它项目遗留的 venv（版本够，但没装 Argus 的依赖，uvicorn 起不来）。
+    foreach ($candidate in $candidates) {
+        if ((Test-PythonExe -Path $candidate) -and (Test-BackendDeps -Path $candidate)) {
+            return (Resolve-Path -LiteralPath $candidate).Path
+        }
+    }
+    # 第二轮：只要求版本合格（首次安装、依赖尚未安装时的回退）。
+    foreach ($candidate in $candidates) {
+        if (Test-PythonExe -Path $candidate) { return (Resolve-Path -LiteralPath $candidate).Path }
+    }
+    # py 启动器兜底：问 py -3 要真正的解释器路径，避免它的默认版本是 2.7 时选错。
+    $pyLauncher = Get-Command py.exe -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty Source
+    if (-not $pyLauncher) {
+        $pyLauncher = Get-Command py -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty Source
+    }
+    if ($pyLauncher) {
+        try {
+            $real = (& $pyLauncher -3 -c "import sys; print(sys.executable)") 2>&1 | Select-Object -First 1
+            $real = ([string]$real).Trim()
+            if ($real -and (Test-PythonExe -Path $real)) { return (Resolve-Path -LiteralPath $real).Path }
+        }
+        catch { }
+    }
+    return $null
+}
+
+$pythonExe = Resolve-PythonExe
+if (-not $pythonExe) { throw 'Python 3.10+ was not found. Install Python 3, or set ARGUS_PYTHON, or put a portable copy in ..\python.' }
 
 $nodeExe = Select-ExistingPath @(
     $env:ARGUS_NODE,
